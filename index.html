@@ -8,8 +8,12 @@
 <style>
   :root {
     --bg: #f3f6f9; --card: #ffffff; --ink: #1f2a37; --muted: #6b7280;
-    --primary: #0e7c86; --primary-dark: #0a5b63; --line: #e5e9ef;
+    --primary: #0e7c86; --primary-dark: #0a5b63; --accent: #2dd4bf; --line: #e5e9ef;
     --ok: #15803d; --warn: #b45309; --danger: #b91c1c; --chip: #eef4f5;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1620; --card: #111f2b; --ink: #e6eef2; --muted: #93a4b3;
+    --line: #233543; --chip: #16323a;
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -20,7 +24,7 @@
   button.ghost { background: transparent; color: var(--primary); border: 1px solid var(--line); }
   button.ghost:hover { background: var(--chip); }
   input, select, textarea { font: inherit; width: 100%; padding: 10px 12px; border: 1px solid var(--line);
-           border-radius: 8px; background: #fff; color: var(--ink); }
+           border-radius: 8px; background: var(--card); color: var(--ink); }
   label { display: block; font-size: .85rem; color: var(--muted); margin: 12px 0 4px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
           padding: 20px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
@@ -36,56 +40,92 @@
 
   /* Login – split layout */
   #login-view { min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; }
-  .login-hero { position: relative; overflow: hidden; color: #fff; padding: 56px 52px;
-    background: linear-gradient(150deg, #0e7c86 0%, #0a5b63 55%, #073e43 100%);
-    display: flex; flex-direction: column; justify-content: space-between; }
-  .login-hero .logo { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.35rem; }
   .logo-mark { display: block; flex: none; filter: drop-shadow(0 4px 10px rgba(8,60,66,.25)); }
   .brand .logo-mark { width: 30px; height: 30px; }
-  .login-hero .logo .logo-mark { width: 46px; height: 46px; }
-  .hero-headline { font-size: 2.15rem; line-height: 1.12; font-weight: 800; margin: 0 0 14px; letter-spacing: -.02em; }
-  .hero-sub { opacity: .88; font-size: 1.02rem; max-width: 34ch; margin: 0; }
-  .hero-features { list-style: none; padding: 0; margin: 30px 0 0; display: grid; gap: 14px; }
-  .hero-features li { display: flex; gap: 12px; align-items: center; }
-  .hero-features .tick { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,.18);
-    display: grid; place-items: center; flex: none; font-size: .8rem; }
-  .hero-blob { position: absolute; border-radius: 50%; background: #fff; opacity: .10; }
-  .hero-foot { opacity: .65; font-size: .8rem; }
 
-  .login-panel { display: grid; place-items: center; padding: 32px; }
-  .login-box { width: 100%; max-width: 400px; animation: rise .5s ease both; }
+  .login-hero { position: relative; overflow: hidden; color: #fff; padding: 52px 56px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background:
+      radial-gradient(1100px 480px at 82% -12%, rgba(45,212,191,.28), transparent 60%),
+      linear-gradient(150deg, #0e7c86 0%, #0a5b63 52%, #063a40 100%); }
+  .login-hero::after { content: ""; position: absolute; top: 30px; right: 44px; width: 200px; height: 130px;
+    opacity: .6; background-image: radial-gradient(rgba(255,255,255,.4) 1.4px, transparent 1.5px);
+    background-size: 16px 16px;
+    -webkit-mask-image: linear-gradient(120deg, #000, transparent 75%); mask-image: linear-gradient(120deg, #000, transparent 75%); }
+  .hero-top { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+  .login-hero .logo-mark { width: 46px; height: 46px; }
+  .wordmark { font-weight: 800; font-size: 1.45rem; letter-spacing: -.01em; }
+  .wordmark b { color: var(--accent); }
+  .hero-headline { font-size: 2.5rem; line-height: 1.1; font-weight: 800; margin: 0 0 16px; letter-spacing: -.02em; }
+  .hero-headline .accent { color: var(--accent); }
+  .hero-sub { opacity: .85; font-size: 1.05rem; max-width: 32ch; margin: 0 0 34px; }
+  .feats { display: grid; gap: 20px; }
+  .feat { display: flex; gap: 14px; align-items: center; }
+  .feat .fic { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,.12);
+    display: grid; place-items: center; flex: none; }
+  .feat .ft { font-weight: 700; }
+  .feat .fs { opacity: .78; font-size: .9rem; }
+  .hero-foot { display: flex; align-items: center; gap: 10px; }
+  .hero-foot .fs { opacity: .7; font-size: .78rem; }
+
+  .login-panel { position: relative; display: grid; place-items: center; padding: 32px; background: var(--bg); }
+  .theme-toggle { position: absolute; top: 22px; right: 26px; }
+  .theme-toggle button { background: var(--card); color: var(--ink); border: 1px solid var(--line);
+    padding: 8px 14px; font-size: .85rem; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+  .theme-toggle button:hover { background: var(--chip); }
+  .auth-card { width: 100%; max-width: 440px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 18px; padding: 34px; box-shadow: 0 20px 44px rgba(16,24,40,.10); animation: rise .5s ease both; }
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  .login-box h1 { font-size: 1.6rem; margin: 0 0 4px; }
-  .login-box .lead { color: var(--muted); margin: 0 0 22px; }
-  .field { position: relative; margin-bottom: 6px; }
-  .field > input { padding-left: 42px; height: 48px; border-radius: 10px; }
-  .field .ic { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted);
+  .pill { display: inline-block; background: var(--chip); color: var(--primary-dark); font-weight: 700;
+    font-size: .78rem; padding: 6px 12px; border-radius: 999px; }
+  .auth-card h1 { font-size: 1.7rem; margin: 14px 0 4px; }
+  .auth-card .lead { color: var(--muted); margin: 0 0 22px; }
+  .field { position: relative; margin-bottom: 4px; }
+  .field > input { padding-left: 44px; height: 50px; border-radius: 11px; }
+  .field .ic { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted);
     display: grid; place-items: center; pointer-events: none; }
   .field .toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none;
-    color: var(--muted); padding: 7px; border-radius: 8px; }
+    color: var(--muted); padding: 8px; border-radius: 8px; }
   .field .toggle:hover { background: var(--chip); }
-  .btn-primary { width: 100%; height: 48px; border-radius: 10px; font-size: 1rem; margin-top: 12px;
-    box-shadow: 0 8px 18px rgba(14,124,134,.30); }
-  .demo-hint { margin-top: 16px; font-size: .84rem; color: var(--muted); text-align: center; }
-  .advanced { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
-  .advanced summary { cursor: pointer; color: var(--muted); font-size: .84rem; list-style: none; }
-  .advanced summary::-webkit-details-marker { display: none; }
-  @media (max-width: 860px) { #login-view { grid-template-columns: 1fr; } .login-hero { display: none; } }
+  .remember-row { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 2px; font-size: .9rem; }
+  .remember-row label { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--ink); cursor: pointer; }
+  .remember-row input { width: auto; accent-color: var(--primary); }
+  .link { color: var(--primary); font-weight: 600; text-decoration: none; cursor: pointer;
+    background: none; border: none; padding: 0; font: inherit; }
+  .link:hover { text-decoration: underline; }
+  .btn-primary { width: 100%; height: 50px; border-radius: 11px; font-size: 1rem; margin-top: 14px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, #12a594, #0a5b63); box-shadow: 0 10px 22px rgba(14,124,134,.30); }
+  .btn-primary:hover { filter: brightness(1.06); background: linear-gradient(135deg, #12a594, #0a5b63); }
+  .divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .82rem; margin: 18px 0; }
+  .divider::before, .divider::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+  .btn-outline { width: 100%; height: 48px; border-radius: 11px; background: transparent; color: var(--primary-dark);
+    border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; }
+  .btn-outline:hover { background: var(--chip); }
+  :root[data-theme="dark"] .btn-outline { color: var(--ink); }
+  .demo-hint { margin-top: 18px; font-size: .84rem; color: var(--muted); text-align: center; }
+  .demo-hint.small { margin-top: 6px; }
+  .trust { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; margin-top: 24px;
+    color: var(--muted); font-size: .8rem; }
+  .trust span { display: flex; align-items: center; gap: 6px; }
+  .api-link { display: block; text-align: center; margin-top: 12px; font-size: .8rem; color: var(--muted); }
+  .company-form { margin-top: 12px; display: grid; gap: 8px; }
+  @media (max-width: 900px) { #login-view { grid-template-columns: 1fr; } .login-hero { display: none; } }
 
   /* App shell */
-  header { background: #fff; border-bottom: 1px solid var(--line); padding: 12px 20px;
+  header { background: var(--card); border-bottom: 1px solid var(--line); padding: 12px 20px;
            display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 5; }
   header .who { margin-left: auto; text-align: right; line-height: 1.2; }
   header .who .name { font-weight: 600; }
   header .who .role { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
   nav { display: flex; gap: 8px; padding: 16px 20px 0; max-width: 1000px; margin: 0 auto; }
   nav button { background: transparent; color: var(--muted); border: 1px solid transparent; }
-  nav button.active { background: #fff; color: var(--ink); border-color: var(--line); }
+  nav button.active { background: var(--card); color: var(--ink); border-color: var(--line); }
   main { max-width: 1000px; margin: 0 auto; padding: 16px 20px 60px; }
   h2 { margin: 8px 0 16px; font-size: 1.15rem; }
 
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-  .kpi { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
   .kpi .val { font-size: 1.8rem; font-weight: 800; }
   .kpi .lbl { color: var(--muted); font-size: .82rem; margin-top: 4px; }
 
@@ -116,34 +156,49 @@
 <!-- LOGIN -->
 <section id="login-view">
   <aside class="login-hero">
-    <div class="hero-blob" style="width:300px;height:300px;top:-70px;right:-50px"></div>
-    <div class="hero-blob" style="width:200px;height:200px;bottom:30px;left:-60px"></div>
-    <div class="logo">
+    <div class="hero-top">
       <svg class="logo-mark" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#pa-g)" />
         <rect x="1" y="1" width="38" height="38" rx="11" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.2" />
         <path transform="translate(8,8)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#fff" />
       </svg>
-      PflegeAssist
+      <span class="wordmark">Pflege<b>Assist</b></span>
     </div>
+
     <div>
-      <h2 class="hero-headline">Zeit für Pflege<br/>statt Bürokratie.</h2>
-      <p class="hero-sub">Dokumentation einfach einsprechen – die KI erstellt den Pflegebericht, die Leitung gibt ihn frei.</p>
-      <ul class="hero-features">
-        <li><span class="tick">✓</span> Sprachdokumentation in Sekunden</li>
-        <li><span class="tick">✓</span> Risiken &amp; Aufgaben automatisch erkannt</li>
-        <li><span class="tick">✓</span> DSGVO-konform, Hosting in der EU</li>
-      </ul>
+      <h1 class="hero-headline">Zeit für Pflege.<br/>Nicht für <span class="accent">Bürokratie.</span></h1>
+      <p class="hero-sub">Sprachdokumentation, die Pflegekräfte entlastet und Leitungen den Überblick gibt.</p>
+      <div class="feats">
+        <div class="feat">
+          <span class="fic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></span>
+          <div><div class="ft">Sprachdokumentation in Sekunden</div><div class="fs">Schnell, einfach und überall.</div></div>
+        </div>
+        <div class="feat">
+          <span class="fic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg></span>
+          <div><div class="ft">Risiken &amp; Aufgaben automatisch erkannt</div><div class="fs">KI unterstützt, was wirklich wichtig ist.</div></div>
+        </div>
+        <div class="feat">
+          <span class="fic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+          <div><div class="ft">DSGVO-konform &amp; sicher gehostet</div><div class="fs">Ihre Daten in besten Händen – in der EU.</div></div>
+        </div>
+      </div>
     </div>
-    <div class="hero-foot">© PflegeAssist</div>
+
+    <div class="hero-foot">
+      <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#123a8f"/><text x="12" y="16" text-anchor="middle" font-size="9" font-weight="700" fill="#ffcc00" font-family="system-ui">EU</text></svg>
+      <div><div>Gehostet in der EU</div><div class="fs">DSGVO-konform</div></div>
+    </div>
   </aside>
 
   <div class="login-panel">
-    <div class="login-box">
-      <h1>Willkommen zurück</h1>
-      <p class="lead">Melde dich an, um fortzufahren.</p>
+    <div class="theme-toggle"><button id="theme-btn" onclick="toggleTheme()">☀︎ Hell</button></div>
 
-      <label>E-Mail</label>
+    <div class="auth-card">
+      <span class="pill">Willkommen zurück</span>
+      <h1>Melden Sie sich an</h1>
+      <p class="lead">Schön, dass Sie wieder da sind.</p>
+
+      <label>E-Mail-Adresse</label>
       <div class="field">
         <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
         <input id="email" type="email" value="maria@demo.local" autocomplete="username" placeholder="name@einrichtung.de" />
@@ -156,17 +211,42 @@
         <button type="button" class="toggle" onclick="togglePw()" aria-label="Passwort anzeigen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
 
-      <button class="btn-primary" onclick="doLogin()">Anmelden</button>
-      <div class="err" id="login-err"></div>
-      <div class="demo-hint">Demo-Zugang: <strong>maria@demo.local</strong> · <strong>demo123</strong></div>
+      <div class="remember-row">
+        <label><input type="checkbox" id="remember" checked /> Angemeldet bleiben</label>
+        <button class="link" onclick="forgotPassword()">Passwort vergessen?</button>
+      </div>
 
-      <details class="advanced">
-        <summary>⚙︎ Server-Adresse (API) ändern</summary>
-        <div class="row" style="margin-top:10px">
-          <input id="api-base" class="grow" placeholder="z. B. https://…onrender.com" />
-          <button class="ghost" onclick="saveApi()">Speichern</button>
-        </div>
-      </details>
+      <button class="btn-primary" onclick="doLogin()">Anmelden
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </button>
+      <div class="err" id="login-err"></div>
+
+      <div class="divider">oder</div>
+      <button class="btn-outline" onclick="toggleCompany()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 8h.01M15 8h.01M9 12h.01M15 12h.01M9 16h6"/></svg>
+        Neue Einrichtung registrieren
+      </button>
+
+      <div class="company-form hidden" id="company-form">
+        <input id="c-company" placeholder="Name der Einrichtung" />
+        <input id="c-name" placeholder="Ihr Name" />
+        <input id="c-email" type="email" placeholder="E-Mail" />
+        <input id="c-pass" type="password" placeholder="Passwort" />
+        <button class="btn-primary" style="margin-top:2px" onclick="companySignup()">Registrieren &amp; starten</button>
+      </div>
+
+      <div class="demo-hint">Demo-Zugang: <strong>maria@demo.local</strong> · <strong>demo123</strong></div>
+      <div class="demo-hint small">Noch kein Konto? <button class="link" onclick="toggleCompany()">Einrichtung registrieren</button></div>
+
+      <div class="trust">
+        <span>🔒 Sicher &amp; verschlüsselt</span>
+        <span>🛡️ DSGVO-konform</span>
+        <span>❤️ Entwickelt für die Pflege</span>
+      </div>
+      <button class="link api-link" onclick="toggleApi()">⚙︎ Server-Adresse (API) ändern</button>
+      <div class="company-form hidden" id="api-row">
+        <div class="row"><input id="api-base" class="grow" placeholder="z. B. https://…onrender.com" /><button class="ghost" onclick="saveApi()">Speichern</button></div>
+      </div>
     </div>
   </div>
 </section>
@@ -241,6 +321,9 @@
   let user = JSON.parse(localStorage.getItem('pa_user') || 'null');
   let lastReportId = null;
 
+  const savedTheme = localStorage.getItem('pa_theme');
+  if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
   document.getElementById('api-base').value = API;
 
   function saveApi() {
@@ -255,6 +338,39 @@
   function togglePw() {
     const p = document.getElementById('password');
     p.type = p.type === 'password' ? 'text' : 'password';
+  }
+  function val(id) { return document.getElementById(id).value.trim(); }
+  function toggleCompany() { document.getElementById('company-form').classList.toggle('hidden'); }
+  function toggleApi() { document.getElementById('api-row').classList.toggle('hidden'); }
+  function updateThemeBtn() {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const b = document.getElementById('theme-btn');
+    if (b) b.textContent = dark ? '☾ Dunkel' : '☀︎ Hell';
+  }
+  function toggleTheme() {
+    const root = document.documentElement;
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('pa_theme', next);
+    updateThemeBtn();
+  }
+  async function forgotPassword() {
+    const email = val('email') || (prompt('E-Mail für Passwort-Reset:') || '').trim();
+    if (!email) return;
+    try {
+      const r = await api('/api/v1/password-reset/request', { method: 'POST', auth: false, body: { email } });
+      flash('login-err', r.message || 'Falls ein Konto existiert, wurde eine E-Mail versendet.', false);
+    } catch (e) { flash('login-err', e.message); }
+  }
+  async function companySignup() {
+    const body = { company_name: val('c-company'), admin_full_name: val('c-name'), admin_email: val('c-email'), password: val('c-pass') };
+    if (!body.company_name || !body.admin_email || !body.password) { flash('login-err', 'Bitte alle Felder ausfüllen.'); return; }
+    try {
+      const r = await api('/api/v1/onboarding/company-signup', { method: 'POST', auth: false, body });
+      token = r.access_token; user = r.user;
+      localStorage.setItem('pa_token', token); localStorage.setItem('pa_user', JSON.stringify(user));
+      enterApp();
+    } catch (e) { flash('login-err', e.message); }
   }
 
   async function api(path, { method='GET', body, auth=true } = {}) {
@@ -369,6 +485,7 @@
   function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
   // Auto-enter if a valid session exists
+  updateThemeBtn();
   if (token && user) enterApp();
 </script>
 </body>
