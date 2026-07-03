@@ -4,6 +4,16 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PflegeAssist</title>
+<script>
+  // Selbstreinigung: entfernt fremde/veraltete Service-Worker + Caches auf dieser Domain,
+  // damit keine andere App (gleicher github.io-Ursprung) diese Seite überlagert.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }).catch(function () {});
+  }
+  if ('caches' in window) {
+    caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+  }
+</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PHJlY3Qgd2lkdGg9JzMyJyBoZWlnaHQ9JzMyJyByeD0nOCcgZmlsbD0nIzBlN2M4NicvPjxwYXRoIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDQsNCknIGQ9J00xMiAyMS4zNWwtMS40NS0xLjMyQzUuNCAxNS4zNiAyIDEyLjI4IDIgOC41IDIgNS40MiA0LjQyIDMgNy41IDNjMS43NCAwIDMuNDEuODEgNC41IDIuMDlDMTMuMDkgMy44MSAxNC43NiAzIDE2LjUgMyAxOS41OCAzIDIyIDUuNDIgMjIgOC41YzAgMy43OC0zLjQgNi44Ni04LjU1IDExLjU0TDEyIDIxLjM1eicgZmlsbD0nI2ZmZicvPjwvc3ZnPg==" />
 <style>
   :root {
