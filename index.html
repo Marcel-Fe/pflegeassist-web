@@ -68,6 +68,11 @@
   .hero-foot { display: flex; align-items: center; gap: 10px; }
   .hero-foot .fs { opacity: .7; font-size: .78rem; }
 
+  .login-hero > div { position: relative; z-index: 1; }
+  .hero-art { position: absolute; right: -22px; bottom: 48px; width: min(44%, 380px); height: auto; z-index: 0; pointer-events: none;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,.25)); }
+  @media (max-width: 1100px) { .hero-art { opacity: .35; } }
+
   .login-panel { position: relative; display: grid; place-items: center; padding: 32px; background: var(--bg); }
   .theme-toggle { position: absolute; top: 22px; right: 26px; }
   .theme-toggle button { background: var(--card); color: var(--ink); border: 1px solid var(--line);
@@ -128,6 +133,16 @@
   .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
   .kpi .val { font-size: 1.8rem; font-weight: 800; }
   .kpi .lbl { color: var(--muted); font-size: .82rem; margin-top: 4px; }
+  .kpi .kicon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 8px; }
+
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; flex: none;
+    background: linear-gradient(135deg, #12a594, #0a5b63); color: #fff;
+    display: grid; place-items: center; font-weight: 700; font-size: .85rem; }
+  .icon-btn { background: var(--card); color: var(--ink); border: 1px solid var(--line);
+    padding: 8px 12px; font-size: .84rem; font-weight: 600; }
+  .icon-btn:hover { background: var(--chip); }
+  @media (max-width: 620px) { header .who { display: none; } }
 
   .list { list-style: none; padding: 0; margin: 0; }
   .list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
@@ -188,10 +203,43 @@
       <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#123a8f"/><text x="12" y="16" text-anchor="middle" font-size="9" font-weight="700" fill="#ffcc00" font-family="system-ui">EU</text></svg>
       <div><div>Gehostet in der EU</div><div class="fs">DSGVO-konform</div></div>
     </div>
+
+    <svg class="hero-art" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="300" cy="120" r="120" fill="#ffffff" opacity=".06" />
+      <circle cx="150" cy="330" r="90" fill="#ffffff" opacity=".05" />
+      <g transform="translate(96,74)">
+        <rect x="0" y="0" width="150" height="270" rx="26" fill="#ffffff" opacity=".14" />
+        <rect x="10" y="12" width="130" height="246" rx="18" fill="#063a40" opacity=".45" />
+        <g fill="#ffffff">
+          <rect x="30" y="150" width="8" height="40" rx="4" opacity=".85" />
+          <rect x="46" y="128" width="8" height="84" rx="4" opacity=".9" />
+          <rect x="62" y="108" width="8" height="124" rx="4" />
+          <rect x="78" y="134" width="8" height="72" rx="4" opacity=".9" />
+          <rect x="94" y="118" width="8" height="104" rx="4" />
+          <rect x="110" y="150" width="8" height="40" rx="4" opacity=".85" />
+        </g>
+        <circle cx="75" cy="238" r="17" fill="#ffffff" />
+        <path d="M75 229a5 5 0 0 1 5 5v4a5 5 0 0 1-10 0v-4a5 5 0 0 1 5-5z" fill="#0e7c86" />
+      </g>
+      <g transform="translate(206,92)">
+        <rect x="0" y="0" width="176" height="122" rx="16" fill="#ffffff" />
+        <circle cx="27" cy="30" r="13" fill="#12a594" />
+        <path d="M22 30l4 4 7-8" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="50" y="23" width="104" height="8" rx="4" fill="#0f172a" opacity=".14" />
+        <rect x="50" y="39" width="72" height="8" rx="4" fill="#0f172a" opacity=".10" />
+        <rect x="22" y="66" width="132" height="7" rx="3.5" fill="#0f172a" opacity=".08" />
+        <rect x="22" y="82" width="132" height="7" rx="3.5" fill="#0f172a" opacity=".08" />
+        <rect x="22" y="98" width="94" height="7" rx="3.5" fill="#0f172a" opacity=".08" />
+      </g>
+      <g transform="translate(304,252)">
+        <circle cx="0" cy="0" r="30" fill="#2dd4bf" />
+        <path transform="translate(-12,-12)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#063a40" />
+      </g>
+    </svg>
   </aside>
 
   <div class="login-panel">
-    <div class="theme-toggle"><button id="theme-btn" onclick="toggleTheme()">☀︎ Hell</button></div>
+    <div class="theme-toggle"><button class="theme-btn" onclick="toggleTheme()">☀︎ Hell</button></div>
 
     <div class="auth-card">
       <span class="pill">Willkommen zurück</span>
@@ -259,13 +307,17 @@
         <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#pa-g)" />
         <path transform="translate(8,8)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#fff" />
       </svg>
-      PflegeAssist
+      <span class="wordmark" style="font-size:1.15rem">Pflege<b style="color:var(--primary)">Assist</b></span>
     </div>
-    <div class="who">
-      <div class="name" id="h-name">–</div>
-      <div class="role" id="h-role">–</div>
+    <div class="header-right">
+      <button class="icon-btn theme-btn" onclick="toggleTheme()">☀︎ Hell</button>
+      <div class="avatar" id="h-avatar">–</div>
+      <div class="who">
+        <div class="name" id="h-name">–</div>
+        <div class="role" id="h-role">–</div>
+      </div>
+      <button class="ghost" onclick="logout()">Abmelden</button>
     </div>
-    <button class="ghost" onclick="logout()">Abmelden</button>
   </header>
   <nav>
     <button id="tab-dash" class="active" onclick="showTab('dash')">Dashboard</button>
@@ -344,8 +396,7 @@
   function toggleApi() { document.getElementById('api-row').classList.toggle('hidden'); }
   function updateThemeBtn() {
     const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const b = document.getElementById('theme-btn');
-    if (b) b.textContent = dark ? '☾ Dunkel' : '☀︎ Hell';
+    document.querySelectorAll('.theme-btn').forEach(b => b.textContent = dark ? '☾ Dunkel' : '☀︎ Hell');
   }
   function toggleTheme() {
     const root = document.documentElement;
@@ -410,6 +461,8 @@
     document.getElementById('app-view').classList.remove('hidden');
     document.getElementById('h-name').textContent = user.full_name || user.email;
     document.getElementById('h-role').textContent = ({pdl:'Pflegedienstleitung', org_admin:'Administration', caregiver:'Pflegekraft', super_admin:'Super-Admin'})[user.role] || user.role;
+    document.getElementById('h-avatar').textContent = (user.full_name || user.email || '?')
+      .split(/\s+/).map(s => s[0]).slice(0, 2).join('').toUpperCase();
     document.getElementById('tab-dash').classList.toggle('hidden', !isManager());
     showTab(isManager() ? 'dash' : 'doc');
     loadClients();
@@ -423,16 +476,29 @@
     document.getElementById('tab-doc').classList.toggle('active', t === 'doc');
   }
 
-  const KPI_LABELS = {
-    active_clients: 'Aktive Klienten', visits_today: 'Einsätze heute',
-    open_documentation: 'Offene Doku', open_risks: 'Offene Risiken',
-    open_tasks: 'Offene Aufgaben', ai_costs_today_eur: 'KI-Kosten heute (€)'
+  const SVG = {
+    users: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>',
+    calendar: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+    doc: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>',
+    alert: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+    check: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+    euro: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 21a8 8 0 1 1 0-16"/><path d="M4 11h9M4 15h8"/></svg>'
+  };
+  const KPI_META = {
+    active_clients: { label: 'Aktive Klienten', color: '#0e7c86', icon: SVG.users },
+    visits_today: { label: 'Einsätze heute', color: '#2563eb', icon: SVG.calendar },
+    open_documentation: { label: 'Offene Doku', color: '#b45309', icon: SVG.doc },
+    open_risks: { label: 'Offene Risiken', color: '#b91c1c', icon: SVG.alert },
+    open_tasks: { label: 'Offene Aufgaben', color: '#7c3aed', icon: SVG.check },
+    ai_costs_today_eur: { label: 'KI-Kosten heute (€)', color: '#15803d', icon: SVG.euro }
   };
   async function loadDashboard() {
     try {
       const d = await api('/api/v1/dashboard/pdl');
-      document.getElementById('kpis').innerHTML = Object.entries(d.kpis)
-        .map(([k, v]) => `<div class="kpi"><div class="val">${v}</div><div class="lbl">${KPI_LABELS[k] || k}</div></div>`).join('');
+      document.getElementById('kpis').innerHTML = Object.entries(d.kpis).map(([k, v]) => {
+        const m = KPI_META[k] || { label: k, color: '#0e7c86', icon: '' };
+        return `<div class="kpi"><div class="kicon" style="background:${m.color}1a;color:${m.color}">${m.icon}</div><div class="val">${v}</div><div class="lbl">${m.label}</div></div>`;
+      }).join('');
       document.getElementById('risks').innerHTML = d.risks.length
         ? d.risks.map(r => `<li><span class="chip ${r.level}">${r.level}</span><span class="grow">${esc(r.title)}</span></li>`).join('')
         : '<li class="muted">Keine offenen Risiken.</li>';
