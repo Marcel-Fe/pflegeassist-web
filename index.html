@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PflegeAssist</title>
+<style>
+  :root {
+    --bg: #f3f6f9; --card: #ffffff; --ink: #1f2a37; --muted: #6b7280;
+    --primary: #0e7c86; --primary-dark: #0a5b63; --line: #e5e9ef;
+    --ok: #15803d; --warn: #b45309; --danger: #b91c1c; --chip: #eef4f5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         background: var(--bg); color: var(--ink); }
+  button { font: inherit; cursor: pointer; border: none; border-radius: 8px; padding: 10px 16px;
+           background: var(--primary); color: #fff; font-weight: 600; }
+  button:hover { background: var(--primary-dark); }
+  button.ghost { background: transparent; color: var(--primary); border: 1px solid var(--line); }
+  button.ghost:hover { background: var(--chip); }
+  input, select, textarea { font: inherit; width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+           border-radius: 8px; background: #fff; color: var(--ink); }
+  label { display: block; font-size: .85rem; color: var(--muted); margin: 12px 0 4px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+          padding: 20px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .muted { color: var(--muted); }
+  .row { display: flex; gap: 12px; align-items: center; }
+  .grow { flex: 1; }
+  .hidden { display: none !important; }
+  .err { color: var(--danger); font-size: .9rem; margin-top: 8px; min-height: 1em; }
+
+  /* Login */
+  #login-view { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+  #login-view .card { width: 100%; max-width: 380px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.25rem; }
+  .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); }
+  .tagline { color: var(--muted); font-size: .9rem; margin: 4px 0 18px; }
+
+  /* App shell */
+  header { background: #fff; border-bottom: 1px solid var(--line); padding: 12px 20px;
+           display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 5; }
+  header .who { margin-left: auto; text-align: right; line-height: 1.2; }
+  header .who .name { font-weight: 600; }
+  header .who .role { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  nav { display: flex; gap: 8px; padding: 16px 20px 0; max-width: 1000px; margin: 0 auto; }
+  nav button { background: transparent; color: var(--muted); border: 1px solid transparent; }
+  nav button.active { background: #fff; color: var(--ink); border-color: var(--line); }
+  main { max-width: 1000px; margin: 0 auto; padding: 16px 20px 60px; }
+  h2 { margin: 8px 0 16px; font-size: 1.15rem; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .kpi { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .kpi .val { font-size: 1.8rem; font-weight: 800; }
+  .kpi .lbl { color: var(--muted); font-size: .82rem; margin-top: 4px; }
+
+  .list { list-style: none; padding: 0; margin: 0; }
+  .list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .list li:last-child { border-bottom: none; }
+  .chip { font-size: .72rem; padding: 3px 8px; border-radius: 999px; background: var(--chip); color: var(--primary-dark); font-weight: 600; }
+  .chip.warn { background: #fef3c7; color: var(--warn); }
+  .chip.hoch, .chip.kritisch { background: #fee2e2; color: var(--danger); }
+  .stack { display: grid; gap: 16px; }
+  .report { white-space: pre-wrap; background: var(--chip); border-radius: 10px; padding: 14px; }
+  .banner { background: #fff8e6; border: 1px solid #f5e2b3; color: #7a5b12; padding: 10px 14px;
+            border-radius: 10px; font-size: .88rem; margin-bottom: 16px; }
+  .api-row { font-size: .8rem; }
+  a { color: var(--primary-dark); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="login-view">
+  <div class="card">
+    <div class="brand"><span class="dot"></span> PflegeAssist</div>
+    <div class="tagline">Zeit für Pflege statt Bürokratie.</div>
+    <label>E-Mail</label>
+    <input id="email" type="email" value="maria@demo.local" autocomplete="username" />
+    <label>Passwort</label>
+    <input id="password" type="password" value="demo123" autocomplete="current-password" />
+    <div style="height:16px"></div>
+    <button class="grow" style="width:100%" onclick="doLogin()">Anmelden</button>
+    <div class="err" id="login-err"></div>
+    <div style="margin-top:16px" class="api-row muted">
+      <label style="margin:0 0 4px">Server-Adresse (API)</label>
+      <div class="row">
+        <input id="api-base" class="grow" placeholder="z. B. https://…onrender.com" />
+        <button class="ghost" onclick="saveApi()">Speichern</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="app-view" class="hidden">
+  <header>
+    <div class="brand"><span class="dot"></span> PflegeAssist</div>
+    <div class="who">
+      <div class="name" id="h-name">–</div>
+      <div class="role" id="h-role">–</div>
+    </div>
+    <button class="ghost" onclick="logout()">Abmelden</button>
+  </header>
+  <nav>
+    <button id="tab-dash" class="active" onclick="showTab('dash')">Dashboard</button>
+    <button id="tab-doc" onclick="showTab('doc')">Dokumentation</button>
+  </nav>
+  <main>
+    <div class="banner">Demo-Modus: Die KI läuft als kostenlose Simulation (Mock). Es entstehen keine KI-Kosten.</div>
+
+    <!-- DASHBOARD -->
+    <section id="dash" class="stack">
+      <div class="row"><h2 class="grow">Übersicht</h2><button class="ghost" onclick="loadDashboard()">Aktualisieren</button></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="card">
+        <h2>Offene Risiken</h2>
+        <ul class="list" id="risks"><li class="muted">–</li></ul>
+      </div>
+      <div class="card">
+        <h2>Offene Aufgaben</h2>
+        <ul class="list" id="tasks"><li class="muted">–</li></ul>
+      </div>
+    </section>
+
+    <!-- DOCUMENTATION -->
+    <section id="doc" class="stack hidden">
+      <h2>Pflege dokumentieren</h2>
+      <div class="card">
+        <label>Klient/in</label>
+        <select id="doc-client"></select>
+        <label>Was ist passiert? (gesprochener Text)</label>
+        <textarea id="doc-transcript" rows="4" placeholder="z. B. Frau Schmidt wirkte beim Aufstehen unsicher und klagte über Schwindel."></textarea>
+        <div style="height:12px"></div>
+        <button onclick="createDraft()">KI-Bericht erstellen</button>
+        <div class="err" id="doc-err"></div>
+      </div>
+      <div class="card hidden" id="draft-card">
+        <h2>KI-Entwurf <span class="chip" id="draft-status">draft</span></h2>
+        <div class="report" id="draft-report"></div>
+        <div id="draft-risks" style="margin-top:12px"></div>
+        <div id="draft-tasks" style="margin-top:8px"></div>
+        <div style="height:14px"></div>
+        <button id="confirm-btn" class="hidden" onclick="confirmDraft()">Freigeben (PDL)</button>
+        <span id="confirm-note" class="muted"></span>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  let API = localStorage.getItem('pa_api') || params.get('api') || '';
+  if (!API && ['localhost','127.0.0.1'].includes(location.hostname)) API = location.origin;
+  let token = localStorage.getItem('pa_token') || '';
+  let user = JSON.parse(localStorage.getItem('pa_user') || 'null');
+  let lastReportId = null;
+
+  document.getElementById('api-base').value = API;
+
+  function saveApi() {
+    API = document.getElementById('api-base').value.trim().replace(/\/$/, '');
+    localStorage.setItem('pa_api', API);
+    flash('login-err', API ? 'Server-Adresse gespeichert.' : 'Server-Adresse geleert.', false);
+  }
+  function flash(id, msg, isError=true) {
+    const el = document.getElementById(id); el.textContent = msg;
+    el.style.color = isError ? 'var(--danger)' : 'var(--ok)';
+  }
+
+  async function api(path, { method='GET', body, auth=true } = {}) {
+    if (!API) throw new Error('Bitte zuerst die Server-Adresse (API) angeben.');
+    const headers = { 'Content-Type': 'application/json' };
+    if (auth && token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(API + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || ('Fehler ' + res.status));
+    return data;
+  }
+
+  async function doLogin() {
+    flash('login-err', '');
+    try {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const r = await api('/api/v1/auth/login', { method: 'POST', auth: false, body: { email, password } });
+      token = r.access_token; user = r.user;
+      localStorage.setItem('pa_token', token);
+      localStorage.setItem('pa_user', JSON.stringify(user));
+      enterApp();
+    } catch (e) { flash('login-err', e.message); }
+  }
+
+  function logout() {
+    token = ''; user = null;
+    localStorage.removeItem('pa_token'); localStorage.removeItem('pa_user');
+    document.getElementById('app-view').classList.add('hidden');
+    document.getElementById('login-view').classList.remove('hidden');
+  }
+
+  function isManager() { return user && ['pdl', 'org_admin'].includes(user.role); }
+
+  function enterApp() {
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('app-view').classList.remove('hidden');
+    document.getElementById('h-name').textContent = user.full_name || user.email;
+    document.getElementById('h-role').textContent = ({pdl:'Pflegedienstleitung', org_admin:'Administration', caregiver:'Pflegekraft', super_admin:'Super-Admin'})[user.role] || user.role;
+    document.getElementById('tab-dash').classList.toggle('hidden', !isManager());
+    showTab(isManager() ? 'dash' : 'doc');
+    loadClients();
+    if (isManager()) loadDashboard();
+  }
+
+  function showTab(t) {
+    document.getElementById('dash').classList.toggle('hidden', t !== 'dash');
+    document.getElementById('doc').classList.toggle('hidden', t !== 'doc');
+    document.getElementById('tab-dash').classList.toggle('active', t === 'dash');
+    document.getElementById('tab-doc').classList.toggle('active', t === 'doc');
+  }
+
+  const KPI_LABELS = {
+    active_clients: 'Aktive Klienten', visits_today: 'Einsätze heute',
+    open_documentation: 'Offene Doku', open_risks: 'Offene Risiken',
+    open_tasks: 'Offene Aufgaben', ai_costs_today_eur: 'KI-Kosten heute (€)'
+  };
+  async function loadDashboard() {
+    try {
+      const d = await api('/api/v1/dashboard/pdl');
+      document.getElementById('kpis').innerHTML = Object.entries(d.kpis)
+        .map(([k, v]) => `<div class="kpi"><div class="val">${v}</div><div class="lbl">${KPI_LABELS[k] || k}</div></div>`).join('');
+      document.getElementById('risks').innerHTML = d.risks.length
+        ? d.risks.map(r => `<li><span class="chip ${r.level}">${r.level}</span><span class="grow">${esc(r.title)}</span></li>`).join('')
+        : '<li class="muted">Keine offenen Risiken.</li>';
+      document.getElementById('tasks').innerHTML = d.tasks.length
+        ? d.tasks.map(t => `<li><span class="chip">${esc(t.priority)}</span><span class="grow">${esc(t.title)}</span></li>`).join('')
+        : '<li class="muted">Keine offenen Aufgaben.</li>';
+    } catch (e) { document.getElementById('kpis').innerHTML = `<div class="muted">${esc(e.message)}</div>`; }
+  }
+
+  async function loadClients() {
+    try {
+      const list = await api('/api/v1/clients');
+      document.getElementById('doc-client').innerHTML = list.length
+        ? list.map(c => `<option value="${c.id}">${esc(c.last_name)}, ${esc(c.first_name)}${c.care_level ? ' – ' + esc(c.care_level) : ''}</option>`).join('')
+        : '<option value="">(keine Klienten – bitte anlegen)</option>';
+    } catch (e) { document.getElementById('doc-err').textContent = e.message; }
+  }
+
+  async function createDraft() {
+    flash('doc-err', '');
+    const client_id = document.getElementById('doc-client').value;
+    const transcript = document.getElementById('doc-transcript').value.trim();
+    if (!client_id) { flash('doc-err', 'Bitte einen Klienten wählen.'); return; }
+    try {
+      const d = await api('/api/v1/documentation/draft', { method: 'POST', body: { client_id, transcript: transcript || null } });
+      lastReportId = d.report_id;
+      document.getElementById('draft-card').classList.remove('hidden');
+      document.getElementById('draft-status').textContent = d.status;
+      document.getElementById('draft-report').textContent = d.pflegebericht + (d.uebergabe ? '\n\nÜbergabe: ' + d.uebergabe : '');
+      document.getElementById('draft-risks').innerHTML = (d.risiko_hinweise || [])
+        .map(r => `<div><span class="chip ${r.level}">Risiko: ${r.level}</span> ${esc(r.title)}</div>`).join('');
+      document.getElementById('draft-tasks').innerHTML = (d.aufgaben || [])
+        .map(t => `<div><span class="chip">Aufgabe</span> ${esc(t.title)}</div>`).join('');
+      const btn = document.getElementById('confirm-btn'), note = document.getElementById('confirm-note');
+      if (isManager()) { btn.classList.remove('hidden'); note.textContent = ''; }
+      else { btn.classList.add('hidden'); note.textContent = 'Zur Freigabe an die Pflegedienstleitung.'; }
+    } catch (e) { flash('doc-err', e.message); }
+  }
+
+  async function confirmDraft() {
+    try {
+      const r = await api('/api/v1/documentation/confirm', { method: 'POST', body: { report_id: lastReportId } });
+      document.getElementById('draft-status').textContent = r.status;
+      document.getElementById('confirm-btn').classList.add('hidden');
+      document.getElementById('confirm-note').textContent = 'Freigegeben ✓';
+      if (isManager()) loadDashboard();
+    } catch (e) { flash('doc-err', e.message); }
+  }
+
+  function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+  // Auto-enter if a valid session exists
+  if (token && user) enterApp();
+</script>
+</body>
+</html>
