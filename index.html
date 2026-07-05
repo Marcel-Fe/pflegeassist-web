@@ -225,6 +225,38 @@
     box-shadow: 0 14px 30px rgba(14,124,134,.42); display: flex; align-items: center; gap: 8px; }
   .view.hidden { display: none; }
 
+  /* Pflegekraft-Startseite ("Mein Tag") – Foto-Hero im Login-Look */
+  .chero { position: relative; overflow: hidden; border-radius: 20px; color: #fff; padding: 34px 38px; margin-bottom: 20px;
+    background:
+      linear-gradient(115deg, rgba(6,58,64,.93) 0%, rgba(10,91,99,.80) 46%, rgba(9,60,66,.42) 100%),
+      url('nurse.jpg') center 26% / cover no-repeat;
+    box-shadow: 0 18px 42px rgba(10,60,66,.30); }
+  .chero::after { content: ""; position: absolute; top: 22px; right: 34px; width: 180px; height: 120px; opacity: .5;
+    background-image: radial-gradient(rgba(255,255,255,.4) 1.4px, transparent 1.5px); background-size: 16px 16px;
+    -webkit-mask-image: linear-gradient(120deg, #000, transparent 75%); mask-image: linear-gradient(120deg, #000, transparent 75%); }
+  .chero > * { position: relative; z-index: 1; }
+  .chero .pill { background: rgba(255,255,255,.16); color: #eafffb; }
+  .chero h1 { font-size: 2rem; margin: 12px 0 6px; letter-spacing: -.02em; }
+  .chero h1 .accent { color: var(--accent); }
+  .chero p { opacity: .9; margin: 0 0 22px; max-width: 48ch; font-size: 1.02rem; }
+  .btn-hero { height: 52px; padding: 0 26px; border-radius: 12px; font-size: 1rem; font-weight: 700;
+    background: #fff; color: var(--primary-dark); display: inline-flex; align-items: center; gap: 10px;
+    box-shadow: 0 12px 26px rgba(0,0,0,.22); }
+  .btn-hero:hover { background: #eafffb; }
+
+  .ck-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+  @media (max-width: 800px) { .ck-grid { grid-template-columns: 1fr; } }
+  .ckpi { border-radius: 16px; padding: 18px; color: #fff; box-shadow: 0 10px 24px rgba(16,24,40,.14); }
+  .ckpi .ci { width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,.22);
+    display: grid; place-items: center; margin-bottom: 12px; }
+  .ckpi .cv { font-size: 1.9rem; font-weight: 800; line-height: 1; }
+  .ckpi .cl { opacity: .92; font-size: .86rem; margin-top: 6px; }
+  .ckpi.teal { background: linear-gradient(140deg, #12a594, #0a5b63); }
+  .ckpi.blue { background: linear-gradient(140deg, #3b82f6, #1e40af); }
+  .ckpi.violet { background: linear-gradient(140deg, #8b5cf6, #6d28d9); }
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .cols2 { grid-template-columns: 1fr; } }
+
   .list { list-style: none; padding: 0; margin: 0; }
   .list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .list li:last-child { border-bottom: none; }
@@ -360,6 +392,7 @@
         <span class="wordmark" style="font-size:1.15rem">Pflege<b style="color:var(--primary)">Assist</b></span>
       </div>
       <div class="side-nav">
+        <button class="nav-item hidden" data-view="start" onclick="navTo('start')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg> Mein Tag</button>
         <button class="nav-item active" data-view="dash" onclick="navTo('dash')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg> Dashboard</button>
         <button class="nav-item" data-view="einsaetze" onclick="navTo('einsaetze')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Einsätze</button>
         <button class="nav-item" data-view="klienten" onclick="navTo('klienten')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Klienten</button>
@@ -399,6 +432,30 @@
       </div>
 
       <div class="content">
+        <!-- PFLEGEKRAFT-STARTSEITE ("Mein Tag") -->
+        <section class="view hidden" id="view-start">
+          <div class="chero">
+            <span class="pill">Schön, dass du da bist</span>
+            <h1 id="c-greet">Guten Tag! 👋</h1>
+            <p id="c-greet-sub">Bereit für deinen Tag. Dokumentiere deine Pflege in Sekunden – <span class="accent">die KI erledigt den Rest.</span></p>
+            <button class="btn-hero" onclick="navTo('doc')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+              Pflege dokumentieren
+            </button>
+          </div>
+          <div class="ck-grid" id="c-kpis"></div>
+          <div class="cols2">
+            <div class="panel">
+              <div class="panel-head"><h3>Meine Einsätze heute</h3></div>
+              <div id="c-visits"><div class="muted">Lädt …</div></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><h3>Meine Aufgaben</h3></div>
+              <div id="c-tasks"><div class="muted">Lädt …</div></div>
+            </div>
+          </div>
+        </section>
+
         <!-- DASHBOARD -->
         <section class="view" id="view-dash">
           <div class="greet-row">
@@ -618,8 +675,9 @@
     setGreeting();
     const mgr = isManager();
     document.querySelector('.nav-item[data-view="dash"]').classList.toggle('hidden', !mgr);
+    document.querySelector('.nav-item[data-view="start"]').classList.toggle('hidden', mgr);
     loadClients();
-    navTo(mgr ? 'dash' : 'doc');
+    navTo(mgr ? 'dash' : 'start');
     updateThemeBtn();
   }
 
@@ -628,7 +686,8 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const nav = document.querySelector('.nav-item[data-view="' + view + '"]');
     if (nav) nav.classList.add('active');
-    if (view === 'dash') { document.getElementById('view-dash').classList.remove('hidden'); loadDashboard(); }
+    if (view === 'start') { document.getElementById('view-start').classList.remove('hidden'); loadStart(); }
+    else if (view === 'dash') { document.getElementById('view-dash').classList.remove('hidden'); loadDashboard(); }
     else if (view === 'doc') { document.getElementById('view-doc').classList.remove('hidden'); loadClients(); }
     else if (view === 'klienten') { document.getElementById('view-klienten').classList.remove('hidden'); loadKlienten(); }
     else if (view === 'einsaetze') { document.getElementById('view-einsaetze').classList.remove('hidden'); loadEinsaetze(); }
@@ -649,6 +708,43 @@
     if (isNaN(d)) return esc(iso);
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
       ', ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function loadStart() {
+    const h = new Date().getHours();
+    const g = h < 11 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend';
+    const first = (user.full_name || '').split(' ')[0] || '';
+    document.getElementById('c-greet').textContent = g + ', ' + first + '! 👋';
+    try {
+      const [visits, tasks, clients] = await Promise.all([
+        api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/clients')
+      ]);
+      const today = new Date().toDateString();
+      const todaysVisits = visits.filter(v => v.scheduled_start && new Date(v.scheduled_start).toDateString() === today);
+      const openTasks = tasks.filter(t => t.status === 'open');
+
+      const kpis = [
+        ['teal', SVG.calendar, todaysVisits.length, 'Einsätze heute'],
+        ['blue', SVG.check, openTasks.length, 'Offene Aufgaben'],
+        ['violet', SVG.users, clients.length, 'Meine Klienten'],
+      ];
+      document.getElementById('c-kpis').innerHTML = kpis.map(([c, ic, v, l]) =>
+        `<div class="ckpi ${c}"><div class="ci">${ic}</div><div class="cv">${v}</div><div class="cl">${l}</div></div>`).join('');
+
+      const vlist = todaysVisits.length ? todaysVisits : visits.slice(0, 5);
+      document.getElementById('c-visits').innerHTML = vlist.length ? vlist.map(v => {
+        const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
+        return `<div class="visit"><span class="avatar" style="width:38px;height:38px;font-size:.8rem">${initials(v.client)}</span><div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}</div></div><span class="status ${st[0]}">${st[1]}</span></div>`;
+      }).join('') : '<div class="muted">Keine Einsätze geplant.</div>';
+
+      document.getElementById('c-tasks').innerHTML = openTasks.length ? openTasks.map(t => {
+        const p = (t.priority || 'normal').toLowerCase();
+        const sub = [t.client ? esc(t.client) : '', t.due_at ? 'fällig ' + fmtDate(t.due_at) : ''].filter(Boolean).join(' · ');
+        return `<div class="task-item"><span class="box"></span><div class="grow"><div class="tt">${esc(t.title)}</div><div class="ts">${sub || 'Offen'}</div></div><span class="prio ${p}">${cap(p)}</span></div>`;
+      }).join('') : '<div class="muted">Keine offenen Aufgaben. 🎉</div>';
+    } catch (e) {
+      document.getElementById('c-kpis').innerHTML = `<div class="muted">${esc(e.message)}</div>`;
+    }
   }
 
   async function loadKlienten() {
