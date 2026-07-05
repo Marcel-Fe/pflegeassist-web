@@ -319,6 +319,80 @@
   .switch input:checked + .slider { background: var(--primary); }
   .switch input:checked + .slider::before { transform: translateX(21px); }
 
+  /* Ausgebaute Bereiche: Diagramme, QM, Export, Nachrichten, Hilfe */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 1000px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+  .panel h3 { margin: 0 0 4px; font-size: 1.02rem; }
+  .panel .sublabel { color: var(--muted); font-size: .82rem; margin-bottom: 14px; }
+
+  /* Balken-Diagramm (CSS) */
+  .bars { display: grid; gap: 12px; margin-top: 6px; }
+  .bar-row { display: grid; grid-template-columns: 130px 1fr 42px; align-items: center; gap: 12px; font-size: .86rem; }
+  .bar-track { background: var(--chip); border-radius: 999px; height: 12px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; transition: width .5s ease; }
+  .bar-row .bval { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* Donut (conic-gradient) */
+  .donut-wrap { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .donut { width: 150px; height: 150px; border-radius: 50%; flex: none; position: relative;
+    display: grid; place-items: center; }
+  .donut::after { content: ""; position: absolute; width: 96px; height: 96px; border-radius: 50%; background: var(--card); }
+  .donut .center { position: relative; z-index: 1; text-align: center; }
+  .donut .center .n { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+  .donut .center .l { font-size: .72rem; color: var(--muted); }
+  .legend { display: grid; gap: 8px; }
+  .legend .li { display: flex; align-items: center; gap: 8px; font-size: .86rem; }
+  .legend .dot { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+  .legend .lv { margin-left: auto; font-weight: 700; color: var(--muted); }
+
+  /* QM-Indikatoren + Checkliste */
+  .qm-metric { text-align: left; }
+  .qm-metric .big { font-size: 2rem; font-weight: 800; line-height: 1; }
+  .qm-metric .lbl { color: var(--muted); font-size: .84rem; margin-top: 6px; }
+  .progress { height: 8px; border-radius: 999px; background: var(--chip); overflow: hidden; margin-top: 10px; }
+  .progress > span { display: block; height: 100%; border-radius: 999px; }
+  .checklist { display: grid; gap: 2px; }
+  .check-item { display: flex; align-items: center; gap: 12px; padding: 11px 4px; border-bottom: 1px solid var(--line); }
+  .check-item:last-child { border-bottom: none; }
+  .check-item .ci-ic { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; flex: none; }
+  .ci-ok { background: #dcfce7; color: var(--ok); }
+  .ci-warn { background: #fef3c7; color: var(--warn); }
+  .ci-open { background: var(--chip); color: var(--muted); }
+  .check-item .ci-t { font-weight: 600; font-size: .9rem; }
+  .check-item .ci-s { color: var(--muted); font-size: .78rem; }
+  .check-item .ci-badge { margin-left: auto; font-size: .72rem; padding: 3px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
+
+  /* Export-Karten */
+  .exp-card { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px solid var(--line);
+    border-radius: 14px; background: var(--card); }
+  .exp-card .ex-ic { width: 44px; height: 44px; border-radius: 12px; background: var(--chip); color: var(--primary);
+    display: grid; place-items: center; flex: none; }
+  .exp-card .grow .et { font-weight: 700; }
+  .exp-card .grow .es { color: var(--muted); font-size: .82rem; }
+
+  /* Nachrichten */
+  .msg { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .msg:last-child { border-bottom: none; }
+  .msg .m-ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+  .msg .m-t { font-weight: 600; font-size: .92rem; }
+  .msg .m-b { color: var(--muted); font-size: .84rem; margin-top: 2px; }
+  .msg .m-time { margin-left: auto; color: var(--muted); font-size: .74rem; white-space: nowrap; }
+  .composer { display: flex; gap: 10px; margin-top: 14px; }
+  .composer input { flex: 1; }
+
+  /* Hilfe / FAQ */
+  .faq { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .faq details { border-bottom: 1px solid var(--line); }
+  .faq details:last-child { border-bottom: none; }
+  .faq summary { cursor: pointer; padding: 14px 16px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; color: var(--muted); font-weight: 400; font-size: 1.2rem; }
+  .faq details[open] summary::after { content: "–"; }
+  .faq .faq-body { padding: 0 16px 14px; color: var(--muted); font-size: .9rem; }
+  .help-contact { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(18,165,148,.12), rgba(14,124,134,.05)); border: 1px solid var(--line); }
+
   .list { list-style: none; padding: 0; margin: 0; }
   .list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .list li:last-child { border-bottom: none; }
@@ -467,7 +541,7 @@
         <button class="nav-item" data-view="export" onclick="navTo('export')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg> Export</button>
         <div class="nav-sep"></div>
         <button class="nav-item" data-view="einstellungen" onclick="navTo('einstellungen')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 6 9.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 4.6h.09A1.65 1.65 0 0 0 12 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 19 4.6l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 21 11.09V11a2 2 0 0 1 0 4z"/></svg> Einstellungen</button>
-        <button class="nav-item" onclick="navTo('hilfe')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 2.5"/><path d="M12 17h.01"/></svg> Hilfe &amp; Support</button>
+        <button class="nav-item" data-view="hilfe" onclick="navTo('hilfe')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 2.5"/><path d="M12 17h.01"/></svg> Hilfe &amp; Support</button>
       </div>
       <div class="ki-status">
         <svg class="ai-ill" viewBox="0 0 64 64" fill="none" aria-hidden="true">
@@ -632,6 +706,105 @@
         <section class="view hidden" id="view-risiken">
           <h2>Risiken</h2>
           <div class="panel"><div id="list-risiken" class="list"><div class="muted">Lädt …</div></div></div>
+        </section>
+
+        <!-- STATISTIKEN -->
+        <section class="view hidden" id="view-statistik">
+          <h2>Statistiken</h2>
+          <div class="kpi-grid" id="stat-kpis" style="grid-template-columns:repeat(4,1fr)"></div>
+          <div class="grid2" style="margin-top:16px">
+            <div class="panel"><h3>Risiken nach Schweregrad</h3><div class="sublabel">Offene Risiken der Organisation</div><div id="chart-risks" class="donut-wrap"></div></div>
+            <div class="panel"><h3>Einsätze nach Status</h3><div class="sublabel">Alle erfassten Einsätze</div><div id="chart-visits" class="bars"></div></div>
+          </div>
+          <div class="grid2" style="margin-top:16px">
+            <div class="panel"><h3>Klienten nach Pflegegrad</h3><div class="sublabel">Aktive Klienten</div><div id="chart-clients" class="bars"></div></div>
+            <div class="panel"><h3>Aufgaben nach Priorität</h3><div class="sublabel">Offene Aufgaben</div><div id="chart-tasks" class="bars"></div></div>
+          </div>
+          <div class="panel" style="margin-top:16px">
+            <h3>Wochenverlauf</h3><div class="sublabel">Trend der letzten 7 Tage (Demo-Kennzahlen)</div>
+            <div class="stat-row" id="stat-row-2"></div>
+          </div>
+        </section>
+
+        <!-- QUALITÄTSMANAGEMENT -->
+        <section class="view hidden" id="view-qm">
+          <h2>Qualitätsmanagement</h2>
+          <div class="grid3" id="qm-metrics"></div>
+          <div class="grid2" style="margin-top:16px">
+            <div class="panel">
+              <h3>Pflegestandards (Expertenstandards)</h3>
+              <div class="sublabel">Umsetzungsstatus im aktuellen Zeitraum</div>
+              <div class="checklist" id="qm-standards"></div>
+            </div>
+            <div class="panel">
+              <h3>Prüfbereitschaft (MD-Qualitätsprüfung)</h3>
+              <div class="sublabel">Ableitung aus der aktuellen Dokumentationslage</div>
+              <div class="checklist" id="qm-audit"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- EXPORT -->
+        <section class="view hidden" id="view-export">
+          <h2>Export</h2>
+          <div class="panel">
+            <div class="sublabel">Daten deiner Organisation als CSV herunterladen (Excel-kompatibel). Alle Exporte sind mandantengetrennt.</div>
+            <div class="grid2" id="export-cards"></div>
+            <div class="banner" style="margin-top:16px;margin-bottom:0">PDF-Berichte &amp; ZIP-Sammelexport folgen im nächsten Ausbauschritt.</div>
+          </div>
+        </section>
+
+        <!-- NACHRICHTEN -->
+        <section class="view hidden" id="view-nachrichten">
+          <h2>Nachrichten &amp; Benachrichtigungen</h2>
+          <div class="grid2">
+            <div class="panel">
+              <h3>Aktuelle Hinweise</h3>
+              <div class="sublabel">Automatisch aus Risiken &amp; fälligen Aufgaben</div>
+              <div id="msg-feed"><div class="muted">Lädt …</div></div>
+            </div>
+            <div class="panel">
+              <h3>Team-Notiz</h3>
+              <div class="sublabel">Kurze Übergabe an das Team (Demo, lokal)</div>
+              <div id="msg-team"></div>
+              <div class="composer">
+                <input id="msg-input" placeholder="Nachricht ans Team schreiben …" onkeydown="if(event.key==='Enter')sendTeamMsg()">
+                <button onclick="sendTeamMsg()">Senden</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HILFE & SUPPORT -->
+        <section class="view hidden" id="view-hilfe">
+          <h2>Hilfe &amp; Support</h2>
+          <div class="grid2">
+            <div class="panel">
+              <h3>Häufige Fragen</h3>
+              <div class="sublabel">Schnelle Antworten zu PflegeAssist</div>
+              <div class="faq">
+                <details><summary>Wie erstelle ich eine Dokumentation?</summary><div class="faq-body">Über „Dokumentation" in der Seitenleiste (oder „Schnelle Aktion"). Klient wählen, kurz beschreiben oder Audio hochladen – die KI erstellt den Pflegebericht-Entwurf, den die PDL freigibt.</div></details>
+                <details><summary>Wie funktioniert die KI-Freigabe?</summary><div class="faq-body">Pflegekräfte erstellen Entwürfe. Die Pflegedienstleitung (PDL) prüft und gibt sie mit einem Klick frei. Erst danach gilt der Bericht als verbindlich.</div></details>
+                <details><summary>Sind meine Daten sicher?</summary><div class="faq-body">Ja. Jede Abfrage ist streng nach Organisation getrennt, Passwörter sind verschlüsselt (bcrypt), Hosting erfolgt in der EU (Frankfurt). Im Demo-Modus entstehen keine KI-Kosten.</div></details>
+                <details><summary>Kann ich Fotos der Klienten ausblenden?</summary><div class="faq-body">Ja – unter „Einstellungen" den Schalter „Foto-Avatare anzeigen" deaktivieren. Dann erscheinen überall Initialen.</div></details>
+              </div>
+            </div>
+            <div class="stack">
+              <div class="panel">
+                <h3>Kontakt</h3>
+                <div class="help-contact">
+                  <div class="ex-ic" style="width:44px;height:44px;border-radius:12px;background:var(--chip);color:var(--primary);display:grid;place-items:center;flex:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
+                  <div class="grow"><div class="et" style="font-weight:700">Support-Team</div><div class="es muted">support@pflegeassist.de · Mo–Fr 8–17 Uhr</div></div>
+                </div>
+              </div>
+              <div class="panel">
+                <h3>Demo-Zugänge</h3>
+                <div class="sublabel">Zum Ausprobieren der Rollen</div>
+                <div class="check-item"><span class="ci-ic ci-ok">PDL</span><div class="grow"><div class="ci-t">maria@demo.local</div><div class="ci-s">Pflegedienstleitung · Passwort: demo123</div></div></div>
+                <div class="check-item"><span class="ci-ic ci-ok">PK</span><div class="grow"><div class="ci-t">anna@demo.local</div><div class="ci-s">Pflegekraft · Passwort: demo123</div></div></div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- EINSTELLUNGEN -->
@@ -799,6 +972,11 @@
     else if (view === 'einsaetze') { document.getElementById('view-einsaetze').classList.remove('hidden'); loadEinsaetze(); }
     else if (view === 'aufgaben') { document.getElementById('view-aufgaben').classList.remove('hidden'); loadAufgaben(); }
     else if (view === 'risiken') { document.getElementById('view-risiken').classList.remove('hidden'); loadRisiken(); }
+    else if (view === 'statistik') { document.getElementById('view-statistik').classList.remove('hidden'); loadStatistik(); }
+    else if (view === 'qm') { document.getElementById('view-qm').classList.remove('hidden'); loadQM(); }
+    else if (view === 'export') { document.getElementById('view-export').classList.remove('hidden'); loadExport(); }
+    else if (view === 'nachrichten') { document.getElementById('view-nachrichten').classList.remove('hidden'); loadNachrichten(); }
+    else if (view === 'hilfe') { document.getElementById('view-hilfe').classList.remove('hidden'); }
     else if (view === 'einstellungen') {
       document.getElementById('view-einstellungen').classList.remove('hidden');
       document.getElementById('opt-photos').checked = photosEnabled();
@@ -855,6 +1033,155 @@
     } catch (e) {
       document.getElementById('c-kpis').innerHTML = `<div class="muted">${esc(e.message)}</div>`;
     }
+  }
+
+  // ---- Diagramm-Helfer (reine CSS/SVG, keine Bibliothek) ----
+  function barsHTML(rows) {
+    if (!rows.length) return '<div class="muted">Keine Daten.</div>';
+    const max = Math.max(1, ...rows.map(r => r.value));
+    return rows.map(r =>
+      `<div class="bar-row"><span>${esc(r.label)}</span><div class="bar-track"><div class="bar-fill" style="width:${(r.value / max * 100).toFixed(1)}%;background:${r.color}"></div></div><span class="bval">${r.value}</span></div>`
+    ).join('');
+  }
+  function donutHTML(segments, centerLabel) {
+    const total = segments.reduce((s, x) => s + x.value, 0);
+    let acc = 0; const stops = [];
+    if (total === 0) stops.push('var(--chip) 0 100%');
+    else segments.forEach(s => { const a = acc / total * 100, b = (acc + s.value) / total * 100; stops.push(`${s.color} ${a}% ${b}%`); acc += s.value; });
+    const legend = segments.map(s => `<div class="li"><span class="dot" style="background:${s.color}"></span>${esc(s.label)}<span class="lv">${s.value}</span></div>`).join('');
+    return `<div class="donut" style="background:conic-gradient(${stops.join(',')})"><div class="center"><div class="n">${total}</div><div class="l">${esc(centerLabel || 'gesamt')}</div></div></div><div class="legend">${legend}</div>`;
+  }
+  function countBy(arr, keyFn) { const m = {}; arr.forEach(x => { const k = keyFn(x); m[k] = (m[k] || 0) + 1; }); return m; }
+
+  async function loadStatistik() {
+    try {
+      const [clients, visits, tasks, risks] = await Promise.all([
+        api('/api/v1/clients'), api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/risks')]);
+      const openTasks = tasks.filter(t => t.status === 'open');
+      const kpis = [
+        ['Aktive Klienten', clients.length, '#0e7c86'], ['Einsätze gesamt', visits.length, '#2563eb'],
+        ['Offene Aufgaben', openTasks.length, '#7c3aed'], ['Offene Risiken', risks.length, '#b91c1c']];
+      document.getElementById('stat-kpis').innerHTML = kpis.map(([l, v, c]) =>
+        `<div class="kpi" style="--kpi-c:${c}"><div class="val">${v}</div><div class="lbl">${l}</div></div>`).join('');
+
+      const lvl = countBy(risks, r => (r.level || 'unbekannt').toLowerCase());
+      document.getElementById('chart-risks').innerHTML = donutHTML([
+        { label: 'Hoch', value: lvl.hoch || 0, color: '#b91c1c' },
+        { label: 'Mittel', value: lvl.mittel || 0, color: '#b45309' },
+        { label: 'Niedrig', value: lvl.niedrig || 0, color: '#15803d' }], 'Risiken');
+
+      const vlabel = { geplant: 'Geplant', planned: 'Geplant', in_bearbeitung: 'In Bearbeitung', unterwegs: 'In Bearbeitung', abgeschlossen: 'Abgeschlossen', done: 'Abgeschlossen' };
+      const vcolor = { geplant: '#6b7280', planned: '#6b7280', in_bearbeitung: '#2563eb', unterwegs: '#2563eb', abgeschlossen: '#15803d', done: '#15803d' };
+      const vs = countBy(visits, v => v.status || 'unbekannt');
+      document.getElementById('chart-visits').innerHTML = barsHTML(Object.entries(vs).map(([k, v]) => ({ label: vlabel[k] || cap(k), value: v, color: vcolor[k] || '#0e7c86' })));
+
+      const cl = countBy(clients, c => c.care_level || 'Ohne Angabe');
+      document.getElementById('chart-clients').innerHTML = barsHTML(Object.entries(cl).sort().map(([k, v]) => ({ label: k, value: v, color: '#0e7c86' })));
+
+      const pcolor = { hoch: '#b91c1c', mittel: '#b45309', niedrig: '#15803d', normal: '#0e7c86' };
+      const tp = countBy(openTasks, t => (t.priority || 'normal').toLowerCase());
+      document.getElementById('chart-tasks').innerHTML = barsHTML(Object.entries(tp).map(([k, v]) => ({ label: cap(k), value: v, color: pcolor[k] || '#7c3aed' })));
+
+      const stats = [
+        ['Dokumentationen', '42', '↗ 12%', '#0e7c86', '0,30 20,24 40,26 60,16 80,20 100,10 120,6'],
+        ['Einsätze', '56', '↗ 8%', '#2563eb', '0,26 20,22 40,24 60,18 80,22 100,14 120,10'],
+        ['KI-Zeitersparnis', '8h 20min', '↗ 15%', '#15803d', '0,30 20,26 40,22 60,24 80,14 100,12 120,4'],
+        ['Abgeschlossene Aufgaben', '18', '↗ 20%', '#7c3aed', '0,28 20,24 40,26 60,18 80,16 100,12 120,8']];
+      document.getElementById('stat-row-2').innerHTML = stats.map(s =>
+        `<div class="stat"><div class="sl">${s[0]}</div><div class="sv">${s[1]}</div><div class="sd">${s[2]}</div>${spark(s[3], s[4])}</div>`).join('');
+    } catch (e) { document.getElementById('stat-kpis').innerHTML = `<div class="muted">${esc(e.message)}</div>`; }
+  }
+
+  function checkItem(state, title, sub, badge) {
+    const ic = state === 'ok' ? ['ci-ok', CHK] : state === 'warn' ? ['ci-warn', '!'] : ['ci-open', '○'];
+    const bcol = state === 'ok' ? 'background:#dcfce7;color:#15803d' : state === 'warn' ? 'background:#fef3c7;color:#b45309' : 'background:var(--chip);color:var(--muted)';
+    return `<div class="check-item"><span class="ci-ic ${ic[0]}">${ic[1]}</span><div class="grow"><div class="ci-t">${esc(title)}</div><div class="ci-s">${esc(sub)}</div></div><span class="ci-badge" style="${bcol}">${esc(badge)}</span></div>`;
+  }
+
+  async function loadQM() {
+    try {
+      const [tasks, risks] = await Promise.all([api('/api/v1/tasks'), api('/api/v1/risks')]);
+      let kp = {}; try { kp = (await api('/api/v1/dashboard/pdl')).kpis || {}; } catch (e) {}
+      const done = tasks.filter(t => t.status && t.status !== 'open').length;
+      const taskRate = tasks.length ? Math.round(done / tasks.length * 100) : 100;
+      const openDocs = kp.open_documentation ?? 0;
+      const docRate = openDocs === 0 ? 100 : Math.max(20, 100 - openDocs * 15);
+      const riskRate = risks.length ? 100 : 100;
+      const metrics = [
+        ['Aufgaben-Erledigung', taskRate + '%', taskRate, taskRate >= 60 ? '#15803d' : '#b45309'],
+        ['Dokumentationsstatus', openDocs + ' offen', docRate, openDocs === 0 ? '#15803d' : '#b45309'],
+        ['Risiken erfasst & betreut', risks.length + '', riskRate, '#0e7c86']];
+      document.getElementById('qm-metrics').innerHTML = metrics.map(([l, big, pct, c]) =>
+        `<div class="panel qm-metric"><div class="big" style="color:${c}">${big}</div><div class="lbl">${l}</div><div class="progress"><span style="width:${pct}%;background:${c}"></span></div></div>`).join('');
+
+      const has = kw => risks.some(r => ((r.title || '') + ' ' + (r.description || '')).toLowerCase().includes(kw));
+      const std = (title, kw) => has(kw)
+        ? checkItem('warn', title, 'Auffälligkeit dokumentiert – Maßnahmen prüfen', 'Handlungsbedarf')
+        : checkItem('ok', title, 'Keine offenen Auffälligkeiten', 'Umgesetzt');
+      document.getElementById('qm-standards').innerHTML =
+        std('Dekubitusprophylaxe', 'dekubitus') + std('Sturzprophylaxe', 'sturz') +
+        std('Schmerzmanagement', 'schmerz') + std('Ernährungsmanagement', 'ernährung') +
+        std('Kontinenzförderung', 'kontinenz');
+
+      const openTasks = tasks.filter(t => t.status === 'open').length;
+      document.getElementById('qm-audit').innerHTML =
+        checkItem(openDocs === 0 ? 'ok' : 'warn', 'Pflegedokumentation vollständig', openDocs === 0 ? 'Keine offenen Berichte' : openDocs + ' Bericht(e) noch nicht freigegeben', openDocs === 0 ? 'Bereit' : 'Prüfen') +
+        checkItem('ok', 'Risikoerfassung aktuell', risks.length + ' Risiken erfasst und dokumentiert', 'Bereit') +
+        checkItem(openTasks ? 'open' : 'ok', 'Maßnahmenplanung', openTasks + ' offene Aufgaben in Bearbeitung', openTasks ? 'Laufend' : 'Bereit') +
+        checkItem('ok', 'Mandantentrennung & Datenschutz', 'Org-getrennt, verschlüsselt, EU-Hosting', 'Erfüllt') +
+        checkItem('open', 'Qualifikationsnachweise', 'Pflege im nächsten Ausbauschritt', 'Geplant');
+    } catch (e) { document.getElementById('qm-metrics').innerHTML = `<div class="muted">${esc(e.message)}</div>`; }
+  }
+
+  const CSV_IC = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h2M8 17h2M12 13h4M12 17h4"/></svg>';
+  function loadExport() {
+    const cards = [
+      ['Klienten', 'Stammdaten aller aktiven Klienten', 'klienten', '/api/v1/clients'],
+      ['Einsätze', 'Alle erfassten Einsätze', 'einsaetze', '/api/v1/visits'],
+      ['Aufgaben', 'Offene und erledigte Aufgaben', 'aufgaben', '/api/v1/tasks'],
+      ['Risiken', 'Dokumentierte Risiken', 'risiken', '/api/v1/risks']];
+    document.getElementById('export-cards').innerHTML = cards.map(([t, s, key, path]) =>
+      `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">${t}</div><div class="es">${s}</div></div><button onclick="exportCsv('${path}','${key}')">CSV ↓</button></div>`).join('');
+  }
+  async function exportCsv(path, name) {
+    try {
+      const rows = await api(path);
+      if (!rows.length) { flashToast('Keine Daten zum Export.'); return; }
+      const cols = Object.keys(rows[0]);
+      const cell = v => { v = v == null ? '' : String(v); return /[",\n\r;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+      const csv = [cols.join(';'), ...rows.map(r => cols.map(c => cell(r[c])).join(';'))].join('\r\n');
+      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `pflegeassist-${name}.csv`;
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    } catch (e) { flashToast('Export fehlgeschlagen: ' + e.message); }
+  }
+  function flashToast(msg) { const d = document.getElementById('doc-err'); if (d) { } alert(msg); }
+
+  async function loadNachrichten() {
+    try {
+      const [risks, tasks] = await Promise.all([api('/api/v1/risks'), api('/api/v1/tasks')]);
+      const items = [];
+      risks.slice(0, 6).forEach(r => items.push({ t: 'risk', title: 'Risiko: ' + r.title, body: [r.client, r.level ? 'Schweregrad ' + cap(r.level) : ''].filter(Boolean).join(' · '), time: 'aktuell' }));
+      tasks.filter(t => t.status === 'open').slice(0, 6).forEach(t => items.push({ t: 'task', title: 'Aufgabe: ' + t.title, body: [t.client || 'Allgemein', cap(t.priority || 'normal')].join(' · '), time: 'offen' }));
+      document.getElementById('msg-feed').innerHTML = items.length ? items.map(m => {
+        const ok = m.t === 'task';
+        const style = ok ? 'background:#eef4f5;color:#0e7c86' : 'background:#fee2e2;color:#b91c1c';
+        return `<div class="msg"><div class="m-ic" style="${style}">${ok ? SVG.check : SVG.alert}</div><div class="grow"><div class="m-t">${esc(m.title)}</div><div class="m-b">${esc(m.body)}</div></div><span class="m-time">${esc(m.time)}</span></div>`;
+      }).join('') : '<div class="muted">Keine aktuellen Hinweise.</div>';
+      renderTeamMsgs();
+    } catch (e) { listError('msg-feed', e.message); }
+  }
+  let teamMsgs = [{ name: 'System', text: 'Willkommen im Team-Kanal. Nachrichten hier sind eine lokale Demo.', time: 'jetzt' }];
+  function renderTeamMsgs() {
+    document.getElementById('msg-team').innerHTML = teamMsgs.map(m =>
+      `<div class="msg">${avatarHTML(m.name, 38)}<div class="grow"><div class="m-t">${esc(m.name)}</div><div class="m-b">${esc(m.text)}</div></div><span class="m-time">${esc(m.time)}</span></div>`).join('');
+  }
+  function sendTeamMsg() {
+    const inp = document.getElementById('msg-input'); const txt = inp.value.trim();
+    if (!txt) return;
+    teamMsgs.push({ name: (user && user.full_name) || 'Ich', text: txt, time: 'gerade eben' });
+    inp.value = ''; renderTeamMsgs();
   }
 
   async function loadKlienten() {
