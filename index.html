@@ -448,6 +448,8 @@
             <select id="doc-client"></select>
             <label>Was ist passiert? (gesprochener Text)</label>
             <textarea id="doc-transcript" rows="4" placeholder="z. B. Frau Schmidt wirkte beim Aufstehen unsicher und klagte über Schwindel."></textarea>
+            <label>Oder Audioaufnahme hochladen (optional)</label>
+            <input type="file" id="doc-audio" accept="audio/*">
             <div style="height:12px"></div>
             <button onclick="createDraft()">KI-Bericht erstellen</button>
             <div class="err" id="doc-err"></div>
@@ -461,6 +463,30 @@
             <button id="confirm-btn" class="hidden" onclick="confirmDraft()">Freigeben (PDL)</button>
             <span id="confirm-note" class="muted"></span>
           </div>
+        </section>
+
+        <!-- KLIENTEN -->
+        <section class="view hidden" id="view-klienten">
+          <h2>Klienten</h2>
+          <div class="panel"><div id="list-klienten" class="list"><div class="muted">Lädt …</div></div></div>
+        </section>
+
+        <!-- EINSÄTZE -->
+        <section class="view hidden" id="view-einsaetze">
+          <h2>Einsätze</h2>
+          <div class="panel"><div id="list-einsaetze" class="list"><div class="muted">Lädt …</div></div></div>
+        </section>
+
+        <!-- AUFGABEN -->
+        <section class="view hidden" id="view-aufgaben">
+          <h2>Aufgaben</h2>
+          <div class="panel"><div id="list-aufgaben" class="list"><div class="muted">Lädt …</div></div></div>
+        </section>
+
+        <!-- RISIKEN -->
+        <section class="view hidden" id="view-risiken">
+          <h2>Risiken</h2>
+          <div class="panel"><div id="list-risiken" class="list"><div class="muted">Lädt …</div></div></div>
         </section>
 
         <!-- GENERIC PLACEHOLDER -->
@@ -546,6 +572,16 @@
     return data;
   }
 
+  async function apiUpload(path, formData) {
+    if (!API) throw new Error('Bitte zuerst die Server-Adresse (API) angeben.');
+    const headers = {};
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(API + path, { method: 'POST', headers, body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || ('Fehler ' + res.status));
+    return data;
+  }
+
   async function doLogin() {
     flash('login-err', '');
     try {
@@ -594,10 +630,72 @@
     if (nav) nav.classList.add('active');
     if (view === 'dash') { document.getElementById('view-dash').classList.remove('hidden'); loadDashboard(); }
     else if (view === 'doc') { document.getElementById('view-doc').classList.remove('hidden'); loadClients(); }
+    else if (view === 'klienten') { document.getElementById('view-klienten').classList.remove('hidden'); loadKlienten(); }
+    else if (view === 'einsaetze') { document.getElementById('view-einsaetze').classList.remove('hidden'); loadEinsaetze(); }
+    else if (view === 'aufgaben') { document.getElementById('view-aufgaben').classList.remove('hidden'); loadAufgaben(); }
+    else if (view === 'risiken') { document.getElementById('view-risiken').classList.remove('hidden'); loadRisiken(); }
     else {
       document.getElementById('view-generic').classList.remove('hidden');
       document.getElementById('generic-title').textContent = VIEW_TITLES[view] || 'Bereich';
     }
+  }
+
+  function listError(id, msg) { document.getElementById(id).innerHTML = `<div class="muted">${esc(msg)}</div>`; }
+  function listEmpty(id, msg) { document.getElementById(id).innerHTML = `<div class="muted">${esc(msg)}</div>`; }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return esc(iso);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+      ', ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function loadKlienten() {
+    try {
+      const list = await api('/api/v1/clients');
+      if (!list.length) return listEmpty('list-klienten', 'Keine Klienten vorhanden.');
+      document.getElementById('list-klienten').innerHTML = list.map(c => {
+        const name = `${c.first_name} ${c.last_name}`;
+        const sub = [esc(c.care_level || ''), esc(c.address || '')].filter(Boolean).join(' · ');
+        return `<div class="visit"><span class="avatar" style="width:38px;height:38px;font-size:.8rem">${initials(name)}</span><div class="grow"><div class="vname">${esc(name)}</div><div class="vsub">${sub || 'Keine Angaben'}</div></div>${c.emergency_contact ? `<span class="muted">☎ ${esc(c.emergency_contact)}</span>` : ''}</div>`;
+      }).join('');
+    } catch (e) { listError('list-klienten', e.message); }
+  }
+
+  async function loadEinsaetze() {
+    try {
+      const list = await api('/api/v1/visits');
+      if (!list.length) return listEmpty('list-einsaetze', 'Keine Einsätze vorhanden.');
+      document.getElementById('list-einsaetze').innerHTML = list.map(v => {
+        const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
+        return `<div class="visit"><span class="avatar" style="width:38px;height:38px;font-size:.8rem">${initials(v.client)}</span><div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}</div></div><span class="status ${st[0]}">${st[1]}</span></div>`;
+      }).join('');
+    } catch (e) { listError('list-einsaetze', e.message); }
+  }
+
+  async function loadAufgaben() {
+    try {
+      const list = await api('/api/v1/tasks');
+      if (!list.length) return listEmpty('list-aufgaben', 'Keine Aufgaben vorhanden.');
+      document.getElementById('list-aufgaben').innerHTML = list.map(t => {
+        const p = (t.priority || 'normal').toLowerCase();
+        const done = t.status && t.status !== 'open';
+        const sub = [t.client ? esc(t.client) : '', t.due_at ? 'fällig ' + fmtDate(t.due_at) : ''].filter(Boolean).join(' · ');
+        return `<div class="task-item"><span class="box">${done ? CHK : ''}</span><div class="grow"><div class="tt">${esc(t.title)}</div><div class="ts">${sub || cap(t.status || '')}</div></div><span class="prio ${p}">${cap(p)}</span></div>`;
+      }).join('');
+    } catch (e) { listError('list-aufgaben', e.message); }
+  }
+
+  async function loadRisiken() {
+    try {
+      const list = await api('/api/v1/risks');
+      if (!list.length) return listEmpty('list-risiken', 'Keine Risiken vorhanden.');
+      document.getElementById('list-risiken').innerHTML = list.map(r => {
+        const sub = [esc(r.client), esc(r.description || '')].filter(Boolean).join(' · ');
+        return `<div class="visit"><span class="chip ${esc(r.level)}">${esc(cap(r.level))}</span><div class="grow"><div class="vname">${esc(r.title)}</div><div class="vsub">${sub}</div></div><span class="status ${r.status === 'open' ? 'plan' : 'done'}">${r.status === 'open' ? 'Offen' : cap(r.status)}</span></div>`;
+      }).join('');
+    } catch (e) { listError('list-risiken', e.message); }
   }
 
   function setGreeting() {
@@ -700,7 +798,16 @@
     const transcript = document.getElementById('doc-transcript').value.trim();
     if (!client_id) { flash('doc-err', 'Bitte einen Klienten wählen.'); return; }
     try {
-      const d = await api('/api/v1/documentation/draft', { method: 'POST', body: { client_id, transcript: transcript || null } });
+      let voice_note_id = null;
+      const audioFile = document.getElementById('doc-audio').files[0];
+      if (audioFile) {
+        const fd = new FormData();
+        fd.append('client_id', client_id);
+        fd.append('audio', audioFile);
+        const up = await apiUpload('/api/v1/documentation/upload', fd);
+        voice_note_id = up.voice_note_id;
+      }
+      const d = await api('/api/v1/documentation/draft', { method: 'POST', body: { client_id, transcript: transcript || null, voice_note_id } });
       lastReportId = d.report_id;
       document.getElementById('draft-card').classList.remove('hidden');
       document.getElementById('draft-status').textContent = d.status;
