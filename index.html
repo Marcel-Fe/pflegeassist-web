@@ -307,6 +307,18 @@
   .user-chip .chev { margin-left: 2px; }
   .kbd { border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: .72rem; color: var(--muted); background: var(--card); }
 
+  /* Einstellungen: Toggle-Schalter */
+  .setting-row { display: flex; align-items: center; gap: 16px; padding: 6px 0; }
+  .setting-row .tt { font-weight: 600; }
+  .setting-row .ts { color: var(--muted); font-size: .84rem; margin-top: 2px; max-width: 60ch; }
+  .switch { position: relative; display: inline-block; width: 48px; height: 27px; flex: none; margin-left: auto; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider { position: absolute; inset: 0; background: var(--line); border-radius: 999px; transition: .2s; cursor: pointer; }
+  .switch .slider::before { content: ""; position: absolute; height: 21px; width: 21px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+  .switch input:checked + .slider { background: var(--primary); }
+  .switch input:checked + .slider::before { transform: translateX(21px); }
+
   .list { list-style: none; padding: 0; margin: 0; }
   .list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .list li:last-child { border-bottom: none; }
@@ -622,6 +634,20 @@
           <div class="panel"><div id="list-risiken" class="list"><div class="muted">Lädt …</div></div></div>
         </section>
 
+        <!-- EINSTELLUNGEN -->
+        <section class="view hidden" id="view-einstellungen">
+          <h2>Einstellungen</h2>
+          <div class="panel">
+            <div class="setting-row">
+              <div>
+                <div class="tt">Foto-Avatare anzeigen</div>
+                <div class="ts">Zeigt Portraitfotos statt Initialen bei Klienten und Einsätzen. Für mehr Datenschutz oder eine schlichtere Ansicht kann dies deaktiviert werden – dann erscheinen überall Initialen.</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="opt-photos" onchange="setPhotos(this.checked)"><span class="slider"></span></label>
+            </div>
+          </div>
+        </section>
+
         <!-- GENERIC PLACEHOLDER -->
         <section class="view hidden" id="view-generic">
           <div class="panel">
@@ -757,7 +783,9 @@
     updateThemeBtn();
   }
 
+  let currentView = 'dash';
   function navTo(view) {
+    currentView = view;
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const nav = document.querySelector('.nav-item[data-view="' + view + '"]');
@@ -769,6 +797,10 @@
     else if (view === 'einsaetze') { document.getElementById('view-einsaetze').classList.remove('hidden'); loadEinsaetze(); }
     else if (view === 'aufgaben') { document.getElementById('view-aufgaben').classList.remove('hidden'); loadAufgaben(); }
     else if (view === 'risiken') { document.getElementById('view-risiken').classList.remove('hidden'); loadRisiken(); }
+    else if (view === 'einstellungen') {
+      document.getElementById('view-einstellungen').classList.remove('hidden');
+      document.getElementById('opt-photos').checked = photosEnabled();
+    }
     else {
       document.getElementById('view-generic').classList.remove('hidden');
       document.getElementById('generic-title').textContent = VIEW_TITLES[view] || 'Bereich';
@@ -830,7 +862,7 @@
       document.getElementById('list-klienten').innerHTML = list.map(c => {
         const name = `${c.first_name} ${c.last_name}`;
         const sub = [esc(c.care_level || ''), esc(c.address || '')].filter(Boolean).join(' · ');
-        return `<div class="visit"><span class="avatar" style="width:38px;height:38px;font-size:.8rem">${initials(name)}</span><div class="grow"><div class="vname">${esc(name)}</div><div class="vsub">${sub || 'Keine Angaben'}</div></div>${c.emergency_contact ? `<span class="muted">☎ ${esc(c.emergency_contact)}</span>` : ''}</div>`;
+        return `<div class="visit">${avatarHTML(name, 38)}<div class="grow"><div class="vname">${esc(name)}</div><div class="vsub">${sub || 'Keine Angaben'}</div></div>${c.emergency_contact ? `<span class="muted">☎ ${esc(c.emergency_contact)}</span>` : ''}</div>`;
       }).join('');
     } catch (e) { listError('list-klienten', e.message); }
   }
@@ -841,7 +873,7 @@
       if (!list.length) return listEmpty('list-einsaetze', 'Keine Einsätze vorhanden.');
       document.getElementById('list-einsaetze').innerHTML = list.map(v => {
         const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
-        return `<div class="visit"><span class="avatar" style="width:38px;height:38px;font-size:.8rem">${initials(v.client)}</span><div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}</div></div><span class="status ${st[0]}">${st[1]}</span></div>`;
+        return `<div class="visit">${avatarHTML(v.client, 38)}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}</div></div><span class="status ${st[0]}">${st[1]}</span></div>`;
       }).join('');
     } catch (e) { listError('list-einsaetze', e.message); }
   }
@@ -906,19 +938,48 @@
   function initials(name) { return String(name || '?').split(/\s+/).map(s => s[0]).slice(0, 2).join('').toUpperCase(); }
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
-  // Lizenzfreie Portrait-Fotos (randomuser.me), deterministisch pro Name, mit Initialen-Fallback.
-  const AV_W = [44, 68, 65, 12, 9, 26, 33, 90, 47, 71], AV_M = [32, 45, 22, 76, 3, 51, 67, 15, 83, 41];
+  // Foto-Avatare: lizenzfreie Portraits (randomuser.me), GESCHLECHTSKORREKT per Vornamen-Zuordnung.
+  // Unbekannter Vorname -> Initialen statt geratenem Foto (verhindert falsche Zuordnungen).
+  // Global per Einstellung abschaltbar (localStorage 'pa_photos').
+  const AV_W = [44, 68, 65, 12, 9, 26, 33, 90, 47, 71, 3, 52, 20, 79];
+  const AV_M = [32, 45, 22, 76, 3, 51, 67, 15, 83, 41, 8, 60, 29, 11];
+  const GENDER = {
+    anna:'w', maria:'w', elisabeth:'w', ingrid:'w', helga:'w', ursula:'w', renate:'w', gisela:'w', erika:'w',
+    waltraud:'w', christa:'w', brigitte:'w', hannelore:'w', petra:'w', sabine:'w', andrea:'w', claudia:'w',
+    monika:'w', susanne:'w', gabriele:'w', karin:'w', heike:'w', martina:'w', ute:'w', birgit:'w', angelika:'w',
+    barbara:'w', hildegard:'w', ilse:'w', inge:'w', edith:'w', margarete:'w', johanna:'w', katharina:'w',
+    julia:'w', laura:'w', lisa:'w', lena:'w', marie:'w', sophie:'w', emma:'w', hanna:'w', lea:'w', nicole:'w',
+    stefanie:'w', doris:'w', gertrud:'w', irmgard:'w', rosemarie:'w', marianne:'w', elke:'w', jutta:'w', ruth:'w',
+    hans:'m', peter:'m', werner:'m', karl:'m', 'günter':'m', guenter:'m', dieter:'m', heinz:'m', manfred:'m',
+    herbert:'m', rolf:'m', wolfgang:'m', siegfried:'m', thomas:'m', michael:'m', andreas:'m', stefan:'m',
+    klaus:'m', 'jürgen':'m', juergen:'m', frank:'m', uwe:'m', horst:'m', helmut:'m', gerhard:'m', walter:'m',
+    friedrich:'m', otto:'m', kurt:'m', josef:'m', johann:'m', markus:'m', martin:'m', christian:'m', daniel:'m',
+    alexander:'m', sebastian:'m', florian:'m', lukas:'m', jan:'m', tim:'m', felix:'m', paul:'m', max:'m',
+    ralf:'m', bernd:'m', dirk:'m', holger:'m', norbert:'m', reinhard:'m', wilhelm:'m', ernst:'m', rudolf:'m', georg:'m'
+  };
+  function firstName(name) { return String(name || '').trim().split(/\s+/)[0].toLowerCase(); }
+  function genderFor(name) { return GENDER[firstName(name)] || null; }
+  function photosEnabled() { return localStorage.getItem('pa_photos') !== 'off'; }
   function photoFor(name) {
+    if (!photosEnabled()) return null;
+    const g = genderFor(name); if (!g) return null;
     const s = String(name || ''); let h = 0;
     for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    const women = h % 2 === 0; const arr = women ? AV_W : AV_M;
-    return `https://randomuser.me/api/portraits/${women ? 'women' : 'men'}/${arr[h % arr.length]}.jpg`;
+    const arr = g === 'w' ? AV_W : AV_M;
+    return `https://randomuser.me/api/portraits/${g === 'w' ? 'women' : 'men'}/${arr[h % arr.length]}.jpg`;
   }
   function avatarInner(name) {
-    return `<span>${initials(name)}</span><img class="pimg" src="${photoFor(name)}" alt="" onerror="this.remove()">`;
+    const url = photoFor(name);
+    return `<span>${initials(name)}</span>` + (url ? `<img class="pimg" src="${url}" alt="" onerror="this.remove()">` : '');
   }
   function avatarHTML(name, size) {
     return `<span class="av-photo" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.34)}px">${avatarInner(name)}</span>`;
+  }
+  function setPhotos(on) {
+    localStorage.setItem('pa_photos', on ? 'on' : 'off');
+    const av = document.getElementById('h-avatar');
+    if (user && av) av.innerHTML = avatarInner(user.full_name || user.email);
+    if (currentView) navTo(currentView);
   }
 
   async function loadDashboard() {
