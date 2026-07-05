@@ -665,7 +665,9 @@
 <script>
   const params = new URLSearchParams(location.search);
   let API = localStorage.getItem('pa_api') || params.get('api') || '';
-  if (!API && ['localhost','127.0.0.1'].includes(location.hostname)) API = location.origin;
+  // Wird die UI vom Backend selbst ausgeliefert (/app) oder lokal aufgerufen,
+  // ist die API derselbe Origin -> automatisch setzen (kein manuelles Eintragen nötig).
+  if (!API && (location.pathname.startsWith('/app') || ['localhost','127.0.0.1'].includes(location.hostname))) API = location.origin;
   let token = localStorage.getItem('pa_token') || '';
   let user = JSON.parse(localStorage.getItem('pa_user') || 'null');
   let lastReportId = null;
