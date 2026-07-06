@@ -1,0 +1,17 @@
+name: Keep API awake
+
+# Haelt den kostenlosen Render-Dienst tagsueber wach, damit die nackte URL
+# ohne ~50s-Kaltstart oeffnet. Laeuft im OEFFENTLICHEN Repo -> GitHub-Actions
+# sind hier unbegrenzt gratis. Zeitfenster ~07:00-23:00 (MEZ/MESZ), damit die
+# 750 Gratis-Instanzstunden/Monat von Render nicht ausgereizt werden.
+on:
+  schedule:
+    - cron: '*/10 5-20 * * *'   # alle 10 Min, 05:00-20:59 UTC
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /health
+        run: curl -fsS --max-time 90 https://pflegeassist-api.onrender.com/health || true
