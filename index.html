@@ -685,12 +685,13 @@
             <select id="doc-client"></select>
             <label>Was ist passiert? (gesprochener Text)</label>
             <textarea id="doc-transcript" rows="4" placeholder="z. B. Frau Schmidt wirkte beim Aufstehen unsicher und klagte über Schwindel."></textarea>
-            <label>Audioaufnahme (optional)</label>
+            <label>Sprechen statt tippen – wird live transkribiert</label>
             <div class="rec-row" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-              <button type="button" class="ghost" id="rec-btn" onclick="toggleRecording()">🎤 Aufnahme starten</button>
+              <button type="button" class="ghost" id="rec-btn" onclick="toggleRecording()">🎤 Aufnehmen &amp; diktieren</button>
               <span class="muted" id="rec-status"></span>
               <audio id="rec-preview" controls class="hidden" style="height:34px"></audio>
             </div>
+            <div class="muted" style="font-size:.85rem;margin-top:4px">Tipp: In Chrome/Edge (PC &amp; Android) erscheint dein gesprochener Text sofort im Feld. Auf dem iPhone bitte Text tippen.</div>
             <label style="margin-top:10px">… oder Audiodatei hochladen</label>
             <input type="file" id="doc-audio" accept="audio/*">
             <div style="height:12px"></div>
@@ -1630,32 +1631,76 @@
     } catch (e) { document.getElementById('doc-err').textContent = e.message; }
   }
 
-  let mediaRecorder = null, recordedChunks = [], recordedBlob = null;
-  async function toggleRecording() {
-    const btn = document.getElementById('rec-btn');
-    if (mediaRecorder && mediaRecorder.state === 'recording') { mediaRecorder.stop(); return; }
-    if (!navigator.mediaDevices || !window.MediaRecorder) {
-      flash('doc-err', 'Audioaufnahme wird von diesem Browser nicht unterstützt – bitte Datei hochladen.'); return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      recordedChunks = [];
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) recordedChunks.push(e.data); };
-      mediaRecorder.onstop = () => {
-        recordedBlob = new Blob(recordedChunks, { type: 'audio/webm' });
-        const pv = document.getElementById('rec-preview');
-        pv.src = URL.createObjectURL(recordedBlob); pv.classList.remove('hidden');
-        document.getElementById('rec-status').textContent = 'Aufnahme bereit (' + Math.round(recordedBlob.size / 1024) + ' KB)';
-        btn.textContent = '🎤 Neu aufnehmen';
-        stream.getTracks().forEach(t => t.stop());
-      };
-      mediaRecorder.start();
-      btn.textContent = '⏹ Aufnahme stoppen';
-      document.getElementById('rec-status').textContent = 'Aufnahme läuft …';
-      flash('doc-err', '');
-    } catch (e) { flash('doc-err', 'Mikrofonzugriff verweigert oder nicht verfügbar.'); }
+  let mediaRecorder = null, recordedChunks = [], recordedBlob = null, recognition = null, capturing = false, dictBase = '', dictFinal = '';
+
+  function speechSupported() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+
+  // Live-Diktat: transkribiert im Browser (gratis) direkt ins Textfeld, während gesprochen wird.
+  function startDictation() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return false;
+    const ta = document.getElementById('doc-transcript');
+    dictBase = ta.value.trim() ? ta.value.trim() + ' ' : '';
+    dictFinal = '';
+    recognition = new SR();
+    recognition.lang = 'de-DE';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = ev => {
+      let interim = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const r = ev.results[i];
+        if (r.isFinal) dictFinal += r[0].transcript + ' '; else interim += r[0].transcript;
+      }
+      ta.value = (dictBase + dictFinal + interim).replace(/\s{2,}/g, ' ');
+    };
+    recognition.onerror = e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') flash('doc-err', 'Mikrofon fürs Diktat nicht erlaubt.');
+    };
+    try { recognition.start(); return true; } catch (e) { return false; }
   }
+
+  async function startCapture() {
+    flash('doc-err', '');
+    const btn = document.getElementById('rec-btn'), rec = document.getElementById('rec-status');
+    const dictating = speechSupported() ? startDictation() : false;
+    let recording = false;
+    if (navigator.mediaDevices && window.MediaRecorder) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          recordedBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+          const pv = document.getElementById('rec-preview');
+          pv.src = URL.createObjectURL(recordedBlob); pv.classList.remove('hidden');
+          stream.getTracks().forEach(t => t.stop());
+        };
+        mediaRecorder.start();
+        recording = true;
+      } catch (e) { mediaRecorder = null; }
+    }
+    if (!dictating && !recording) {
+      flash('doc-err', speechSupported() ? 'Mikrofonzugriff verweigert oder nicht verfügbar.' : 'Dein Browser unterstützt kein Diktat – bitte Text tippen oder Datei hochladen.');
+      return;
+    }
+    capturing = true;
+    btn.textContent = '⏹ Stopp';
+    rec.dataset.dict = dictating ? '1' : '';
+    rec.textContent = dictating ? '🎤 Höre zu … sprich jetzt (Text erscheint live)' : '🎤 Aufnahme läuft …';
+  }
+
+  function stopCapture() {
+    capturing = false;
+    if (recognition) { try { recognition.stop(); } catch (e) {} recognition = null; }
+    if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+    const btn = document.getElementById('rec-btn'), rec = document.getElementById('rec-status');
+    btn.textContent = '🎤 Aufnehmen & diktieren';
+    rec.textContent = rec.dataset.dict === '1' ? 'Diktat übernommen – Text prüfen, dann „KI-Bericht erstellen".' : 'Aufnahme bereit.';
+  }
+
+  function toggleRecording() { capturing ? stopCapture() : startCapture(); }
 
   async function createDraft() {
     flash('doc-err', '');
