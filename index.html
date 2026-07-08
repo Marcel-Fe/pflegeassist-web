@@ -996,6 +996,7 @@
     const res = await fetch(API + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
+      if (res.status === 401 && auth && token) { sessionExpired(); throw new Error('Sitzung abgelaufen'); }
       if (res.status === 402) showPaywall({ status: 'expired' });  // Zugang mitten in der Sitzung abgelaufen
       throw new Error(data.detail || ('Fehler ' + res.status));
     }
@@ -1008,8 +1009,20 @@
     if (token) headers['Authorization'] = 'Bearer ' + token;
     const res = await fetch(API + path, { method: 'POST', headers, body: formData });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || ('Fehler ' + res.status));
+    if (!res.ok) {
+      if (res.status === 401 && token) { sessionExpired(); throw new Error('Sitzung abgelaufen'); }
+      throw new Error(data.detail || ('Fehler ' + res.status));
+    }
     return data;
+  }
+
+  function sessionExpired() {
+    token = ''; user = null;
+    localStorage.removeItem('pa_token'); localStorage.removeItem('pa_user');
+    const app = document.getElementById('app-view'); if (app) app.classList.add('hidden');
+    const pw = document.getElementById('paywall-view'); if (pw) pw.classList.add('hidden');
+    document.getElementById('login-view').classList.remove('hidden');
+    flash('login-err', 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.');
   }
 
   async function doLogin() {
