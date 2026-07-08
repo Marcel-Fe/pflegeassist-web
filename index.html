@@ -2,17 +2,34 @@
 <html lang="de">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>PflegeAssist</title>
+<meta name="theme-color" content="#0e7c86" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="PflegeAssist" />
 <script>
-  // Selbstreinigung: entfernt fremde/veraltete Service-Worker + Caches auf dieser Domain,
-  // damit keine andere App (gleicher github.io-Ursprung) diese Seite überlagert.
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }).catch(function () {});
-  }
-  if ('caches' in window) {
-    caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
-  }
+  // Domain-bewusst: Auf GitHub Pages (Ursprung mit anderen Repos geteilt) keine
+  // Service-Worker, um Überlagerungen zu vermeiden. Auf der echten App-Domain
+  // (z. B. Render) die PWA registrieren -> installierbar + Offline-Fähigkeit.
+  (function () {
+    var onPages = location.hostname.endsWith('github.io');
+    if ('serviceWorker' in navigator) {
+      if (onPages) {
+        navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }).catch(function () {});
+      } else {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').catch(function () {});
+        });
+      }
+    }
+    if (onPages && 'caches' in window) {
+      caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+    }
+  })();
 </script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PHJlY3Qgd2lkdGg9JzMyJyBoZWlnaHQ9JzMyJyByeD0nOCcgZmlsbD0nIzBlN2M4NicvPjxwYXRoIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDQsNCknIGQ9J00xMiAyMS4zNWwtMS40NS0xLjMyQzUuNCAxNS4zNiAyIDEyLjI4IDIgOC41IDIgNS40MiA0LjQyIDMgNy41IDNjMS43NCAwIDMuNDEuODEgNC41IDIuMDlDMTMuMDkgMy44MSAxNC43NiAzIDE2LjUgMyAxOS41OCAzIDIyIDUuNDIgMjIgOC41YzAgMy43OC0zLjQgNi44Ni04LjU1IDExLjU0TDEyIDIxLjM1eicgZmlsbD0nI2ZmZicvPjwvc3ZnPg==" />
 <style>
@@ -667,7 +684,13 @@
             <select id="doc-client"></select>
             <label>Was ist passiert? (gesprochener Text)</label>
             <textarea id="doc-transcript" rows="4" placeholder="z. B. Frau Schmidt wirkte beim Aufstehen unsicher und klagte über Schwindel."></textarea>
-            <label>Oder Audioaufnahme hochladen (optional)</label>
+            <label>Audioaufnahme (optional)</label>
+            <div class="rec-row" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <button type="button" class="ghost" id="rec-btn" onclick="toggleRecording()">🎤 Aufnahme starten</button>
+              <span class="muted" id="rec-status"></span>
+              <audio id="rec-preview" controls class="hidden" style="height:34px"></audio>
+            </div>
+            <label style="margin-top:10px">… oder Audiodatei hochladen</label>
             <input type="file" id="doc-audio" accept="audio/*">
             <div style="height:12px"></div>
             <button onclick="createDraft()">KI-Bericht erstellen</button>
@@ -687,6 +710,28 @@
         <!-- KLIENTEN -->
         <section class="view hidden" id="view-klienten">
           <h2>Klienten</h2>
+          <div class="panel" style="margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <button onclick="openClientForm()">＋ Neuer Klient</button>
+            <label style="display:flex;align-items:center;gap:6px;margin:0;font-weight:500"><input type="checkbox" id="kl-inactive" style="width:auto" onchange="loadKlienten()"> Auch deaktivierte anzeigen</label>
+          </div>
+          <div class="panel hidden" id="klient-form-panel" style="margin-bottom:16px">
+            <h3 id="klient-form-title">Neuer Klient</h3>
+            <input type="hidden" id="kl-id">
+            <div class="grid2">
+              <div><label>Vorname</label><input id="kl-first"></div>
+              <div><label>Nachname</label><input id="kl-last"></div>
+            </div>
+            <label>Adresse</label><input id="kl-address">
+            <div class="grid2">
+              <div><label>Pflegegrad</label><input id="kl-care" placeholder="z. B. Pflegegrad 3"></div>
+              <div><label>Notfallkontakt</label><input id="kl-emergency"></div>
+            </div>
+            <label>Notizen</label><textarea id="kl-notes" rows="2"></textarea>
+            <div class="err" id="kl-err"></div>
+            <div style="height:10px"></div>
+            <button onclick="saveClient()">Speichern</button>
+            <button class="ghost" onclick="closeClientForm()">Abbrechen</button>
+          </div>
           <div class="panel"><div id="list-klienten" class="list"><div class="muted">Lädt …</div></div></div>
         </section>
 
@@ -721,7 +766,7 @@
             <div class="panel"><h3>Aufgaben nach Priorität</h3><div class="sublabel">Offene Aufgaben</div><div id="chart-tasks" class="bars"></div></div>
           </div>
           <div class="panel" style="margin-top:16px">
-            <h3>Wochenverlauf</h3><div class="sublabel">Trend der letzten 7 Tage (Demo-Kennzahlen)</div>
+            <h3>Wochenverlauf</h3><div class="sublabel">Trend der letzten 7 Tage (echte Werte deiner Organisation)</div>
             <div class="stat-row" id="stat-row-2"></div>
           </div>
         </section>
@@ -1082,13 +1127,18 @@
       const tp = countBy(openTasks, t => (t.priority || 'normal').toLowerCase());
       document.getElementById('chart-tasks').innerHTML = barsHTML(Object.entries(tp).map(([k, v]) => ({ label: cap(k), value: v, color: pcolor[k] || '#7c3aed' })));
 
-      const stats = [
-        ['Dokumentationen', '42', '↗ 12%', '#0e7c86', '0,30 20,24 40,26 60,16 80,20 100,10 120,6'],
-        ['Einsätze', '56', '↗ 8%', '#2563eb', '0,26 20,22 40,24 60,18 80,22 100,14 120,10'],
-        ['KI-Zeitersparnis', '8h 20min', '↗ 15%', '#15803d', '0,30 20,26 40,22 60,24 80,14 100,12 120,4'],
-        ['Abgeschlossene Aufgaben', '18', '↗ 20%', '#7c3aed', '0,28 20,24 40,26 60,18 80,16 100,12 120,8']];
-      document.getElementById('stat-row-2').innerHTML = stats.map(s =>
-        `<div class="stat"><div class="sl">${s[0]}</div><div class="sv">${s[1]}</div><div class="sd">${s[2]}</div>${spark(s[3], s[4])}</div>`).join('');
+      try {
+        const wk = await api('/api/v1/stats/weekly');
+        const S = wk.series, T = wk.totals;
+        const hm = m => { const h = Math.floor(m / 60), mm = m % 60; return h ? `${h}h ${mm}min` : `${mm}min`; };
+        const stats = [
+          ['Dokumentationen', String(T.reports), trendLabel(S.reports), '#0e7c86', sparkPts(S.reports)],
+          ['Einsätze', String(T.visits), trendLabel(S.visits), '#2563eb', sparkPts(S.visits)],
+          ['KI-Zeitersparnis', hm(T.minutes_saved), trendLabel(S.reports), '#15803d', sparkPts(S.reports)],
+          ['Erledigte Aufgaben', String(T.tasks_done), trendLabel(S.tasks_done), '#7c3aed', sparkPts(S.tasks_done)]];
+        document.getElementById('stat-row-2').innerHTML = stats.map(s =>
+          `<div class="stat"><div class="sl">${s[0]}</div><div class="sv">${s[1]}</div><div class="sd">${s[2]}</div>${spark(s[3], s[4])}</div>`).join('');
+      } catch (e) { document.getElementById('stat-row-2').innerHTML = `<div class="muted">${esc(e.message)}</div>`; }
     } catch (e) { document.getElementById('stat-kpis').innerHTML = `<div class="muted">${esc(e.message)}</div>`; }
   }
 
@@ -1141,7 +1191,39 @@
       ['Aufgaben', 'Offene und erledigte Aufgaben', 'aufgaben', '/api/v1/tasks'],
       ['Risiken', 'Dokumentierte Risiken', 'risiken', '/api/v1/risks']];
     document.getElementById('export-cards').innerHTML = cards.map(([t, s, key, path]) =>
-      `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">${t}</div><div class="es">${s}</div></div><button onclick="exportCsv('${path}','${key}')">CSV ↓</button></div>`).join('');
+      `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">${t}</div><div class="es">${s}</div></div><button onclick="exportCsv('${path}','${key}')">CSV ↓</button></div>`).join('') +
+      `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">Gesamtbericht</div><div class="es">Druckbare Übersicht (Klienten, Einsätze, Aufgaben, Risiken)</div></div><button onclick="printReport()">Drucken / PDF ↧</button></div>`;
+  }
+
+  async function printReport() {
+    try {
+      const [clients, visits, tasks, risks] = await Promise.all([
+        api('/api/v1/clients'), api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/risks')]);
+      const org = (user && user.organization_name) || 'PflegeAssist';
+      const now = new Date().toLocaleString('de-DE');
+      const table = (title, cols, rows) =>
+        `<h2>${esc(title)} <span style="font-weight:400;color:#666">(${rows.length})</span></h2>` +
+        (rows.length
+          ? `<table><thead><tr>${cols.map(c => `<th>${esc(c[0])}</th>`).join('')}</tr></thead><tbody>` +
+            rows.map(r => `<tr>${cols.map(c => `<td>${esc(c[1](r) ?? '')}</td>`).join('')}</tr>`).join('') + '</tbody></table>'
+          : '<p class="muted">Keine Daten.</p>');
+      const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><title>PflegeAssist – Bericht</title>
+        <style>body{font-family:system-ui,Arial,sans-serif;color:#111;margin:32px;font-size:13px}
+        h1{font-size:20px;margin:0 0 4px} h2{font-size:15px;margin:22px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}
+        .meta{color:#666;font-size:12px;margin-bottom:8px}
+        table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:5px 7px;text-align:left;vertical-align:top}
+        th{background:#f3f4f6} .muted{color:#888} @media print{body{margin:12mm}}</style></head><body>
+        <h1>Pflegebericht – Gesamtübersicht</h1>
+        <div class="meta">${esc(org)} · erstellt am ${esc(now)}</div>
+        ${table('Klienten', [['Name', r => r.first_name + ' ' + r.last_name], ['Pflegegrad', r => r.care_level], ['Adresse', r => r.address], ['Notfallkontakt', r => r.emergency_contact]], clients)}
+        ${table('Einsätze', [['Klient', r => r.client], ['Termin', r => r.scheduled_start ? new Date(r.scheduled_start).toLocaleString('de-DE') : ''], ['Status', r => r.status]], visits)}
+        ${table('Aufgaben', [['Titel', r => r.title], ['Klient', r => r.client], ['Priorität', r => r.priority], ['Status', r => r.status]], tasks)}
+        ${table('Risiken', [['Titel', r => r.title], ['Klient', r => r.client], ['Stufe', r => r.level], ['Status', r => r.status]], risks)}
+        <script>window.onload=function(){window.print();}<\/script></body></html>`;
+      const w = window.open('', '_blank');
+      if (!w) { flashToast('Bitte Pop-ups für diese Seite erlauben.'); return; }
+      w.document.write(html); w.document.close();
+    } catch (e) { flashToast('Bericht fehlgeschlagen: ' + e.message); }
   }
   async function exportCsv(path, name) {
     try {
@@ -1184,16 +1266,72 @@
     inp.value = ''; renderTeamMsgs();
   }
 
+  let clientsCache = [];
+  function canEditClients() { return user && (user.role === 'pdl' || user.role === 'org_admin'); }
+
   async function loadKlienten() {
     try {
-      const list = await api('/api/v1/clients');
+      const inactive = document.getElementById('kl-inactive');
+      const path = inactive && inactive.checked ? '/api/v1/clients?include_inactive=true' : '/api/v1/clients';
+      const list = await api(path);
+      clientsCache = list;
       if (!list.length) return listEmpty('list-klienten', 'Keine Klienten vorhanden.');
+      const edit = canEditClients();
       document.getElementById('list-klienten').innerHTML = list.map(c => {
         const name = `${c.first_name} ${c.last_name}`;
         const sub = [esc(c.care_level || ''), esc(c.address || '')].filter(Boolean).join(' · ');
-        return `<div class="visit">${avatarHTML(name, 38)}<div class="grow"><div class="vname">${esc(name)}</div><div class="vsub">${sub || 'Keine Angaben'}</div></div>${c.emergency_contact ? `<span class="muted">☎ ${esc(c.emergency_contact)}</span>` : ''}</div>`;
+        const dim = c.is_active ? '' : 'opacity:.55';
+        const flag = c.is_active ? '' : '<span class="chip">Deaktiviert</span>';
+        const actions = edit
+          ? `<button class="ghost" onclick="openClientForm('${c.id}')">Bearbeiten</button>` +
+            (c.is_active
+              ? `<button class="ghost" onclick="toggleClientActive('${c.id}',false)">Deaktivieren</button>`
+              : `<button class="ghost" onclick="toggleClientActive('${c.id}',true)">Aktivieren</button>`)
+          : (c.emergency_contact ? `<span class="muted">☎ ${esc(c.emergency_contact)}</span>` : '');
+        return `<div class="visit" style="${dim}">${avatarHTML(name, 38)}<div class="grow"><div class="vname">${esc(name)} ${flag}</div><div class="vsub">${sub || 'Keine Angaben'}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap">${actions}</div></div>`;
       }).join('');
     } catch (e) { listError('list-klienten', e.message); }
+  }
+
+  function openClientForm(id) {
+    const c = id ? clientsCache.find(x => x.id === id) : null;
+    document.getElementById('klient-form-title').textContent = c ? 'Klient bearbeiten' : 'Neuer Klient';
+    document.getElementById('kl-id').value = c ? c.id : '';
+    document.getElementById('kl-first').value = c ? (c.first_name || '') : '';
+    document.getElementById('kl-last').value = c ? (c.last_name || '') : '';
+    document.getElementById('kl-address').value = c ? (c.address || '') : '';
+    document.getElementById('kl-care').value = c ? (c.care_level || '') : '';
+    document.getElementById('kl-emergency').value = c ? (c.emergency_contact || '') : '';
+    document.getElementById('kl-notes').value = c ? (c.notes || '') : '';
+    flash('kl-err', '');
+    document.getElementById('klient-form-panel').classList.remove('hidden');
+  }
+  function closeClientForm() { document.getElementById('klient-form-panel').classList.add('hidden'); }
+
+  async function saveClient() {
+    const id = document.getElementById('kl-id').value;
+    const body = {
+      first_name: document.getElementById('kl-first').value.trim(),
+      last_name: document.getElementById('kl-last').value.trim(),
+      address: document.getElementById('kl-address').value.trim() || null,
+      care_level: document.getElementById('kl-care').value.trim() || null,
+      emergency_contact: document.getElementById('kl-emergency').value.trim() || null,
+      notes: document.getElementById('kl-notes').value.trim() || null,
+    };
+    if (!body.first_name || !body.last_name) { flash('kl-err', 'Bitte Vor- und Nachnamen angeben.'); return; }
+    try {
+      if (id) await api('/api/v1/clients/' + id, { method: 'PATCH', body });
+      else await api('/api/v1/clients', { method: 'POST', body });
+      closeClientForm();
+      loadKlienten();
+    } catch (e) { flash('kl-err', e.message); }
+  }
+
+  async function toggleClientActive(id, active) {
+    try {
+      await api('/api/v1/clients/' + id, { method: 'PATCH', body: { is_active: active } });
+      loadKlienten();
+    } catch (e) { flashToast(e.message); }
   }
 
   async function loadEinsaetze() {
@@ -1350,6 +1488,23 @@
   function spark(color, pts) {
     return `<svg viewBox="0 0 120 36" width="100%" height="36" preserveAspectRatio="none"><polyline fill="none" stroke="${color}" stroke-width="2.5" points="${pts}"/></svg>`;
   }
+  // Map a series of daily values to sparkline points (x 0..120, y 30=baseline .. 6=peak).
+  function sparkPts(values) {
+    const n = (values || []).length; if (!n) return '0,18 120,18';
+    const max = Math.max(...values, 1);
+    return values.map((v, i) => {
+      const x = n === 1 ? 60 : Math.round(i * 120 / (n - 1));
+      const y = Math.round(30 - (v / max) * 24);
+      return `${x},${y}`;
+    }).join(' ');
+  }
+  function trendLabel(values) {
+    if (!values || values.length < 2) return '';
+    const half = Math.floor(values.length / 2);
+    const early = values.slice(0, half).reduce((a, b) => a + b, 0);
+    const late = values.slice(-half).reduce((a, b) => a + b, 0);
+    return late > early ? '↗ steigend' : late < early ? '↘ rückläufig' : '→ stabil';
+  }
   function renderStats() {
     const stats = [
       ['Dokumentationen', '42', '↗ 12%', '#0e7c86', '0,30 20,24 40,26 60,16 80,20 100,10 120,6'],
@@ -1370,6 +1525,33 @@
     } catch (e) { document.getElementById('doc-err').textContent = e.message; }
   }
 
+  let mediaRecorder = null, recordedChunks = [], recordedBlob = null;
+  async function toggleRecording() {
+    const btn = document.getElementById('rec-btn');
+    if (mediaRecorder && mediaRecorder.state === 'recording') { mediaRecorder.stop(); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      flash('doc-err', 'Audioaufnahme wird von diesem Browser nicht unterstützt – bitte Datei hochladen.'); return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recordedChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        recordedBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+        const pv = document.getElementById('rec-preview');
+        pv.src = URL.createObjectURL(recordedBlob); pv.classList.remove('hidden');
+        document.getElementById('rec-status').textContent = 'Aufnahme bereit (' + Math.round(recordedBlob.size / 1024) + ' KB)';
+        btn.textContent = '🎤 Neu aufnehmen';
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorder.start();
+      btn.textContent = '⏹ Aufnahme stoppen';
+      document.getElementById('rec-status').textContent = 'Aufnahme läuft …';
+      flash('doc-err', '');
+    } catch (e) { flash('doc-err', 'Mikrofonzugriff verweigert oder nicht verfügbar.'); }
+  }
+
   async function createDraft() {
     flash('doc-err', '');
     const client_id = document.getElementById('doc-client').value;
@@ -1378,10 +1560,11 @@
     try {
       let voice_note_id = null;
       const audioFile = document.getElementById('doc-audio').files[0];
-      if (audioFile) {
+      const audioBlob = recordedBlob || audioFile;
+      if (audioBlob) {
         const fd = new FormData();
         fd.append('client_id', client_id);
-        fd.append('audio', audioFile);
+        fd.append('audio', audioBlob, recordedBlob ? 'aufnahme.webm' : audioFile.name);
         const up = await apiUpload('/api/v1/documentation/upload', fd);
         voice_note_id = up.voice_note_id;
       }
