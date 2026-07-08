@@ -422,6 +422,63 @@
             border-radius: 10px; font-size: .88rem; margin-bottom: 16px; }
   .api-row { font-size: .8rem; }
   a { color: var(--primary-dark); }
+
+  /* ===== Handy: Pflegekraft-Startseite, Bottom-Nav, Drawer, mobiler Kopf ===== */
+  .link { background: none; padding: 0; }
+  /* KPI-Kacheln im Mockup-Look (weiße Karte, getönte Icon-Fläche, farbige Unterzeile) */
+  .mkpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 720px) { .mkpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  .mkpi { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 15px; }
+  .mkpi .mk-ic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 12px; }
+  .mkpi .mk-ic svg { width: 20px; height: 20px; }
+  .mkpi .mk-v { font-size: 1.7rem; font-weight: 800; line-height: 1; }
+  .mkpi .mk-l { color: var(--muted); font-size: .82rem; margin-top: 4px; }
+  .mkpi .mk-s { font-size: .74rem; margin-top: 8px; font-weight: 600; }
+
+  /* Nächster Einsatz + Schnellaktionen */
+  .qa-panel { background: linear-gradient(135deg, rgba(18,165,148,.10), rgba(14,124,134,.04)); }
+  .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .qa-circle { display: flex; flex-direction: column; align-items: center; gap: 8px; background: none; padding: 6px 2px;
+    color: var(--ink); font-weight: 600; font-size: .78rem; text-align: center; }
+  .qa-circle .qc { width: 56px; height: 56px; border-radius: 50%; background: var(--card); border: 1px solid var(--line);
+    display: grid; place-items: center; color: var(--primary-dark); box-shadow: 0 4px 12px rgba(16,24,40,.06); }
+  .qa-circle .qc svg { width: 22px; height: 22px; }
+  .qa-circle:hover .qc { background: var(--chip); }
+  .route-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--card); color: var(--primary-dark); font-weight: 600; font-size: .84rem; }
+  .route-btn:hover { background: var(--chip); }
+
+  /* Hamburger + mobile Marke im Kopf (Desktop: aus) */
+  .hamburger, .mobile-brand { display: none; }
+  .mobile-brand { align-items: center; gap: 9px; }
+  .mobile-brand .wordmark { font-size: 1.1rem; }
+
+  /* Bottom-Tab-Leiste + Drawer-Overlay (nur Handy) */
+  .bottom-nav { display: none; }
+  .drawer-backdrop { display: none; }
+  @media (max-width: 1150px) {
+    .topbar .search { display: none; }
+    .hamburger { display: grid; }
+    .mobile-brand { display: flex; }
+    .topbar { padding: 10px 16px; gap: 12px; }
+    .content { padding: 18px 16px calc(84px + env(safe-area-inset-bottom)); }
+    /* Seitenleiste wird zur Schublade */
+    .sidebar.open { display: flex; position: fixed; top: 0; left: 0; bottom: 0; width: 84%; max-width: 320px;
+      height: 100vh; z-index: 60; box-shadow: 0 0 50px rgba(0,0,0,.35); }
+    .drawer-backdrop.open { display: block; position: fixed; inset: 0; background: rgba(8,20,24,.45); z-index: 55; }
+    .bottom-nav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--card);
+      border-top: 1px solid var(--line); padding: 7px 4px calc(7px + env(safe-area-inset-bottom)); justify-content: space-around;
+      box-shadow: 0 -6px 20px rgba(16,24,40,.06); }
+    .is-admin .bottom-nav { display: none; }
+    .fab { display: none; }
+    .topbar-right { gap: 8px; }
+    .topbar .theme-btn, .user-chip .who, .user-chip .chev { display: none; }
+    .topbar-right > .ghost { padding: 9px 12px; font-size: .82rem; }
+  }
+  .bn-item { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; padding: 3px 2px;
+    background: none; color: var(--muted); font-size: .66rem; font-weight: 600; }
+  .bn-item svg { width: 22px; height: 22px; }
+  .bn-item.active { color: var(--primary); }
 </style>
 </head>
 <body>
@@ -580,6 +637,14 @@
 
     <div class="mainarea">
       <div class="topbar">
+        <button class="iconbtn hamburger" onclick="openDrawer()" aria-label="Menü"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <div class="mobile-brand">
+          <svg class="logo-mark" width="30" height="30" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#pa-g)" />
+            <path transform="translate(8,8)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#fff" />
+          </svg>
+          <span class="wordmark">Pflege<b style="color:var(--primary)">Assist</b></span>
+        </div>
         <div class="search">
           <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
           <input placeholder="Suche nach Klienten, Dokumenten, Aufgaben …" />
@@ -598,26 +663,28 @@
       </div>
 
       <div class="content">
-        <!-- PFLEGEKRAFT-STARTSEITE ("Mein Tag") -->
+        <!-- PFLEGEKRAFT-STARTSEITE ("Mein Tag") – Handy-optimiert -->
         <section class="view hidden" id="view-start">
-          <div class="chero">
-            <span class="pill">Schön, dass du da bist</span>
-            <h1 id="c-greet">Guten Tag! 👋</h1>
-            <p id="c-greet-sub">Bereit für deinen Tag. Dokumentiere deine Pflege in Sekunden – <span class="accent">die KI erledigt den Rest.</span></p>
-            <button class="btn-hero" onclick="navTo('doc')">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
-              Pflege dokumentieren
-            </button>
-          </div>
-          <div class="ck-grid" id="c-kpis"></div>
-          <div class="cols2">
-            <div class="panel">
-              <div class="panel-head"><h3>Meine Einsätze heute</h3></div>
-              <div id="c-visits"><div class="muted">Lädt …</div></div>
+          <div class="greet-row">
+            <div>
+              <h1 id="c-greet">Guten Tag! 👋</h1>
+              <p class="muted" id="c-greet-sub" style="margin:4px 0 0">Hier ist dein Überblick für heute.</p>
             </div>
-            <div class="panel">
-              <div class="panel-head"><h3>Meine Aufgaben</h3></div>
-              <div id="c-tasks"><div class="muted">Lädt …</div></div>
+            <button class="date-btn" id="c-date"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> …</button>
+          </div>
+          <div class="mkpi-grid" id="c-kpis"></div>
+          <div class="panel" id="c-next" style="margin-bottom:16px"><div class="muted">Lädt …</div></div>
+          <div class="panel" style="margin-bottom:16px">
+            <div class="panel-head"><h3 id="c-tasks-h">Aufgaben</h3><button class="link" style="color:var(--primary-dark);font-weight:600" onclick="navTo('aufgaben')">Alle anzeigen</button></div>
+            <div id="c-tasks"><div class="muted">Lädt …</div></div>
+          </div>
+          <div class="panel qa-panel">
+            <h3 style="color:var(--primary-dark);margin:0 0 14px">Schnellaktionen</h3>
+            <div class="quick-actions">
+              <button class="qa-circle" onclick="navTo('doc')"><span class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>Neue Doku</button>
+              <button class="qa-circle" onclick="navTo('wunddoku')"><span class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>Foto erfassen</button>
+              <button class="qa-circle" onclick="navTo('doc')"><span class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>Unterschrift</button>
+              <button class="qa-circle" onclick="navTo('nachrichten')"><span class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>Nachricht</button>
             </div>
           </div>
         </section>
@@ -937,6 +1004,14 @@
       </div>
     </div>
   </div>
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="bottom-nav">
+    <button class="bn-item" data-tab="home" onclick="homeTab()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg> Dashboard</button>
+    <button class="bn-item" data-tab="einsaetze" onclick="navTo('einsaetze')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Einsätze</button>
+    <button class="bn-item" data-tab="klienten" onclick="navTo('klienten')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Klienten</button>
+    <button class="bn-item" data-tab="doc" onclick="navTo('doc')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Dokumente</button>
+    <button class="bn-item" data-tab="mehr" onclick="openDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg> Mehr</button>
+  </nav>
   <button class="fab" onclick="navTo('doc')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Schnelle Aktion</button>
 </div>
 
@@ -1096,6 +1171,7 @@
     document.getElementById('paywall-view').classList.add('hidden');
     document.getElementById('login-view').classList.add('hidden');
     document.getElementById('app-view').classList.remove('hidden');
+    document.body.classList.remove('is-admin');
     document.getElementById('h-name').textContent = user.full_name || user.email;
     document.getElementById('h-role').textContent = ROLE_LABEL[user.role] || user.role;
     document.getElementById('h-avatar').innerHTML = avatarInner(user.full_name || user.email);
@@ -1116,6 +1192,7 @@
     document.getElementById('paywall-view').classList.add('hidden');
     document.getElementById('login-view').classList.add('hidden');
     document.getElementById('app-view').classList.remove('hidden');
+    document.body.classList.add('is-admin');
     document.getElementById('h-name').textContent = user.full_name || user.email;
     document.getElementById('h-role').textContent = 'Super-Admin';
     document.getElementById('h-avatar').innerHTML = avatarInner(user.full_name || user.email);
@@ -1174,12 +1251,20 @@
   }
 
   let currentView = 'dash';
+  // ---- Handy-Navigation: Schublade + Bottom-Tabs ----
+  function openDrawer() { document.querySelector('.sidebar').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+  function closeDrawer() { document.querySelector('.sidebar').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+  function homeTab() { navTo(isManager() ? 'dash' : 'start'); }
+  const BOTTOM_TAB = { start: 'home', dash: 'home', einsaetze: 'einsaetze', klienten: 'klienten', doc: 'doc' };
   function navTo(view) {
     currentView = view;
+    closeDrawer();
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const nav = document.querySelector('.nav-item[data-view="' + view + '"]');
     if (nav) nav.classList.add('active');
+    const tab = BOTTOM_TAB[view] || 'mehr';
+    document.querySelectorAll('.bn-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     if (view === 'start') { document.getElementById('view-start').classList.remove('hidden'); loadStart(); }
     else if (view === 'dash') { document.getElementById('view-dash').classList.remove('hidden'); loadDashboard(); }
     else if (view === 'doc') { document.getElementById('view-doc').classList.remove('hidden'); loadClients(); }
@@ -1216,34 +1301,42 @@
       ', ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   }
 
+  const MONTHS_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  function mkpiCard(icon, color, tint, val, label, sub, subColor) {
+    return `<div class="mkpi"><div class="mk-ic" style="background:${tint};color:${color}">${icon}</div>` +
+      `<div class="mk-v">${val}</div><div class="mk-l">${esc(label)}</div>` +
+      (sub ? `<div class="mk-s" style="color:${subColor}">${esc(sub)}</div>` : '') + `</div>`;
+  }
   async function loadStart() {
-    const h = new Date().getHours();
+    const now = new Date();
+    const h = now.getHours();
     const g = h < 11 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend';
     const first = (user.full_name || '').split(' ')[0] || '';
     document.getElementById('c-greet').textContent = g + ', ' + first + '! 👋';
+    const dateBtn = document.getElementById('c-date');
+    if (dateBtn) dateBtn.lastChild.textContent = ' ' + now.getDate() + '. ' + MONTHS_DE[now.getMonth()] + ' ' + now.getFullYear();
     try {
-      const [visits, tasks, clients] = await Promise.all([
-        api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/clients')
+      const [visits, tasks, clients, risks] = await Promise.all([
+        api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/clients'), api('/api/v1/risks').catch(() => [])
       ]);
-      const today = new Date().toDateString();
+      const today = now.toDateString();
       const todaysVisits = visits.filter(v => v.scheduled_start && new Date(v.scheduled_start).toDateString() === today);
+      const inProgress = todaysVisits.filter(v => ['unterwegs', 'in_bearbeitung'].includes(v.status)).length;
       const openTasks = tasks.filter(t => t.status === 'open');
+      const dueToday = openTasks.filter(t => t.due_at && new Date(t.due_at).toDateString() === today).length;
+      const openRisks = (risks || []).filter(r => r.status === 'open');
 
-      const kpis = [
-        ['teal', SVG.calendar, todaysVisits.length, 'Einsätze heute'],
-        ['blue', SVG.check, openTasks.length, 'Offene Aufgaben'],
-        ['violet', SVG.users, clients.length, 'Meine Klienten'],
-      ];
-      document.getElementById('c-kpis').innerHTML = kpis.map(([c, ic, v, l]) =>
-        `<div class="ckpi ${c}"><div class="ci">${ic}</div><div class="cv">${v}</div><div class="cl">${l}</div></div>`).join('');
+      document.getElementById('c-kpis').innerHTML = [
+        mkpiCard(SVG.users, '#0e7c86', 'rgba(18,165,148,.14)', clients.length, 'Klienten', 'aktiv betreut', '#0e7c86'),
+        mkpiCard(SVG.calendar, '#2563eb', 'rgba(37,99,235,.12)', todaysVisits.length, 'Einsätze heute', inProgress ? inProgress + ' in Bearbeitung' : 'geplant', '#2563eb'),
+        mkpiCard(SVG.alert, '#b91c1c', 'rgba(185,28,28,.10)', openRisks.length, 'Offene Risiken', openRisks.length ? 'Handlungsbedarf' : 'alles im grünen Bereich', openRisks.length ? '#b91c1c' : '#15803d'),
+        mkpiCard(SVG.check, '#7c3aed', 'rgba(124,58,237,.12)', openTasks.length, 'Offene Aufgaben', dueToday ? dueToday + ' fällig heute' : 'nichts fällig heute', '#7c3aed'),
+      ].join('');
 
-      const vlist = todaysVisits.length ? todaysVisits : visits.slice(0, 5);
-      document.getElementById('c-visits').innerHTML = vlist.length ? vlist.map(v => {
-        const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
-        return `<div class="visit">${avatarHTML(v.client, 38)}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}</div></div><span class="status ${st[0]}">${st[1]}</span></div>`;
-      }).join('') : '<div class="muted">Keine Einsätze geplant.</div>';
+      renderNextVisit(visits, clients, now);
 
-      document.getElementById('c-tasks').innerHTML = openTasks.length ? openTasks.map(t => {
+      document.getElementById('c-tasks-h').textContent = 'Aufgaben (' + openTasks.length + ')';
+      document.getElementById('c-tasks').innerHTML = openTasks.length ? openTasks.slice(0, 5).map(t => {
         const p = (t.priority || 'normal').toLowerCase();
         const sub = [t.client ? esc(t.client) : '', t.due_at ? 'fällig ' + fmtDate(t.due_at) : ''].filter(Boolean).join(' · ');
         return `<div class="task-item"><span class="box"></span><div class="grow"><div class="tt">${esc(t.title)}</div><div class="ts">${sub || 'Offen'}</div></div><span class="prio ${p}">${cap(p)}</span></div>`;
@@ -1251,6 +1344,33 @@
     } catch (e) {
       document.getElementById('c-kpis').innerHTML = `<div class="muted">${esc(e.message)}</div>`;
     }
+  }
+
+  function renderNextVisit(visits, clients, now) {
+    const box = document.getElementById('c-next');
+    const upcoming = visits.filter(v => v.scheduled_start && new Date(v.scheduled_start) >= now)
+      .sort((a, b) => new Date(a.scheduled_start) - new Date(b.scheduled_start));
+    const v = upcoming[0];
+    if (!v) { box.innerHTML = '<div class="panel-head"><h3 style="color:var(--primary-dark)">Nächster Einsatz</h3></div><div class="muted">Kein weiterer Einsatz geplant.</div>'; return; }
+    const client = clients.find(c => c.id === v.client_id);
+    const addr = client && client.address ? client.address : '';
+    const start = new Date(v.scheduled_start);
+    const mins = Math.round((start - now) / 60000);
+    const inLabel = mins < 60 ? 'In ' + Math.max(1, mins) + ' Min.' : (mins < 1440 ? 'In ' + Math.round(mins / 60) + ' Std.' : fmtDate(v.scheduled_start));
+    const t2 = s => new Date(s).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const timeRange = t2(v.scheduled_start) + (v.scheduled_end ? ' – ' + t2(v.scheduled_end) : '') + ' Uhr';
+    const photoPath = client && client.has_photo ? '/api/v1/clients/' + client.id + '/photo' : null;
+    const maps = addr ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr) : '';
+    box.innerHTML =
+      `<div class="panel-head"><h3 style="color:var(--primary-dark)">Nächster Einsatz</h3><span class="status prog">${esc(inLabel)}</span></div>` +
+      `<div class="visit" style="border:none;cursor:pointer" onclick="navTo('einsaetze')">${avatarHTML(v.client, 52, photoPath)}` +
+      `<div class="grow"><div class="vname" style="font-size:1.05rem">${esc(v.client)}</div>${addr ? `<div class="vsub">📍 ${esc(addr)}</div>` : ''}</div>` +
+      `<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>` +
+      `<div style="border-top:1px solid var(--line);margin-top:8px;padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">` +
+      `<span class="muted" style="font-size:.86rem">🕐 ${esc(timeRange)}</span>` +
+      (maps ? `<a class="route-btn" href="${maps}" target="_blank" rel="noopener"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg> Route anzeigen</a>` : '') +
+      `</div>`;
+    hydratePhotos(box);
   }
 
   // ---- Diagramm-Helfer (reine CSS/SVG, keine Bibliothek) ----
