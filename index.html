@@ -862,34 +862,13 @@
 
         <!-- HILFE & SUPPORT -->
         <section class="view hidden" id="view-hilfe">
-          <h2>Hilfe &amp; Support</h2>
-          <div class="grid2">
-            <div class="panel">
-              <h3>Häufige Fragen</h3>
-              <div class="sublabel">Schnelle Antworten zu PflegeAssist</div>
-              <div class="faq">
-                <details><summary>Wie erstelle ich eine Dokumentation?</summary><div class="faq-body">Über „Dokumentation" in der Seitenleiste (oder „Schnelle Aktion"). Klient wählen, kurz beschreiben oder Audio hochladen – die KI erstellt den Pflegebericht-Entwurf, den die PDL freigibt.</div></details>
-                <details><summary>Wie funktioniert die KI-Freigabe?</summary><div class="faq-body">Pflegekräfte erstellen Entwürfe. Die Pflegedienstleitung (PDL) prüft und gibt sie mit einem Klick frei. Erst danach gilt der Bericht als verbindlich.</div></details>
-                <details><summary>Sind meine Daten sicher?</summary><div class="faq-body">Ja. Jede Abfrage ist streng nach Organisation getrennt, Passwörter sind verschlüsselt (bcrypt), Hosting erfolgt in der EU (Frankfurt). Im Demo-Modus entstehen keine KI-Kosten.</div></details>
-                <details><summary>Kann ich Fotos der Klienten ausblenden?</summary><div class="faq-body">Ja – unter „Einstellungen" den Schalter „Foto-Avatare anzeigen" deaktivieren. Dann erscheinen überall Initialen.</div></details>
-              </div>
-            </div>
-            <div class="stack">
-              <div class="panel">
-                <h3>Kontakt</h3>
-                <div class="help-contact">
-                  <div class="ex-ic" style="width:44px;height:44px;border-radius:12px;background:var(--chip);color:var(--primary);display:grid;place-items:center;flex:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
-                  <div class="grow"><div class="et" style="font-weight:700">Support-Team</div><div class="es muted">support@pflegeassist.de · Mo–Fr 8–17 Uhr</div></div>
-                </div>
-              </div>
-              <div class="panel">
-                <h3>Demo-Zugänge</h3>
-                <div class="sublabel">Zum Ausprobieren der Rollen</div>
-                <div class="check-item"><span class="ci-ic ci-ok">PDL</span><div class="grow"><div class="ci-t">maria@demo.local</div><div class="ci-s">Pflegedienstleitung · Passwort: demo123</div></div></div>
-                <div class="check-item"><span class="ci-ic ci-ok">PK</span><div class="grow"><div class="ci-t">anna@demo.local</div><div class="ci-s">Pflegekraft · Passwort: demo123</div></div></div>
-              </div>
-            </div>
+          <h2>Hilfe &amp; Anleitungen</h2>
+          <div class="panel">
+            <div class="sublabel">Alles zum Selbermachen – Schritt für Schritt, mit Bildern. Tippe dein Thema ein oder stöbere in den Kategorien.</div>
+            <input id="help-search" placeholder="🔍 Suchen … z. B. Diktat, Wunde, Passwort, installieren" oninput="renderHelp()" style="width:100%;height:46px;border-radius:11px;border:1px solid var(--line);background:var(--bg);padding:0 14px;font-size:1rem">
+            <div id="help-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
           </div>
+          <div id="help-results" style="margin-top:16px"></div>
         </section>
 
         <!-- EINSTELLUNGEN -->
@@ -1168,7 +1147,7 @@
     else if (view === 'export') { document.getElementById('view-export').classList.remove('hidden'); loadExport(); }
     else if (view === 'nachrichten') { document.getElementById('view-nachrichten').classList.remove('hidden'); loadNachrichten(); }
     else if (view === 'admin') { document.getElementById('view-admin').classList.remove('hidden'); loadAdmin(); }
-    else if (view === 'hilfe') { document.getElementById('view-hilfe').classList.remove('hidden'); }
+    else if (view === 'hilfe') { document.getElementById('view-hilfe').classList.remove('hidden'); renderHelp(); }
     else if (view === 'einstellungen') {
       document.getElementById('view-einstellungen').classList.remove('hidden');
       document.getElementById('opt-photos').checked = photosEnabled();
@@ -1495,6 +1474,88 @@
       flashToast('Wunddokumentation gespeichert.');
       loadWoundList();
     } catch (e) { flash('wd-err', e.message); }
+  }
+
+  // ---- Selbsthilfe-Center ----
+  const HELP_CATS = ['Erste Schritte', 'Dokumentieren', 'Wunddokumentation', 'Klienten', 'Alltag', 'Auswertung & Export', 'Für die Leitung', 'Probleme lösen'];
+  const HELP = [
+    { cat: 'Erste Schritte', title: 'Anmelden', kw: 'login einloggen passwort start anmelden', img: 'login.jpg',
+      body: '<ol><li>Öffne die App-Adresse (Lesezeichen setzen!).</li><li>Gib deine <b>E-Mail</b> und dein <b>Passwort</b> ein.</li><li>Auf <b>Anmelden</b> tippen.</li></ol><p>Zum Ausprobieren gibt es Demo-Zugänge: <b>maria@demo.local</b> (Leitung) und <b>anna@demo.local</b> (Pflegekraft), Passwort <b>demo123</b>.</p>' },
+    { cat: 'Erste Schritte', title: 'Überblick & Navigation', kw: 'menü seitenleiste dashboard start überblick navigation', img: 'dashboard.jpg',
+      body: '<p>Links ist das Menü. Wichtigste Punkte:</p><ul><li><b>Dashboard / Mein Tag</b> – dein Überblick für heute.</li><li><b>Dokumentation</b> – Pflegebericht per Sprache oder Text.</li><li><b>Wunddoku</b> – Wunden mit Foto.</li><li><b>Klienten</b> – Betreute verwalten.</li><li><b>Aufgaben, Risiken, Einsätze, Statistiken, Export</b>.</li></ul><p>Unten rechts der Knopf <b>„Schnelle Aktion"</b> springt direkt zur Dokumentation.</p>' },
+    { cat: 'Erste Schritte', title: 'App aufs Handy installieren', kw: 'installieren handy homescreen pwa app icon smartphone android iphone',
+      body: '<p><b>Android/Chrome:</b> Menü (drei Punkte) → <b>„App installieren"</b> bzw. „Zum Startbildschirm hinzufügen".</p><p><b>iPhone/Safari:</b> Teilen-Symbol (Viereck mit Pfeil) → <b>„Zum Home-Bildschirm"</b>.</p><p>Danach liegt PflegeAssist wie eine echte App als Symbol auf dem Handy.</p>' },
+    { cat: 'Dokumentieren', title: 'Pflegebericht erstellen (Sprache oder Text)', kw: 'dokumentation bericht ki entwurf sprechen diktat tippen schreiben', img: 'doku.jpg',
+      body: '<ol><li>Menü <b>Dokumentation</b> öffnen.</li><li><b>Klient/in</b> auswählen.</li><li>Entweder auf <b>🎤 Aufnehmen &amp; diktieren</b> tippen und sprechen – der Text erscheint live – oder einfach ins Feld tippen.</li><li>Auf <b>KI-Bericht erstellen</b> tippen. Die KI formt einen sauberen Pflegebericht-Entwurf.</li></ol>' },
+    { cat: 'Dokumentieren', title: 'Live-Diktat: sprechen statt tippen', kw: 'diktat mikrofon sprechen aufnahme transkription spracherkennung stimme',
+      body: '<ol><li>Im Dokumentations-Screen auf <b>🎤 Aufnehmen &amp; diktieren</b> tippen.</li><li>Beim ersten Mal <b>Mikrofon erlauben</b>.</li><li>Sprich normal – dein Text erscheint <b>sofort</b> im Feld.</li><li>Auf <b>⏹ Stopp</b> tippen, Text prüfen, dann <b>KI-Bericht erstellen</b>.</li></ol><p>Funktioniert in <b>Chrome/Edge</b> (PC &amp; Android). Auf dem <b>iPhone</b> bitte tippen (siehe „Probleme lösen").</p>' },
+    { cat: 'Dokumentieren', title: 'KI-Entwurf prüfen & freigeben', kw: 'freigabe pdl entwurf bestätigen prüfen genehmigen bericht verbindlich',
+      body: '<p>Pflegekräfte erstellen <b>Entwürfe</b>. Die <b>Pflegedienstleitung (PDL)</b> prüft den Entwurf und gibt ihn mit <b>„Freigeben"</b> frei. Erst danach gilt der Bericht als verbindlich.</p><p>Aus dem Bericht entstehen automatisch <b>Risiko-Hinweise</b> und <b>Aufgaben</b>.</p>' },
+    { cat: 'Wunddokumentation', title: 'Wunde mit Foto dokumentieren', kw: 'wunde wunddoku foto kamera dekubitus größe messen lokalisation stadium', img: 'wunddoku.jpg',
+      body: '<ol><li>Menü <b>Wunddoku</b> öffnen, <b>Klient/in</b> wählen.</li><li>Auf <b>Foto (Kamera oder Datei)</b> tippen – am Handy öffnet sich die Kamera.</li><li><b>Lokalisation</b> (wo am Körper), <b>Wundart</b>, <b>Größe</b> (Länge×Breite×Tiefe in cm) und <b>Stadium</b> eintragen.</li><li>Kurze <b>Beschreibung</b> ergänzen, dann <b>Wunddoku speichern</b>.</li></ol>' },
+    { cat: 'Wunddokumentation', title: 'Heilungsverlauf verfolgen', kw: 'verlauf heilung fortschritt historie wunde vergleich zeit',
+      body: '<p>Unter <b>Verlauf</b> siehst du alle bisherigen Einträge eines Klienten – neueste zuerst, mit Foto und Maßen. Dokumentiere die Wunde regelmäßig (z. B. wöchentlich), dann zeigt die Reihe den <b>Heilungsverlauf</b> mit Bildern.</p>' },
+    { cat: 'Klienten', title: 'Klient/in anlegen', kw: 'klient betreute anlegen neu hinzufügen stammdaten patient', img: 'klienten.jpg',
+      body: '<ol><li>Menü <b>Klienten</b> → <b>＋ Neuer Klient</b>.</li><li>Vor- und Nachname (Pflicht), dazu Adresse, Pflegegrad, Notfallkontakt, Notizen.</li><li><b>Speichern</b>.</li></ol>' },
+    { cat: 'Klienten', title: 'Klient bearbeiten oder deaktivieren', kw: 'klient bearbeiten ändern deaktivieren löschen inaktiv',
+      body: '<p>Im Menü <b>Klienten</b> bei einer Person auf <b>Bearbeiten</b> tippen, Daten ändern, speichern.</p><p>Wird jemand nicht mehr betreut: <b>Deaktivieren</b> (die Daten bleiben erhalten, die Person verschwindet aus den Listen). Über den Haken <b>„Auch deaktivierte anzeigen"</b> holst du sie zurück und kannst sie wieder <b>Aktivieren</b>. (Nur Leitung/Admin.)</p>' },
+    { cat: 'Alltag', title: 'Aufgaben & Risiken', kw: 'aufgaben risiken to-do erledigen priorität sturz dekubitus',
+      body: '<p><b>Aufgaben</b> und <b>Risiken</b> entstehen automatisch aus den Pflegeberichten – oder werden manuell gepflegt. Offene Punkte stehen oben im Dashboard. So geht nichts unter.</p>' },
+    { cat: 'Alltag', title: 'Einsätze / Touren', kw: 'einsätze touren termine besuche zeitplan',
+      body: '<p>Unter <b>Einsätze</b> siehst du die geplanten Besuche mit Uhrzeit, Klient und Status. Auf dem Dashboard erscheinen die Einsätze von heute.</p>' },
+    { cat: 'Auswertung & Export', title: 'Statistiken lesen', kw: 'statistik auswertung zahlen wochenverlauf kennzahlen diagramm',
+      body: '<p>Menü <b>Statistiken</b> zeigt echte Zahlen deiner Organisation: aktive Klienten, Einsätze, offene Aufgaben/Risiken und den <b>Wochenverlauf</b> der letzten 7 Tage.</p>' },
+    { cat: 'Auswertung & Export', title: 'Daten exportieren & Bericht drucken', kw: 'export csv excel drucken pdf gesamtbericht ausdrucken',
+      body: '<p>Menü <b>Export</b>: Klienten, Einsätze, Aufgaben, Risiken je als <b>CSV</b> (Excel-kompatibel) herunterladen. Oder <b>„Gesamtbericht: Drucken / PDF"</b> für eine druckbare Übersicht.</p>' },
+    { cat: 'Für die Leitung', title: 'Berichte freigeben (PDL)', kw: 'freigabe leitung pdl bestätigen genehmigen',
+      body: '<p>Als Pflegedienstleitung prüfst du KI-Entwürfe und gibst sie mit <b>„Freigeben"</b> frei. Offene Dokumentationen siehst du als Kennzahl im Dashboard.</p>' },
+    { cat: 'Für die Leitung', title: 'Kunden freischalten / Zugang verlängern (Admin)', kw: 'admin kundenverwaltung freischalten verlängern zugang bezahlt sperren miete',
+      body: '<p>Als <b>Plattform-Admin</b> (Menü <b>Kundenverwaltung</b>): nach Zahlung bei der Firma auf <b>„+30 Tage"</b> oder <b>„+1 Jahr"</b> tippen – der Kunde ist sofort freigeschaltet. <b>„Sperren"</b> stoppt den Zugang sofort.</p>' },
+    { cat: 'Für die Leitung', title: 'Klienten-Fotos aus Datenschutzgründen ausblenden', kw: 'foto avatar datenschutz ausblenden initialen einstellungen',
+      body: '<p>Menü <b>Einstellungen</b> → Schalter <b>„Foto-Avatare anzeigen"</b> ausschalten. Dann erscheinen überall Initialen statt Porträts.</p>' },
+    { cat: 'Probleme lösen', title: 'Das Mikrofon/Diktat funktioniert nicht', kw: 'mikrofon diktat geht nicht erlauben berechtigung fehler stumm',
+      body: '<ol><li>Beim Antippen von 🎤 muss der Browser <b>Mikrofon erlauben</b> – auf „Zulassen" tippen.</li><li>Benutze <b>Chrome</b> oder <b>Edge</b> (Android/PC).</li><li>Prüfe, ob ein anderes Programm das Mikrofon belegt.</li><li>Notfalls den Text einfach <b>tippen</b> – das Ergebnis ist gleich.</li></ol>' },
+    { cat: 'Probleme lösen', title: 'Auf dem iPhone erscheint kein Diktat-Text', kw: 'iphone safari diktat ios spracherkennung geht nicht apple',
+      body: '<p>Das Live-Diktat wird auf dem <b>iPhone (Safari)</b> noch nicht zuverlässig unterstützt. Bitte den Text dort <b>tippen</b> – oder ein Android-Handy/PC mit Chrome nutzen. Eine iPhone-Lösung ist geplant.</p>' },
+    { cat: 'Probleme lösen', title: 'Passwort vergessen', kw: 'passwort vergessen zurücksetzen reset neu login',
+      body: '<p>Auf der Anmeldeseite auf <b>„Passwort vergessen?"</b> tippen und der Anleitung folgen. Kommt keine Mail an, wende dich an die Leitung/den Admin, der den Zugang zurücksetzen kann.</p>' },
+    { cat: 'Probleme lösen', title: '„Zugang abgelaufen / nicht freigeschaltet"', kw: 'zugang abgelaufen gesperrt bezahlen verlängern freischalten miete',
+      body: '<p>Der bezahlte Zeitraum ist abgelaufen oder noch nicht freigeschaltet. Über den Knopf <b>„Zugang anfragen / verlängern"</b> Kontakt aufnehmen – nach der Zahlung wird der Zugang freigeschaltet, dann funktioniert wieder alles.</p>' },
+    { cat: 'Probleme lösen', title: 'Die Seite lädt beim ersten Öffnen langsam', kw: 'langsam laden warten server schläft kaltstart dauert lange hängt',
+      body: '<p>Der kostenlose Server „schläft" bei Nichtnutzung ein. Der <b>erste</b> Aufruf danach dauert ca. <b>30–50 Sekunden</b>, danach ist alles schnell. Einfach kurz warten – nicht mehrfach neu laden.</p>' },
+    { cat: 'Probleme lösen', title: 'Ein Foto oder Bild wird nicht angezeigt', kw: 'foto bild lädt nicht fehlt wunde anzeige',
+      body: '<p>Meist hilft <b>neu laden</b> der Seite. Prüfe außerdem, ob du noch angemeldet bist. Fotos sind geschützt und erscheinen nur im eingeloggten Zustand.</p>' },
+    { cat: 'Probleme lösen', title: 'Ich kann keinen Klienten auswählen', kw: 'kein klient auswahl leer dokumentation wunddoku anlegen',
+      body: '<p>Es ist noch niemand angelegt. Gehe zu <b>Klienten → ＋ Neuer Klient</b>, lege eine Person an – danach steht sie in Dokumentation und Wunddoku zur Auswahl.</p>' },
+    { cat: 'Probleme lösen', title: 'Abmelden', kw: 'abmelden logout ausloggen beenden',
+      body: '<p>Oben rechts über dein Profil kannst du dich <b>abmelden</b>. Auf einem geteilten Gerät nach der Arbeit immer abmelden.</p>' },
+  ];
+
+  function renderHelp() {
+    const q = (document.getElementById('help-search').value || '').trim().toLowerCase();
+    // Kategorie-Chips (Schnellfilter)
+    const chips = document.getElementById('help-chips');
+    if (chips && !chips.dataset.done) {
+      chips.innerHTML = HELP_CATS.map(c => `<button class="chip" style="cursor:pointer;border:1px solid var(--line)" onclick="helpFilter('${c.replace(/'/g, '')}')">${esc(c)}</button>`).join('') +
+        `<button class="chip" style="cursor:pointer;border:1px solid var(--line)" onclick="helpFilter('')">Alle</button>`;
+      chips.dataset.done = '1';
+    }
+    const match = a => !q || (a.cat + ' ' + a.title + ' ' + a.kw + ' ' + a.body).toLowerCase().includes(q);
+    const hits = HELP.filter(match);
+    const box = document.getElementById('help-results');
+    if (!hits.length) { box.innerHTML = '<div class="panel"><div class="muted">Nichts gefunden. Versuch ein anderes Wort – oder tippe unten auf eine Kategorie.</div></div>'; return; }
+    box.innerHTML = HELP_CATS.map(cat => {
+      const arts = hits.filter(a => a.cat === cat);
+      if (!arts.length) return '';
+      return `<div class="panel" style="margin-bottom:16px"><h3>${esc(cat)}</h3><div class="faq">` +
+        arts.map(a => `<details><summary>${esc(a.title)}</summary><div class="faq-body">${a.img ? `<img src="img/help/${a.img}" alt="" style="max-width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:10px">` : ''}${a.body}</div></details>`).join('') +
+        `</div></div>`;
+    }).join('');
+  }
+  function helpFilter(cat) {
+    const s = document.getElementById('help-search');
+    s.value = cat;
+    renderHelp();
   }
 
   let clientsCache = [];
