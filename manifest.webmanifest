@@ -1,6 +1,6 @@
 {
-  "name": "PflegeAssist",
-  "short_name": "PflegeAssist",
+  "name": "PflegeAssistent",
+  "short_name": "PflegeAssistent",
   "description": "Zeit für Pflege statt Bürokratie – Sprachdoku, KI-Bericht, PDL-Freigabe.",
   "start_url": "./",
   "scope": "./",
