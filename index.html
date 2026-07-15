@@ -492,6 +492,11 @@
   /* KI-Briefing (Hinweise) */
   .hint-list { margin: 0; padding-left: 18px; display: grid; gap: 7px; font-size: .93rem; color: var(--ink); }
   .hint-list li { line-height: 1.45; }
+  /* Modal (Bericht ansehen) */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(8,20,24,.5); z-index: 80; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop.hidden { display: none; }
+  .modal-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; width: 100%; max-width: 640px; max-height: 86vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.28); }
+  .modal-card .report { white-space: pre-wrap; }
   /* Heutige Tour (Timeline) */
   .tour-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .tour-item:last-child { border-bottom: none; }
@@ -627,6 +632,7 @@
         <button class="nav-item" data-view="einsaetze" onclick="navTo('einsaetze')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Einsätze</button>
         <button class="nav-item" data-view="klienten" onclick="navTo('klienten')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Klienten</button>
         <button class="nav-item" data-view="personal" onclick="navTo('personal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> Personal</button>
+        <button class="nav-item" data-view="intake" onclick="navTo('intake')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg> Aufnahme-Assistent</button>
         <button class="nav-item" data-view="doc" onclick="navTo('doc')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Dokumentation</button>
         <button class="nav-item" data-view="wunddoku" onclick="navTo('wunddoku')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Wunddoku</button>
         <button class="nav-item" data-view="aufgaben" onclick="navTo('aufgaben')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Aufgaben <span class="nbadge">4</span></button>
@@ -729,6 +735,10 @@
               <div class="panel-head" style="margin-top:18px"><h3>Aktivitäten</h3></div>
               <div id="activities"></div>
             </div>
+          </div>
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-head"><h3>Offene Dokumentationen</h3><span class="muted" style="font-size:.82rem">Noch nicht freigegeben – zum Ansehen &amp; Freigeben</span></div>
+            <div id="open-docs" class="list"><div class="muted">Lädt …</div></div>
           </div>
           <div class="panel" style="margin-top:16px">
             <div class="panel-head"><h3>Statistik <span class="muted" style="font-weight:400">– Diese Woche</span></h3></div>
@@ -867,9 +877,47 @@
           <div class="panel"><div id="list-personal" class="list"><div class="muted">Lädt …</div></div></div>
         </section>
 
+        <!-- AUFNAHME-ASSISTENT (PDL) -->
+        <section class="view hidden" id="view-intake">
+          <h2>Aufnahme-Assistent</h2>
+          <div class="banner">Neue Betreute strukturiert erfassen: Notizen eintippen oder diktieren – der Assistent ordnet sie zu Kurzprofil, Hinweisen und offenen Fragen. Keine Diagnose, keine automatische Pflegeplanung.</div>
+          <div class="panel">
+            <label>Name (optional)</label>
+            <input id="in-name" placeholder="z. B. Erika Schmidt">
+            <label>Notizen zur Person</label>
+            <textarea id="in-notes" rows="5" placeholder="z. B. 84 Jahre, lebt allein, war zuletzt mehrfach unsicher beim Gehen, Diabetes, Tochter wohnt in der Nähe …"></textarea>
+            <div class="rec-row" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px">
+              <button type="button" class="ghost" id="in-rec-btn" onclick="toggleIntakeDictation()">🎤 Diktieren</button>
+              <span class="muted" id="in-rec-status"></span>
+            </div>
+            <div style="height:12px"></div>
+            <button onclick="runIntake()">Assistent starten</button>
+            <div class="err" id="in-err"></div>
+          </div>
+          <div class="panel hidden" id="intake-result" style="margin-top:16px">
+            <div class="panel-head"><h3>Kurzprofil</h3><span class="chip" style="background:#fef3c7;color:#b45309">Bitte prüfen</span></div>
+            <div class="report" id="in-profile" style="white-space:pre-wrap"></div>
+            <div style="margin-top:14px"><b>Hinweise</b><ul class="hint-list" id="in-hints"></ul></div>
+            <div style="margin-top:14px"><b>Offene Fragen für den Erstbesuch</b><ul class="hint-list" id="in-questions"></ul></div>
+            <div style="margin-top:14px"><b>Aufgaben für die PDL</b><ul class="hint-list" id="in-tasks"></ul></div>
+            <div class="muted" style="font-size:.8rem;margin-top:12px">Vorschläge aus den Notizen – bitte fachlich prüfen und ergänzen. Danach den Klienten unter „Klienten → Neuer Klient" anlegen.</div>
+          </div>
+        </section>
+
         <!-- EINSÄTZE -->
         <section class="view hidden" id="view-einsaetze">
           <h2>Einsätze</h2>
+          <div class="panel hidden" id="import-panel" style="margin-bottom:16px">
+            <div class="panel-head"><h3>Dienstplan importieren</h3><span class="chip" style="background:#e0f2fe;color:#0369a1">PDL / Büro</span></div>
+            <div class="sublabel">Tour aus dem Bestandssystem (z. B. snap-Export) als CSV hochladen – kein Abtippen. Bekannte Klienten werden per Name zugeordnet; unbekannte Zeilen werden übersprungen und gemeldet.</div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px">
+              <input type="file" id="imp-file" accept=".csv,text/csv,.txt" style="width:auto">
+              <button onclick="uploadDienstplan()">Importieren</button>
+              <button class="ghost" onclick="downloadImportTemplate()">CSV-Vorlage ↓</button>
+            </div>
+            <div class="muted" style="font-size:.82rem;margin-top:6px">Spalten: <b>klient, datum, von, bis, leistung, pflegekraft</b> (Trennzeichen ; oder ,). Pflicht: klient + datum.</div>
+            <div id="imp-result" style="margin-top:10px"></div>
+          </div>
           <div class="panel"><div id="list-einsaetze" class="list"><div class="muted">Lädt …</div></div></div>
         </section>
 
@@ -980,8 +1028,15 @@
         <!-- ADMIN: KUNDENVERWALTUNG (nur super_admin) -->
         <section class="view hidden" id="view-admin">
           <h2>Kundenverwaltung</h2>
-          <div class="panel">
-            <div class="sublabel">Alle registrierten Organisationen. Nach Zahlung „Zugang verlängern" klicken – der Kunde wird sofort freigeschaltet. Nur Plattform-Daten, keine Pflegedokumentation.</div>
+          <div class="panel-head" style="margin:0 0 12px"><h3>Betreiber-Übersicht</h3><span class="muted" style="font-size:.82rem">KI-Verbrauch &amp; interne Kosten – nur hier, nie im Pflegealltag</span></div>
+          <div class="kpi-grid" id="admin-kpis"></div>
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-head"><h3>Nutzung je Organisation</h3></div>
+            <div id="admin-usage" class="list"><div class="muted">Lädt …</div></div>
+          </div>
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-head"><h3>Zugang &amp; Freischaltung</h3></div>
+            <div class="sublabel">Nach Zahlung „Zugang verlängern" klicken – der Kunde wird sofort freigeschaltet. Nur Plattform-Daten, keine Pflegedokumentation.</div>
             <div id="admin-orgs" class="list"><div class="muted">Lädt …</div></div>
           </div>
         </section>
@@ -1006,6 +1061,13 @@
     <button class="bn-item" data-tab="mehr" onclick="openDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg> Mehr</button>
   </nav>
   <button class="fab" onclick="navTo('doc')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Schnelle Aktion</button>
+  <!-- BERICHT-ANSEHEN-MODAL (PDL) -->
+  <div id="report-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeReport()">
+    <div class="modal-card">
+      <div class="panel-head"><h3 id="rm-title">Bericht ansehen</h3><button class="ghost" onclick="closeReport()">✕</button></div>
+      <div id="rm-body"><div class="muted">Lädt …</div></div>
+    </div>
+  </div>
 </div>
 
 <!-- ZUGANG ABGELAUFEN / NOCH NICHT FREIGESCHALTET -->
@@ -1176,6 +1238,7 @@
     document.querySelector('.nav-item[data-view="dash"]').classList.toggle('hidden', !mgr);
     document.querySelector('.nav-item[data-view="start"]').classList.toggle('hidden', mgr);
     document.querySelector('.nav-item[data-view="personal"]').classList.toggle('hidden', !mgr);  // Personal nur für Leitung/Admin
+    document.querySelector('.nav-item[data-view="intake"]').classList.toggle('hidden', !mgr);  // Aufnahme-Assistent nur für PDL/Admin
     loadClients();
     navTo(mgr ? 'dash' : 'start');
     updateThemeBtn();
@@ -1220,7 +1283,30 @@
     } catch (e) { flashToast('Prüfung fehlgeschlagen: ' + e.message); }
   }
 
+  function fmtEur(v) { return (Number(v) || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+  async function loadAdminUsage() {
+    try {
+      const d = await api('/api/v1/admin/usage');
+      const t = d.totals || {};
+      const kpi = (icon, color, val, label) =>
+        `<div class="kpi" style="--kpi-c:${color}"><div class="kicon" style="background:${color}1a;color:${color}">${icon}</div><div class="val">${val}</div><div class="lbl">${label}</div></div>`;
+      document.getElementById('admin-kpis').innerHTML =
+        kpi(SVG.users, '#0e7c86', t.active_users ?? 0, 'Aktive Nutzer') +
+        kpi(SVG.calendar, '#2563eb', t.organizations ?? 0, 'Organisationen') +
+        kpi(SVG.doc, '#7c3aed', (t.ai_minutes_used ?? 0) + ' min', 'KI-Minuten (gesamt)') +
+        kpi(SVG.euro, '#b45309', fmtEur(t.ai_cost_eur), 'Interne KI-Kosten');
+      const orgs = d.organizations || [];
+      document.getElementById('admin-usage').innerHTML = orgs.length ? orgs.map(o => {
+        const seats = o.seats_included != null ? `${o.users}/${o.seats_included} Plätze` : `${o.users} Nutzer`;
+        const min = o.ai_minutes_included != null ? `${o.ai_minutes_used}/${o.ai_minutes_included} min` : `${o.ai_minutes_used} min`;
+        const sub = [seats, min + ' KI', fmtEur(o.ai_cost_eur) + ' intern', o.plan ? 'Tarif ' + esc(o.plan) : ''].filter(Boolean).join(' · ');
+        const badge = o.active ? '<span class="status done">Aktiv</span>' : '<span class="status plan">Gesperrt</span>';
+        return `<div class="visit"><div class="grow"><div class="vname">${esc(o.name)}</div><div class="vsub">${sub}</div></div>${badge}</div>`;
+      }).join('') : '<div class="muted">Noch keine Nutzungsdaten.</div>';
+    } catch (e) { listError('admin-usage', e.message); }
+  }
   async function loadAdmin() {
+    loadAdminUsage();
     try {
       const orgs = await api('/api/v1/admin/organizations');
       if (!orgs.length) return listEmpty('admin-orgs', 'Noch keine Organisationen registriert.');
@@ -1264,6 +1350,7 @@
     else if (view === 'wunddoku') { document.getElementById('view-wunddoku').classList.remove('hidden'); loadWunddoku(); }
     else if (view === 'klienten') { document.getElementById('view-klienten').classList.remove('hidden'); loadKlienten(); }
     else if (view === 'personal') { document.getElementById('view-personal').classList.remove('hidden'); loadStaff(); }
+    else if (view === 'intake') { document.getElementById('view-intake').classList.remove('hidden'); }
     else if (view === 'einsaetze') { document.getElementById('view-einsaetze').classList.remove('hidden'); loadEinsaetze(); }
     else if (view === 'aufgaben') { document.getElementById('view-aufgaben').classList.remove('hidden'); loadAufgaben(); }
     else if (view === 'risiken') { document.getElementById('view-risiken').classList.remove('hidden'); loadRisiken(); }
@@ -1907,6 +1994,7 @@
   }
 
   async function loadEinsaetze() {
+    document.getElementById('import-panel').classList.toggle('hidden', !isManager());
     try {
       const list = await api('/api/v1/visits');
       if (!list.length) return listEmpty('list-einsaetze', 'Keine Einsätze vorhanden.');
@@ -1915,6 +2003,79 @@
         return `<div class="visit">${avatarHTML(v.client, 38)}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}</div></div><span class="status ${st[0]}">${st[1]}</span></div>`;
       }).join('');
     } catch (e) { listError('list-einsaetze', e.message); }
+  }
+
+  function downloadImportTemplate() {
+    const csv = 'klient;datum;von;bis;leistung;pflegekraft\r\n' +
+      'Schmidt, Erika;15.07.2026;08:00;08:45;Grundpflege;Anna Müller\r\n' +
+      'Weber, Hans;15.07.2026;09:30;10:00;Medikamentengabe;Anna Müller\r\n';
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'dienstplan-vorlage.csv';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+
+  async function uploadDienstplan() {
+    const inp = document.getElementById('imp-file');
+    const box = document.getElementById('imp-result');
+    const file = inp.files[0];
+    if (!file) { box.innerHTML = '<div class="err">Bitte zuerst eine CSV-Datei wählen.</div>'; return; }
+    box.innerHTML = '<div class="muted">Import läuft …</div>';
+    try {
+      const fd = new FormData();
+      fd.append('file', file, file.name);
+      const r = await apiUpload('/api/v1/imports/visits', fd);
+      const errs = (r.errors || []);
+      box.innerHTML =
+        `<div class="banner" style="margin:0">✓ ${r.created} Einsätze angelegt` +
+        (r.skipped ? ` · ${r.skipped} übersprungen` : '') + '.</div>' +
+        (errs.length ? `<ul class="hint-list" style="margin-top:8px">${errs.map(e => '<li>' + esc(e) + '</li>').join('')}</ul>` : '');
+      inp.value = '';
+      loadEinsaetze();
+    } catch (e) { box.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  }
+
+  // ---- Aufnahme-Assistent (Gap 3) ----
+  let intakeRec = null, intakeBase = '';
+  function toggleIntakeDictation() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const btn = document.getElementById('in-rec-btn'), st = document.getElementById('in-rec-status');
+    if (intakeRec) { try { intakeRec.stop(); } catch (e) {} intakeRec = null; btn.textContent = '🎤 Diktieren'; st.textContent = 'Diktat übernommen.'; return; }
+    if (!SR) { st.textContent = 'Dein Browser unterstützt kein Diktat – bitte tippen.'; return; }
+    const ta = document.getElementById('in-notes');
+    intakeBase = ta.value.trim() ? ta.value.trim() + ' ' : '';
+    let fin = '';
+    intakeRec = new SR();
+    intakeRec.lang = 'de-DE'; intakeRec.continuous = true; intakeRec.interimResults = true;
+    intakeRec.onresult = ev => {
+      let interim = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const r = ev.results[i];
+        if (r.isFinal) fin += r[0].transcript + ' '; else interim += r[0].transcript;
+      }
+      ta.value = (intakeBase + fin + interim).replace(/\s{2,}/g, ' ');
+    };
+    intakeRec.onerror = () => { st.textContent = 'Mikrofon nicht verfügbar – bitte tippen.'; };
+    try { intakeRec.start(); btn.textContent = '⏹ Stopp'; st.textContent = '🎤 Höre zu … sprich jetzt.'; }
+    catch (e) { intakeRec = null; st.textContent = 'Diktat konnte nicht starten.'; }
+  }
+
+  async function runIntake() {
+    flash('in-err', '');
+    const name = document.getElementById('in-name').value.trim();
+    const notes = document.getElementById('in-notes').value.trim();
+    if (!notes) { flash('in-err', 'Bitte einige Notizen zur Person eingeben.'); return; }
+    if (intakeRec) toggleIntakeDictation();
+    try {
+      const r = await api('/api/v1/intake', { method: 'POST', body: { name: name || null, notes } });
+      document.getElementById('in-profile').textContent = r.profile;
+      const fill = (id, arr) => document.getElementById(id).innerHTML =
+        (arr || []).map(x => '<li>' + esc(x) + '</li>').join('') || '<li class="muted">–</li>';
+      fill('in-hints', r.hints);
+      fill('in-questions', r.questions);
+      fill('in-tasks', r.tasks);
+      document.getElementById('intake-result').classList.remove('hidden');
+    } catch (e) { flash('in-err', e.message); }
   }
 
   async function loadAufgaben() {
@@ -2060,7 +2221,57 @@
 
       renderActivities();
       renderStats();
+      loadOpenDocs();
     } catch (e) { document.getElementById('kpis').innerHTML = `<div class="muted">${esc(e.message)}</div>`; }
+  }
+
+  async function loadOpenDocs() {
+    const box = document.getElementById('open-docs');
+    if (!box) return;
+    try {
+      const list = await api('/api/v1/documentation/open');
+      if (!list.length) { box.innerHTML = '<div class="muted">Keine offenen Dokumentationen. 🎉</div>'; return; }
+      const ST = { draft: ['plan', 'KI-Entwurf'], submitted: ['prog', 'Wartet auf Freigabe'] };
+      box.innerHTML = list.map(d => {
+        const st = ST[d.status] || ['plan', d.status];
+        const prio = (d.priority || 'normal').toLowerCase();
+        const sub = ['👤 ' + esc(d.author), d.time ? '🕐 ' + esc(d.time) + ' Uhr' : '', d.has_risk ? '⚠ Hinweis' : ''].filter(Boolean).join(' · ');
+        return `<div class="visit"><span class="prio ${prio}">${cap(prio)}</span><div class="grow"><div class="vname">${esc(d.client)}</div><div class="vsub">${sub}</div></div><span class="status ${st[0]}">${st[1]}</span><button class="ghost" style="margin-left:10px" onclick="openReport('${d.report_id}')">Ansehen</button></div>`;
+      }).join('');
+    } catch (e) { listError('open-docs', e.message); }
+  }
+
+  async function openReport(id) {
+    const modal = document.getElementById('report-modal');
+    const body = document.getElementById('rm-body');
+    modal.classList.remove('hidden');
+    body.innerHTML = '<div class="muted">Lädt …</div>';
+    try {
+      const r = await api('/api/v1/documentation/' + id);
+      document.getElementById('rm-title').textContent = 'Bericht: ' + r.client;
+      const STL = { draft: 'KI-Entwurf', submitted: 'Wartet auf Freigabe', confirmed: 'Freigegeben' };
+      const list = (arr, label) => (arr && arr.length)
+        ? `<div style="margin-top:10px"><b>${label}</b><ul class="hint-list">${arr.map(x => '<li>' + esc(x) + '</li>').join('')}</ul></div>` : '';
+      const risks = (r.risks || []).length
+        ? `<div style="margin-top:10px">${r.risks.map(x => `<div><span class="chip ${esc(x.level)}">Hinweis: ${esc(x.level)}</span> ${esc(x.title)}${x.description ? ' – ' + esc(x.description) : ''}</div>`).join('')}</div>` : '';
+      const canConfirm = isManager() && r.status !== 'confirmed';
+      body.innerHTML =
+        `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><span class="chip">${esc(STL[r.status] || r.status)}</span><span class="muted" style="font-size:.85rem">👤 ${esc(r.author)} · ${esc(fmtDate(r.created_at))}</span></div>` +
+        `<div class="report" style="white-space:pre-wrap">${esc(r.report_text)}${r.handover_text ? '\n\nÜbergabe: ' + esc(r.handover_text) : ''}</div>` +
+        list(r.observations, 'Beobachtungen') + list(r.measures, 'Maßnahmen') + risks +
+        `<div style="height:14px"></div>` +
+        (canConfirm ? `<button onclick="confirmReport('${r.report_id}')">Freigeben (PDL)</button> ` : '') +
+        `<button class="ghost" onclick="closeReport()">Schließen</button>`;
+    } catch (e) { body.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  }
+  function closeReport() { document.getElementById('report-modal').classList.add('hidden'); }
+  async function confirmReport(id) {
+    try {
+      await api('/api/v1/documentation/confirm', { method: 'POST', body: { report_id: id } });
+      closeReport();
+      flashToast('Bericht freigegeben ✓');
+      loadDashboard();
+    } catch (e) { flashToast('Fehler: ' + e.message); }
   }
 
   function renderActivities() {
