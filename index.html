@@ -1232,13 +1232,15 @@
     document.getElementById('h-avatar').innerHTML = avatarInner(user.full_name || user.email);
     setGreeting();
     const mgr = isManager();
-    // Nav zuruecksetzen (falls zuvor super_admin aktiv war), dann Admin ausblenden + Start/Dash je Rolle.
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('hidden'));
-    document.querySelector('.nav-item[data-view="admin"]').classList.add('hidden');
-    document.querySelector('.nav-item[data-view="dash"]').classList.toggle('hidden', !mgr);
-    document.querySelector('.nav-item[data-view="start"]').classList.toggle('hidden', mgr);
-    document.querySelector('.nav-item[data-view="personal"]').classList.toggle('hidden', !mgr);  // Personal nur für Leitung/Admin
-    document.querySelector('.nav-item[data-view="intake"]').classList.toggle('hidden', !mgr);  // Aufnahme-Assistent nur für PDL/Admin
+    // Rollen-Trennung der Navigation:
+    //  - Pflegekraft (Handy): schlankes, operatives Set (kein PDL-Dashboard, keine Auswertungen).
+    //  - PDL/Chef (Web): voller Umfang inkl. Statistiken/QM/Export/Personal/Aufnahme-Assistent.
+    //  - super_admin: eigene Plattform-Ansicht (enterAdmin, oben abgezweigt).
+    document.querySelectorAll('.nav-item').forEach(n => {
+      const v = n.getAttribute('data-view');
+      const visible = mgr ? (v !== 'admin' && v !== 'start') : CAREGIVER_VIEWS.includes(v);
+      n.classList.toggle('hidden', !visible);
+    });
     loadClients();
     navTo(mgr ? 'dash' : 'start');
     updateThemeBtn();
@@ -1330,12 +1332,16 @@
   }
 
   let currentView = 'dash';
+  // Pflegekraft-Handy: schlankes, operatives Nav-Set. PDL/Chef sehen den vollen Umfang.
+  const CAREGIVER_VIEWS = ['start', 'einsaetze', 'klienten', 'doc', 'wunddoku', 'aufgaben', 'nachrichten', 'hilfe'];
   // ---- Handy-Navigation: Schublade + Bottom-Tabs ----
   function openDrawer() { document.querySelector('.sidebar').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
   function closeDrawer() { document.querySelector('.sidebar').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
   function homeTab() { navTo(isManager() ? 'dash' : 'start'); }
   const BOTTOM_TAB = { start: 'home', dash: 'home', einsaetze: 'einsaetze', klienten: 'klienten', doc: 'doc' };
   function navTo(view) {
+    // Rollen-Schutz: Pflegekräfte dürfen nur ihr schlankes Set öffnen (PDL/Chef alles).
+    if (user && user.role !== 'super_admin' && !isManager() && !CAREGIVER_VIEWS.includes(view)) view = 'start';
     currentView = view;
     closeDrawer();
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
@@ -2299,15 +2305,20 @@
     const late = values.slice(-half).reduce((a, b) => a + b, 0);
     return late > early ? '↗ steigend' : late < early ? '↘ rückläufig' : '→ stabil';
   }
-  function renderStats() {
-    const stats = [
-      ['Dokumentationen', '42', '↗ 12%', '#0e7c86', '0,30 20,24 40,26 60,16 80,20 100,10 120,6'],
-      ['Einsätze', '56', '↗ 8%', '#2563eb', '0,26 20,22 40,24 60,18 80,22 100,14 120,10'],
-      ['Bestätigte Doku', '38', '↗ 12%', '#15803d', '0,30 20,26 40,22 60,24 80,14 100,12 120,4'],
-      ['Abgeschlossene Aufgaben', '18', '↗ 20%', '#7c3aed', '0,28 20,24 40,26 60,18 80,16 100,12 120,8'],
-    ];
-    document.getElementById('stat-row').innerHTML = stats.map(s =>
-      `<div class="stat"><div class="sl">${s[0]}</div><div class="sv">${s[1]}</div><div class="sd">${s[2]}</div>${spark(s[3], s[4])}</div>`).join('');
+  async function renderStats() {
+    const row = document.getElementById('stat-row');
+    try {
+      const wk = await api('/api/v1/stats/weekly');
+      const S = wk.series, T = wk.totals;
+      const stats = [
+        ['Dokumentationen', T.reports, S.reports, '#0e7c86'],
+        ['Einsätze', T.visits, S.visits, '#2563eb'],
+        ['Bestätigte Doku', T.confirmed, S.confirmed, '#15803d'],
+        ['Abgeschlossene Aufgaben', T.tasks_done, S.tasks_done, '#7c3aed'],
+      ];
+      row.innerHTML = stats.map(([label, total, series, color]) =>
+        `<div class="stat"><div class="sl">${label}</div><div class="sv">${total}</div><div class="sd">${trendLabel(series)}</div>${spark(color, sparkPts(series))}</div>`).join('');
+    } catch (e) { row.innerHTML = `<div class="muted">${esc(e.message)}</div>`; }
   }
 
   async function loadClients() {
