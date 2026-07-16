@@ -973,9 +973,30 @@
         <section class="view hidden" id="view-export">
           <h2>Export</h2>
           <div class="panel">
-            <div class="sublabel">Daten deiner Organisation als CSV herunterladen (Excel-kompatibel). Alle Exporte sind mandantengetrennt.</div>
+            <h3>Berichtspaket</h3>
+            <div class="sublabel">Pflegeberichte und Daten eines Zeitraums als ZIP herunterladen – zum Ablegen in der Akte oder im Bestandssystem. Alle Exporte sind mandantengetrennt.</div>
+            <div class="grid2">
+              <div><label>Von</label><input type="date" id="ex-from" onchange="previewExport()"></div>
+              <div><label>Bis</label><input type="date" id="ex-to" onchange="previewExport()"></div>
+            </div>
+            <div class="grid2">
+              <div><label>Klient/in</label><select id="ex-client" onchange="previewExport()"><option value="">Alle Klienten</option></select></div>
+              <div><label>Wundfotos einschließen</label><select id="ex-photos"><option value="true">Ja, mit Fotos</option><option value="false">Nein, nur Daten</option></select></div>
+            </div>
+            <div class="banner" id="ex-preview" style="margin-top:12px;margin-bottom:0">Zeitraum wählen …</div>
+            <div class="err" id="ex-err"></div>
+            <div style="height:12px"></div>
+            <button id="ex-btn" onclick="exportPackage()">Berichtspaket herunterladen (ZIP)</button>
+          </div>
+          <div class="panel" style="margin-top:16px">
+            <h3>Einzelne Listen</h3>
+            <div class="sublabel">Einzelne Bereiche als CSV (Excel-kompatibel) oder als druckbare Übersicht.</div>
             <div class="grid2" id="export-cards"></div>
-            <div class="banner" style="margin-top:16px;margin-bottom:0">PDF-Berichte &amp; ZIP-Sammelexport folgen im nächsten Ausbauschritt.</div>
+          </div>
+          <div class="panel" style="margin-top:16px">
+            <h3>Zuletzt exportiert</h3>
+            <div class="sublabel">Wer hat wann welchen Zeitraum herausgeholt</div>
+            <div id="ex-history" class="list"><div class="muted">Wird geladen …</div></div>
           </div>
         </section>
 
@@ -1603,6 +1624,95 @@
     document.getElementById('export-cards').innerHTML = cards.map(([t, s, key, path]) =>
       `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">${t}</div><div class="es">${s}</div></div><button onclick="exportCsv('${path}','${key}')">CSV ↓</button></div>`).join('') +
       `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">Gesamtbericht</div><div class="es">Druckbare Übersicht (Klienten, Einsätze, Aufgaben, Risiken)</div></div><button onclick="printReport()">Drucken / PDF ↧</button></div>`;
+
+    // Zeitraum vorbelegen: die letzten 30 Tage (gleicher Default wie im Backend)
+    const from = document.getElementById('ex-from'), to = document.getElementById('ex-to');
+    if (!from.value) {
+      const today = new Date(), past = new Date(Date.now() - 30 * 864e5);
+      to.value = isoDay(today); from.value = isoDay(past);
+    }
+    fillExportClients();
+    previewExport();
+    loadExportHistory();
+  }
+  function isoDay(d) { return d.toISOString().slice(0, 10); }
+
+  async function fillExportClients() {
+    const sel = document.getElementById('ex-client');
+    try {
+      const clients = clientsCache && clientsCache.length ? clientsCache : await api('/api/v1/clients');
+      const current = sel.value;
+      sel.innerHTML = '<option value="">Alle Klienten</option>' + clients
+        .map(c => `<option value="${esc(c.id)}">${esc(c.first_name + ' ' + c.last_name)}</option>`).join('');
+      sel.value = current;
+    } catch (e) { /* Filter bleibt auf „Alle Klienten" */ }
+  }
+
+  function exportQuery() {
+    const p = new URLSearchParams();
+    const from = document.getElementById('ex-from').value, to = document.getElementById('ex-to').value;
+    const client = document.getElementById('ex-client').value;
+    if (from) p.set('from_date', from);
+    if (to) p.set('to_date', to);
+    if (client) p.set('client_id', client);
+    return p;
+  }
+
+  /** Zeigt vor dem Download, wie viele Berichte im gewählten Zeitraum liegen. */
+  async function previewExport() {
+    const box = document.getElementById('ex-preview');
+    document.getElementById('ex-err').textContent = '';
+    box.textContent = 'Wird geprüft …';
+    try {
+      const r = await api('/api/v1/exports/reports?' + exportQuery().toString());
+      box.innerHTML = r.count
+        ? `<b>${r.count}</b> ${r.count === 1 ? 'Bericht' : 'Berichte'} im Zeitraum ${esc(deDay(r.from))} – ${esc(deDay(r.to))}.`
+        : `Keine Berichte im Zeitraum ${esc(deDay(r.from))} – ${esc(deDay(r.to))}. Stammdaten sind trotzdem im Paket.`;
+    } catch (e) { box.textContent = 'Vorschau nicht möglich: ' + e.message; }
+  }
+  function deDay(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}.${m}.${y}`;
+  }
+
+  async function exportPackage() {
+    const btn = document.getElementById('ex-btn'), err = document.getElementById('ex-err');
+    err.textContent = '';
+    btn.disabled = true; const label = btn.textContent; btn.textContent = 'Paket wird erstellt …';
+    try {
+      const p = exportQuery();
+      p.set('include_photos', document.getElementById('ex-photos').value);
+      const headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const res = await fetch(API + '/api/v1/exports/package?' + p.toString(), { headers });
+      if (!res.ok) {
+        if (res.status === 401) { sessionExpired(); return; }
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || ('Fehler ' + res.status));
+      }
+      const blob = await res.blob();
+      const name = (res.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name ? name[1] : 'pflegeassistent-berichtspaket.zip';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      loadExportHistory();
+    } catch (e) { err.textContent = 'Export fehlgeschlagen: ' + e.message; }
+    finally { btn.disabled = false; btn.textContent = label; }
+  }
+
+  async function loadExportHistory() {
+    const box = document.getElementById('ex-history');
+    try {
+      const rows = await api('/api/v1/exports/history');
+      box.innerHTML = rows.length ? rows.map(r => `
+        <div class="msg"><div class="m-ic" style="background:#eef4f5;color:#0e7c86">${CSV_IC}</div>
+          <div class="grow"><div class="m-t">${esc(deDay(r.from))} – ${esc(deDay(r.to))} · ${r.reports} ${r.reports === 1 ? 'Bericht' : 'Berichte'}${r.photos ? ' · ' + r.photos + (r.photos === 1 ? ' Foto' : ' Fotos') : ''}</div>
+            <div class="m-b">${esc(r.by)} · ${r.size_kb} KB</div></div>
+          <span class="m-time">${esc(r.when)}</span></div>`).join('')
+        : '<div class="muted">Noch nichts exportiert.</div>';
+    } catch (e) { listError('ex-history', e.message); }
   }
 
   async function printReport() {
