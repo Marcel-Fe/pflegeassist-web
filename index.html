@@ -1892,7 +1892,19 @@
   const HELP_CATS = ['Erste Schritte', 'Dokumentieren', 'Wunddokumentation', 'Klienten', 'Alltag', 'Auswertung & Export', 'Für die Leitung', 'Probleme lösen'];
   const HELP = [
     { cat: 'Erste Schritte', title: 'Anmelden', kw: 'login einloggen passwort start anmelden', img: 'login.jpg',
-      body: '<ol><li>Öffne die App-Adresse (Lesezeichen setzen!).</li><li>Gib deine <b>E-Mail</b> und dein <b>Passwort</b> ein.</li><li>Auf <b>Anmelden</b> tippen.</li></ol><p>Zum Ausprobieren gibt es Demo-Zugänge: <b>maria@demo.local</b> (Leitung) und <b>anna@demo.local</b> (Pflegekraft), Passwort <b>demo123</b>.</p>' },
+      body: '<ol><li>Öffne die App-Adresse (Lesezeichen setzen!).</li><li>Gib deine <b>E-Mail</b> und dein <b>Passwort</b> ein.</li><li>Auf <b>Anmelden</b> tippen.</li></ol>' +
+            '<p>Zum Ausprobieren gibt es zwei Demo-Einrichtungen (Passwort überall <b>demo123</b>):</p>' +
+            '<p><b>Ambulanter Pflegedienst „Sonnenblick"</b><br>' +
+            '<b>maria@demo.local</b> (Leitung) · <b>anna@demo.local</b> (Pflegekraft)</p>' +
+            '<p><b>Stationäre „Seniorenresidenz Lindenhof"</b><br>' +
+            '<b>thomas@heim.local</b> (Leitung) · <b>lena@heim.local</b> (Pflegekraft)</p>' +
+            '<p>Im Heim heißen die Betreuten <b>Bewohner</b> und haben ein <b>Zimmer</b> statt einer Adresse – die App stellt sich automatisch darauf ein.</p>' },
+    { cat: 'Erste Schritte', title: 'Ambulant oder stationär – was ist der Unterschied?', kw: 'ambulant stationaer heim einrichtung versorgungsform bewohner klient zimmer adresse gemischt traeger',
+      body: '<p>Der Pflegeassistent passt sich der <b>Versorgungsform</b> deiner Einrichtung an. Sie wird bei der Registrierung gewählt.</p>' +
+            '<ul><li><b>Ambulant</b> (Pflegedienst): Die Betreuten heißen <b>Klienten</b> und haben eine <b>Adresse</b>. Der Tagesplan heißt „Heutige Tour" und bietet einen <b>Routen-Knopf</b> zur Navigation.</li>' +
+            '<li><b>Stationär</b> (Heim): Die Betreuten heißen <b>Bewohner</b> und haben ein <b>Zimmer</b> bzw. einen Wohnbereich. Der Tagesplan heißt „Heute im Wohnbereich" – ohne Routen-Knopf, weil niemand angefahren wird.</li>' +
+            '<li><b>Beides</b> (Träger mit Pflegedienst <i>und</i> Heim): Eine Lizenz genügt. Im Formular wählst du <b>pro Person</b>, ob sie zu Hause oder im Haus versorgt wird.</li></ul>' +
+            '<p>Alles andere – Sprachdokumentation, KI-Entwurf, Prüfen und Bestätigen – funktioniert in beiden Formen gleich.</p>' },
     { cat: 'Erste Schritte', title: 'Überblick & Navigation', kw: 'menü seitenleiste dashboard start überblick navigation', img: 'dashboard.jpg',
       body: '<p>Links ist das Menü. Wichtigste Punkte:</p><ul><li><b>Dashboard / Mein Tag</b> – dein Überblick für heute.</li><li><b>Dokumentation</b> – Pflegebericht per Sprache oder Text.</li><li><b>Wunddoku</b> – Wunden mit Foto.</li><li><b>Klienten</b> – Betreute verwalten.</li><li><b>Aufgaben, Risiken, Einsätze, Statistiken, Export</b>.</li></ul><p>Unten rechts der Knopf <b>„Schnelle Aktion"</b> springt direkt zur Dokumentation.</p>' },
     { cat: 'Erste Schritte', title: 'App aufs Handy installieren', kw: 'installieren handy homescreen pwa app icon smartphone android iphone',
@@ -1908,7 +1920,7 @@
     { cat: 'Wunddokumentation', title: 'Heilungsverlauf verfolgen', kw: 'verlauf heilung fortschritt historie wunde vergleich zeit',
       body: '<p>Unter <b>Verlauf</b> siehst du alle bisherigen Einträge eines Klienten – neueste zuerst, mit Foto und Maßen. Dokumentiere die Wunde regelmäßig (z. B. wöchentlich), dann zeigt die Reihe den <b>Heilungsverlauf</b> mit Bildern.</p>' },
     { cat: 'Klienten', title: 'Klient/in anlegen', kw: 'klient betreute anlegen neu hinzufügen stammdaten patient', img: 'klienten.jpg',
-      body: '<ol><li>Menü <b>Klienten</b> → <b>＋ Neuer Klient</b>.</li><li>Vor- und Nachname (Pflicht), dazu Adresse, Pflegegrad, Notfallkontakt, Notizen.</li><li><b>Speichern</b>.</li></ol>' },
+      body: '<ol><li>Menü <b>Klienten</b> bzw. <b>Bewohner</b> → Knopf oben links.</li><li>Vor- und Nachname (Pflicht), dazu <b>Adresse</b> (ambulant) oder <b>Zimmer/Wohnbereich</b> (stationär), Pflegegrad, Notfallkontakt, Notizen.</li><li><b>Speichern</b>.</li></ol><p>Welches Feld erscheint, richtet sich nach der Versorgungsform deiner Einrichtung. Bei Trägern mit beidem wählst du sie pro Person aus.</p>' },
     { cat: 'Klienten', title: 'Klient bearbeiten oder deaktivieren', kw: 'klient bearbeiten ändern deaktivieren löschen inaktiv',
       body: '<p>Im Menü <b>Klienten</b> bei einer Person auf <b>Bearbeiten</b> tippen, Daten ändern, speichern.</p><p>Wird jemand nicht mehr betreut: <b>Deaktivieren</b> (die Daten bleiben erhalten, die Person verschwindet aus den Listen). Über den Haken <b>„Auch deaktivierte anzeigen"</b> holst du sie zurück und kannst sie wieder <b>Aktivieren</b>. (Nur Leitung/Admin.)</p>' },
     { cat: 'Alltag', title: 'Aufgaben & Risiken', kw: 'aufgaben risiken to-do erledigen priorität sturz dekubitus',
