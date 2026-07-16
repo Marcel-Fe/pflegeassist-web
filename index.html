@@ -717,7 +717,7 @@
             <div class="dhero-quick">
               <h4>Schnell starten</h4>
               <button class="qa" onclick="navTo('doc')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Neue Dokumentation</button>
-              <button class="qa" onclick="navTo('klienten')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> Klient suchen</button>
+              <button class="qa" id="qa-search-client" onclick="navTo('klienten')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> Klient suchen</button>
               <button class="qa" onclick="navTo('aufgaben')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Aufgabe erstellen</button>
               <button class="qa" onclick="navTo('export')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg> Bericht exportieren</button>
             </div>
@@ -955,7 +955,7 @@
             <div class="panel"><h3>Einsätze nach Status</h3><div class="sublabel">Alle erfassten Einsätze</div><div id="chart-visits" class="bars"></div></div>
           </div>
           <div class="grid2" style="margin-top:16px">
-            <div class="panel"><h3>Klienten nach Pflegegrad</h3><div class="sublabel">Aktive Klienten</div><div id="chart-clients" class="bars"></div></div>
+            <div class="panel"><h3 id="chart-clients-title">Klienten nach Pflegegrad</h3><div class="sublabel" id="chart-clients-sub">Aktive Klienten</div><div id="chart-clients" class="bars"></div></div>
             <div class="panel"><h3>Aufgaben nach Priorität</h3><div class="sublabel">Offene Aufgaben</div><div id="chart-tasks" class="bars"></div></div>
           </div>
           <div class="panel" style="margin-top:16px">
@@ -1553,7 +1553,7 @@
         api('/api/v1/clients'), api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/risks')]);
       const openTasks = tasks.filter(t => t.status === 'open');
       const kpis = [
-        ['Aktive Klienten', clients.length, '#0e7c86'], ['Einsätze gesamt', visits.length, '#2563eb'],
+        ['Aktive ' + words().persons, clients.length, '#0e7c86'], ['Einsätze gesamt', visits.length, '#2563eb'],
         ['Offene Aufgaben', openTasks.length, '#7c3aed'], ['Offene Risiken', risks.length, '#b91c1c']];
       document.getElementById('stat-kpis').innerHTML = kpis.map(([l, v, c]) =>
         `<div class="kpi" style="--kpi-c:${c}"><div class="val">${v}</div><div class="lbl">${l}</div></div>`).join('');
@@ -2035,6 +2035,12 @@
     if (tour) tour.textContent = w.today;
     const search = document.querySelector('.topbar input[placeholder^="Suche"]');
     if (search) search.placeholder = `Suche nach ${w.persons}, Dokumenten, Aufgaben …`;
+    setNavLabel(document.getElementById('qa-search-client'), w.person + ' suchen');  // Schnell starten
+    KPI_META.active_clients.label = 'Aktive ' + w.persons;                            // PDL-Offen-Radar
+    const ct = document.getElementById('chart-clients-title');
+    if (ct) ct.textContent = w.persons + ' nach Pflegegrad';
+    const cs = document.getElementById('chart-clients-sub');
+    if (cs) cs.textContent = 'Aktive ' + w.persons;
   }
 
   async function loadKlienten() {
@@ -2343,6 +2349,7 @@
     open_risks: { label: 'Neue Hinweise', color: '#b91c1c', icon: SVG.alert, trend: 'Handlungsbedarf' },
     urgent_tasks: { label: 'Dringende Aufgaben', color: '#7c3aed', icon: SVG.check, trend: 'hohe Priorität' },
     visits_today: { label: 'Einsätze heute', color: '#2563eb', icon: SVG.calendar, trend: 'geplant' },
+    // Beschriftung folgt der Versorgungsform (ambulant „Klienten" / stationär „Bewohner").
     active_clients: { label: 'Aktive Klienten', color: '#12a594', icon: SVG.users, trend: 'in Betreuung' }
   };
   const CHK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
