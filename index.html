@@ -537,6 +537,17 @@
   .tour-item .tacts button.warn { color: #b45309; border-color: #f0d3a8; }
   .tour-item .tnote { width: 100%; margin: 2px 0 6px 58px; font-size: .8rem; color: #b45309; }
   .tour-item.is-done { opacity: .62; }
+  /* Wunddoku: Maßnahmen zum Antippen + Vorschau-Beleg */
+  .measure-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; margin-top: 4px; }
+  .measure { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line);
+    border-radius: 10px; font-size: .87rem; font-weight: 500; cursor: pointer; margin: 0; }
+  .measure input { width: auto; margin: 0; flex: none; }
+  .measure:has(input:checked) { border-color: var(--primary-dark); background: rgba(18,165,148,.08); }
+  table.wd-sheet { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .88rem; }
+  table.wd-sheet th { text-align: left; width: 42%; padding: 6px 8px; border: 1px solid var(--line);
+    background: var(--bg); font-weight: 600; color: var(--muted); }
+  table.wd-sheet td { padding: 6px 8px; border: 1px solid var(--line); }
+
   /* „Wo muss ich hin?" – Anfahrt (ambulant) bzw. Zimmer (stationär) */
   .wayfind .wf-place { font-size: 1.02rem; font-weight: 600; }
   .wayfind .wf-acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
@@ -848,14 +859,49 @@
               <div><label>Tiefe (cm)</label><input id="wd-depth" inputmode="decimal" placeholder="z. B. 0,4"></div>
               <div><label>Stadium / Grad</label><input id="wd-stage" placeholder="z. B. Grad 2"></div>
             </div>
-            <label>Beschreibung</label>
-            <textarea id="wd-desc" rows="2" placeholder="Aussehen, Wundrand, Exsudat, Umgebung …"></textarea>
-            <label style="margin-top:4px">Foto (Kamera oder Datei)</label>
+
+            <!-- Sprechen statt tippen: das Diktat füllt Beschreibung UND die Statusfelder,
+                 damit die Pflegekraft nach dem Sprechen nur noch prüfen muss. -->
+            <label style="margin-top:6px">Beschreibung – sprechen statt tippen</label>
+            <div class="rec-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <button type="button" class="ghost" id="wd-rec-btn" onclick="toggleWoundDictation()">🎤 Aufnehmen &amp; diktieren</button>
+              <span class="muted" id="wd-rec-status" style="font-size:.85rem"></span>
+            </div>
+            <textarea id="wd-desc" rows="3" placeholder="Aussehen, Wundrand, Exsudat, Umgebung …"></textarea>
+            <div class="muted" id="wd-fill-hint" style="font-size:.8rem"></div>
+
+            <div class="panel-head" style="margin:14px 0 2px"><h3 style="font-size:.95rem">Wundstatus</h3><span class="chip">Bitte prüfen</span></div>
+            <div class="grid2">
+              <div><label>Wundgrund</label><input id="wd-bed" list="dl-bed" placeholder="z. B. granulierend"></div>
+              <div><label>Wundrand</label><input id="wd-edge" list="dl-edge" placeholder="z. B. reizlos"></div>
+            </div>
+            <div class="grid2">
+              <div><label>Exsudat</label><input id="wd-exudate" list="dl-exudate" placeholder="z. B. wenig, klar"></div>
+              <div><label>Geruch</label><input id="wd-odor" list="dl-odor" placeholder="z. B. kein Geruch"></div>
+            </div>
+            <div class="grid2">
+              <div><label>Schmerzen</label><input id="wd-pain" list="dl-pain" placeholder="z. B. keine Schmerzen"></div>
+              <div><label>Infektionszeichen</label><input id="wd-infection" list="dl-infection" placeholder="z. B. keine"></div>
+            </div>
+            <datalist id="dl-bed"><option>granulierend</option><option>epithelisierend</option><option>fibrinbelegt</option><option>nekrotisch</option></datalist>
+            <datalist id="dl-edge"><option>reizlos</option><option>gerötet</option><option>mazeriert</option><option>unterminiert</option></datalist>
+            <datalist id="dl-exudate"><option>kein Exsudat</option><option>wenig, klar</option><option>mäßig, serös</option><option>viel, trüb</option><option>blutig</option></datalist>
+            <datalist id="dl-odor"><option>kein Geruch</option><option>leichter Geruch</option><option>strenger Geruch</option></datalist>
+            <datalist id="dl-pain"><option>keine Schmerzen</option><option>leicht</option><option>mäßig</option><option>stark</option><option>nur beim Verbandwechsel</option></datalist>
+            <datalist id="dl-infection"><option>keine</option><option>Rötung</option><option>Überwärmung</option><option>Schwellung</option><option>Eiter</option></datalist>
+
+            <label style="margin-top:10px">Durchgeführte Maßnahmen</label>
+            <div id="wd-measures" class="measure-grid"></div>
+
+            <label style="margin-top:10px">Foto (Kamera oder Datei)</label>
             <input type="file" id="wd-photo" accept="image/*" capture="environment" onchange="previewWoundPhoto()">
             <div style="margin-top:8px"><img id="wd-preview" class="hidden" style="max-width:180px;border-radius:10px;border:1px solid var(--line)"></div>
             <div class="err" id="wd-err"></div>
             <div style="height:10px"></div>
-            <button onclick="saveWound()">Wunddoku speichern</button>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button onclick="saveWound()">Wunddoku speichern</button>
+              <button class="ghost" onclick="previewWoundSheet()">👁 Vorschau</button>
+            </div>
           </div>
           <div class="panel" style="margin-top:16px">
             <h3>Verlauf</h3>
@@ -2227,6 +2273,114 @@
       img.src = url;
     });
   }
+  // Formularfeld -> Feldname im Backend. An EINER Stelle, damit Speichern, Leeren und
+  // das Befüllen aus dem Diktat nicht auseinanderlaufen.
+  const WOUND_STATUS_FIELDS = [
+    ['wd-bed', 'wound_bed'], ['wd-edge', 'wound_edge'], ['wd-exudate', 'exudate'],
+    ['wd-odor', 'odor'], ['wd-pain', 'pain'], ['wd-infection', 'infection_signs'],
+  ];
+  // Übliche Maßnahmen beim Verbandwechsel. Selbst zusammengestellt, bewusst KEINE
+  // Verlagsvorlage – die reine Aufzählung fachlicher Handgriffe ist frei.
+  const WOUND_MEASURES = [
+    'Wunde gereinigt (NaCl 0,9 %)', 'Wundrand gesäubert', 'Débridement', 'Wundauflage gewechselt',
+    'Sekundärverband angelegt', 'Fixierung mit Verbandpflaster', 'Kompression angelegt',
+    'Hautschutz aufgetragen', 'Arzt informiert',
+  ];
+  function renderWoundMeasures() {
+    const box = document.getElementById('wd-measures');
+    if (!box || box.dataset.ready) return;
+    box.innerHTML = WOUND_MEASURES.map((m, i) =>
+      `<label class="measure"><input type="checkbox" id="wm-${i}" value="${esc(m)}"><span>${esc(m)}</span></label>`).join('');
+    box.dataset.ready = '1';
+  }
+  function checkedMeasures() {
+    return [...document.querySelectorAll('#wd-measures input:checked')].map(cb => cb.value);
+  }
+
+  /** Diktat für die Wunddoku: füllt die Beschreibung UND – wo eindeutig – die
+   *  Statusfelder vor. Die Pflegekraft prüft, sie tippt nicht ab. */
+  let woundRec = null;
+  function toggleWoundDictation() {
+    const btn = document.getElementById('wd-rec-btn'), st = document.getElementById('wd-rec-status');
+    if (woundRec) { try { woundRec.stop(); } catch (e) {} woundRec = null; btn.textContent = '🎤 Aufnehmen & diktieren'; return; }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { st.textContent = 'Dieses Gerät kann nicht diktieren – bitte tippen.'; return; }
+    const ta = document.getElementById('wd-desc');
+    const base = ta.value.trim() ? ta.value.trim() + ' ' : '';
+    let fin = '';
+    woundRec = new SR();
+    woundRec.lang = 'de-DE'; woundRec.continuous = true; woundRec.interimResults = true;
+    woundRec.onresult = ev => {
+      let interim = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const r = ev.results[i];
+        if (r.isFinal) fin += r[0].transcript + ' '; else interim += r[0].transcript;
+      }
+      ta.value = (base + fin + interim).replace(/\s{2,}/g, ' ');
+    };
+    woundRec.onend = () => { woundRec = null; btn.textContent = '🎤 Aufnehmen & diktieren'; applyWoundStatusFromText(ta.value); };
+    try { woundRec.start(); btn.textContent = '⏹ Stopp'; st.textContent = '🎤 Sprich jetzt …'; }
+    catch (e) { st.textContent = 'Diktat konnte nicht gestartet werden.'; woundRec = null; }
+  }
+
+  /** Aus dem gesprochenen Text die Statusfelder vorbelegen – nur bei eindeutigen
+   *  Formulierungen, und NUR wenn das Feld noch leer ist. Alles bleibt änderbar:
+   *  das ist eine Schreibhilfe, keine fachliche Bewertung. */
+  function applyWoundStatusFromText(text) {
+    const t = (text || '').toLowerCase();
+    if (!t) return;
+    const rules = [
+      ['wd-bed', [['granulier', 'granulierend'], ['epithelisier', 'epithelisierend'], ['fibrin', 'fibrinbelegt'], ['nekro', 'nekrotisch']]],
+      ['wd-edge', [['reizlos', 'reizlos'], ['gerötet', 'gerötet'], ['mazerier', 'mazeriert'], ['unterminier', 'unterminiert']]],
+      ['wd-exudate', [['kein exsudat', 'kein Exsudat'], ['wenig exsudat', 'wenig, klar'], ['viel exsudat', 'viel, trüb'], ['blutig', 'blutig']]],
+      ['wd-odor', [['kein geruch', 'kein Geruch'], ['streng', 'strenger Geruch']]],
+      ['wd-pain', [['keine schmerzen', 'keine Schmerzen'], ['schmerzfrei', 'keine Schmerzen'], ['starke schmerzen', 'stark']]],
+      ['wd-infection', [['keine infektionszeichen', 'keine'], ['kein infektionszeichen', 'keine'], ['eiter', 'Eiter'], ['überwärm', 'Überwärmung']]],
+    ];
+    let filled = 0;
+    rules.forEach(([id, pairs]) => {
+      const el = document.getElementById(id);
+      if (!el || el.value.trim()) return;
+      const hit = pairs.find(([needle]) => t.includes(needle));
+      if (hit) { el.value = hit[1]; filled++; }
+    });
+    const hint = document.getElementById('wd-fill-hint');
+    if (hint) hint.textContent = filled
+      ? `${filled} Feld${filled > 1 ? 'er wurden' : ' wurde'} aus dem Gesprochenen vorbelegt – bitte prüfen.`
+      : '';
+  }
+
+  /** Vorschau des fertigen Belegs – inklusive Foto, bevor gespeichert wird. */
+  async function previewWoundSheet() {
+    const cid = document.getElementById('wd-client').value;
+    const sel = document.getElementById('wd-client');
+    const person = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+    const val = id => document.getElementById(id).value.trim();
+    if (!cid) { flash('wd-err', 'Bitte einen Klienten wählen.'); return; }
+    const size = [val('wd-length'), val('wd-width'), val('wd-depth')].some(Boolean)
+      ? `${val('wd-length') || '–'} × ${val('wd-width') || '–'} × ${val('wd-depth') || '–'} cm` : '';
+    const rows = [
+      ['Wundart', val('wd-type')], ['Lokalisation', val('wd-location')], ['Wundgröße', size],
+      ['Stadium / Grad', val('wd-stage')], ['Wundgrund', val('wd-bed')], ['Wundrand', val('wd-edge')],
+      ['Exsudat', val('wd-exudate')], ['Geruch', val('wd-odor')], ['Schmerzen', val('wd-pain')],
+      ['Infektionszeichen', val('wd-infection')],
+    ].filter(r => r[1]);
+    const measures = checkedMeasures();
+    const f = document.getElementById('wd-photo').files[0];
+    const photo = f ? `<img src="${URL.createObjectURL(f)}" style="max-width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:10px">` : '';
+    openModal('Wunddokumentation – Vorschau',
+      `<div class="muted" style="margin-top:0">${esc(person)} · ${esc(new Date().toLocaleString('de-DE'))}</div>` +
+      photo +
+      (rows.length ? `<table class="wd-sheet">${rows.map(r =>
+        `<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join('')}</table>`
+        : '<div class="muted">Noch keine Angaben erfasst.</div>') +
+      (val('wd-desc') ? `<div style="margin-top:10px"><b>Beschreibung</b><div class="muted" style="white-space:pre-wrap">${esc(val('wd-desc'))}</div></div>` : '') +
+      (measures.length ? `<div style="margin-top:10px"><b>Durchgeführte Maßnahmen</b><ul class="hint-list">${
+        measures.map(m => '<li>' + esc(m) + '</li>').join('')}</ul></div>` : '') +
+      `<div style="display:flex;gap:10px;margin-top:14px"><button onclick="closeModal();saveWound()">Speichern</button>` +
+      `<button class="ghost" onclick="closeModal()">Weiter bearbeiten</button></div>`);
+  }
+
   function previewWoundPhoto() {
     const f = document.getElementById('wd-photo').files[0];
     const pv = document.getElementById('wd-preview');
@@ -2239,6 +2393,7 @@
       sel.innerHTML = list.length
         ? list.map(c => `<option value="${c.id}">${esc(c.last_name)}, ${esc(c.first_name)}</option>`).join('')
         : '<option value="">(keine Klienten – bitte anlegen)</option>';
+      renderWoundMeasures();
       loadWoundList();
     } catch (e) { flash('wd-err', e.message); }
   }
@@ -2278,10 +2433,16 @@
       fd.append('depth_cm', document.getElementById('wd-depth').value.trim());
       fd.append('stage', document.getElementById('wd-stage').value.trim());
       fd.append('description', document.getElementById('wd-desc').value.trim());
+      WOUND_STATUS_FIELDS.forEach(([id, key]) => fd.append(key, document.getElementById(id).value.trim()));
+      fd.append('measures', checkedMeasures().join('|'));
       const f = document.getElementById('wd-photo').files[0];
       if (f) { const small = await resizeImage(f, 1000, 0.7); fd.append('photo', small, 'wunde.jpg'); }
       await apiUpload('/api/v1/wounds', fd);
-      ['wd-location', 'wd-type', 'wd-length', 'wd-width', 'wd-depth', 'wd-stage', 'wd-desc'].forEach(id => document.getElementById(id).value = '');
+      ['wd-location', 'wd-type', 'wd-length', 'wd-width', 'wd-depth', 'wd-stage', 'wd-desc']
+        .concat(WOUND_STATUS_FIELDS.map(f => f[0]))
+        .forEach(id => document.getElementById(id).value = '');
+      document.querySelectorAll('#wd-measures input:checked').forEach(cb => cb.checked = false);
+      document.getElementById('wd-fill-hint').textContent = '';
       document.getElementById('wd-photo').value = '';
       document.getElementById('wd-preview').classList.add('hidden');
       flashToast('Wunddokumentation gespeichert.');
