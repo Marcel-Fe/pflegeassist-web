@@ -537,6 +537,12 @@
   .tour-item .tacts button.warn { color: #b45309; border-color: #f0d3a8; }
   .tour-item .tnote { width: 100%; margin: 2px 0 6px 58px; font-size: .8rem; color: #b45309; }
   .tour-item.is-done { opacity: .62; }
+  /* „Wo muss ich hin?" – Anfahrt (ambulant) bzw. Zimmer (stationär) */
+  .wayfind .wf-place { font-size: 1.02rem; font-weight: 600; }
+  .wayfind .wf-acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .wayfind .wf-acts button { min-height: 42px; }
+  .wayfind .wf-acts button.prim { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+  .wayfind iframe.wf-map { width: 100%; height: 210px; border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; display: block; }
   .start-actions { display: flex; gap: 10px; flex-wrap: wrap; }
   .start-actions button { flex: 1; min-width: 150px; min-height: 46px; }
   @media (max-width: 560px) {
@@ -2510,6 +2516,169 @@
   // ---- Detailansicht einer betreuten Person ----
   function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); }
 
+  /** Pflegedokumentation einer Person als druckbares Dokument (→ „Als PDF sichern").
+   *
+   *  Bewusst im Browser gerendert statt auf dem Server: ein PDF-Paket wäre für Render
+   *  Free zu schwer. Das Layout folgt dem, was in der Pflege üblich ist – Kopfbogen mit
+   *  Stammdaten, chronologische Einträge mit Datum/Uhrzeit/Verfasser, Seitenzahlen.
+   *  KEINE Signatur-Zusage: das Blatt ist eine Kopie der eigenen Doku, kein Rechtsdokument.
+   */
+  async function printClientReport(clientId) {
+    try {
+      const d = await api('/api/v1/clients/' + clientId + '/detail');
+      const c = d.client;
+      const name = `${c.first_name} ${c.last_name}`;
+      const org = (user && user.organization_name) || 'Pflegeassistent';
+      const w = words();
+      const e = esc;
+      const STATUS_DE = { confirmed: 'Freigegeben', submitted: 'Wartet auf Freigabe', draft: 'KI-Entwurf' };
+
+      const field = (l, v) => v ? `<div><dt>${e(l)}</dt><dd>${e(v)}</dd></div>` : '';
+      const head = field('Pflegegrad', c.care_level) + field(w.place, placeOf(c)) +
+        field('Notfallkontakt', c.emergency_contact) +
+        field('Versorgung', c.care_setting === 'stationaer' ? 'Stationär' : 'Ambulant') +
+        field('Hinweise', c.notes);
+
+      const entries = d.reports.length ? d.reports.map(r => {
+        const dt = r.created_at ? new Date(r.created_at) : null;
+        const extra = [
+          r.observations && r.observations.length ? '<b>Beobachtungen:</b> ' + e(r.observations.join(' · ')) : '',
+          r.measures && r.measures.length ? '<b>Maßnahmen:</b> ' + e(r.measures.join(' · ')) : '',
+          r.handover_text ? '<b>Übergabe:</b> ' + e(r.handover_text) : '',
+        ].filter(Boolean).join('<br>');
+        return `<tr><td class="c-date">${dt ? e(dt.toLocaleDateString('de-DE')) : ''}<br>` +
+          `<span class="t">${dt ? e(dt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })) : ''}</span></td>` +
+          `<td><div class="txt">${e(r.report_text || '')}</div>${extra ? '<div class="sub">' + extra + '</div>' : ''}</td>` +
+          `<td class="c-who">${e(r.author || '—')}<br><span class="t">${e(STATUS_DE[r.status] || r.status)}</span></td></tr>`;
+      }).join('') : '<tr><td colspan="3" class="none">Für diesen Zeitraum liegt keine Dokumentation vor.</td></tr>';
+
+      const listBlock = (title, rows) => rows.length
+        ? `<h2>${e(title)}</h2><ul>${rows.map(x => `<li>${x}</li>`).join('')}</ul>` : '';
+      const risks = listBlock('Risiken & Hinweise', d.risks.map(r =>
+        `<b>${e(r.title)}</b>${r.level ? ' (' + e(cap(r.level)) + ')' : ''}${r.description ? ' – ' + e(r.description) : ''}`));
+      const wounds = listBlock('Wunddokumentation', d.wounds.map(x =>
+        `${e(x.body_location)}${x.wound_type ? ' · ' + e(x.wound_type) : ''}${x.stage ? ' · ' + e(x.stage) : ''}` +
+        `${x.created_at ? ' · ' + e(new Date(x.created_at).toLocaleDateString('de-DE')) : ''}`));
+
+      const html = `<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>Pflegedokumentation ${e(name)}</title><style>
+@page { size: A4; margin: 16mm 14mm 18mm; }
+body { font-family: "Segoe UI", system-ui, Arial, sans-serif; color: #14181a; font-size: 11pt; line-height: 1.45; margin: 0; }
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start;
+  border-bottom: 2.5px solid #0e7c86; padding-bottom: 8px; margin-bottom: 14px; }
+.sheet-head h1 { font-size: 16pt; margin: 0 0 2px; color: #0e7c86; letter-spacing: .2px; }
+.sheet-head .org { font-size: 10pt; color: #555; }
+.sheet-head .made { text-align: right; font-size: 9pt; color: #666; }
+.person { background: #f4f8f8; border: 1px solid #d6e4e5; border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; }
+.person .nm { font-size: 13pt; font-weight: 700; margin-bottom: 6px; }
+.person dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px 24px; margin: 0; }
+.person dt { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .4px; color: #6b7677; }
+.person dd { margin: 0 0 3px; font-size: 10.5pt; }
+h2 { font-size: 11.5pt; margin: 16px 0 6px; color: #0e7c86; border-bottom: 1px solid #cfd8d9; padding-bottom: 3px; }
+table { border-collapse: collapse; width: 100%; }
+thead { display: table-header-group; }
+th { background: #eef4f5; font-size: 9pt; text-transform: uppercase; letter-spacing: .4px; color: #43585a;
+  text-align: left; padding: 6px 8px; border: 1px solid #cfd8d9; }
+td { border: 1px solid #dde5e6; padding: 7px 8px; vertical-align: top; }
+tr { page-break-inside: avoid; }
+.c-date { width: 74px; white-space: nowrap; font-weight: 600; }
+.c-who { width: 108px; }
+.t { font-weight: 400; color: #6b7677; font-size: 9pt; }
+.txt { white-space: pre-wrap; }
+.sub { margin-top: 5px; font-size: 9.5pt; color: #45585a; }
+.none { text-align: center; color: #888; font-style: italic; }
+ul { margin: 4px 0 0 18px; padding: 0; } li { margin-bottom: 3px; }
+.sign { margin-top: 26px; display: flex; gap: 40px; page-break-inside: avoid; }
+.sign div { flex: 1; border-top: 1px solid #9aa7a8; padding-top: 4px; font-size: 9pt; color: #6b7677; }
+.foot { margin-top: 18px; border-top: 1px solid #dde5e6; padding-top: 6px; font-size: 8.5pt; color: #7a8688; }
+@media print { .noprint { display: none; } }
+.noprint { position: fixed; top: 10px; right: 10px; }
+.noprint button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 0; background: #0e7c86; color: #fff; cursor: pointer; }
+</style></head><body>
+<div class="noprint"><button onclick="window.print()">Drucken / Als PDF sichern</button></div>
+<div class="sheet-head">
+  <div><h1>Pflegedokumentation</h1><div class="org">${e(org)}</div></div>
+  <div class="made">Erstellt am ${e(new Date().toLocaleString('de-DE'))}<br>durch ${e((user && user.full_name) || '')}</div>
+</div>
+<div class="person"><div class="nm">${e(name)}</div><dl>${head}</dl></div>
+<h2>Verlaufsdokumentation</h2>
+<table><thead><tr><th>Datum</th><th>Eintrag</th><th>Dokumentiert von</th></tr></thead><tbody>${entries}</tbody></table>
+${risks}${wounds}
+<div class="sign"><div>Datum, Unterschrift Pflegekraft</div><div>Datum, Unterschrift Pflegedienstleitung</div></div>
+<div class="foot">Auszug aus der eigenen Pflegedokumentation, erzeugt mit Pflegeassistent.
+Enthält ${d.reports.length === 1 ? '1 Eintrag' : d.reports.length + ' Einträge'}.
+Die Angaben wurden von Pflegekräften geprüft und bestätigt; dieses Blatt ist eine Kopie zur Ablage
+und ersetzt keine unterschriebene Fassung.</div>
+</body></html>`;
+
+      const wnd = window.open('', '_blank');
+      if (!wnd) { flashToast('Bitte Pop-ups für diese Seite erlauben.'); return; }
+      wnd.document.write(html); wnd.document.close();
+    } catch (err) { flashToast('Dokument konnte nicht erstellt werden: ' + explainError(err)); }
+  }
+
+  /** „Wo muss ich hin?" – ambulant die Anfahrt, stationär das Zimmer.
+   *
+   *  Im Heim steht die Pflegekraft bereits im Gebäude: eine Karte des Hauses, in dem
+   *  man sich befindet, hilft niemandem. Dort zählen Zimmer und Wohnbereich.
+   *
+   *  Die Karte lädt bewusst ERST auf Antippen: eine automatisch eingebettete Karte
+   *  würde die Anschrift jeder betreuten Person bei jedem Öffnen an einen Kartendienst
+   *  senden. Antippen macht daraus eine bewusste Entscheidung der Pflegekraft –
+   *  dieselbe Linie, aus der der QR-Code lokal gerechnet wird.
+   */
+  function wayfindingHTML(c) {
+    const stationaer = c.care_setting === 'stationaer';
+    const place = placeOf(c);
+    if (stationaer) {
+      if (!place) return '';
+      return `<div class="panel wayfind" style="margin-top:10px">` +
+        `<div class="panel-head"><h3>Im Haus</h3></div>` +
+        `<div class="wf-place">🚪 ${esc(place)}</div>` +
+        (c.emergency_contact ? `<div class="muted" style="font-size:.85rem;margin-top:6px">Notfallkontakt: ${esc(c.emergency_contact)}</div>` : '') +
+        `</div>`;
+    }
+    if (!place) return '';
+    return `<div class="panel wayfind" style="margin-top:10px">` +
+      `<div class="panel-head"><h3>Anfahrt</h3></div>` +
+      `<div class="wf-place">📍 ${esc(place)}</div>` +
+      (c.emergency_contact ? `<div class="muted" style="font-size:.85rem;margin-top:4px">Notfallkontakt: ${esc(c.emergency_contact)}</div>` : '') +
+      `<div class="wf-acts">` +
+      `<button class="prim" onclick="openRoute(${JSON.stringify(place).replace(/"/g, '&quot;')})">🧭 Route starten</button>` +
+      `<button class="ghost" onclick="showMap(this, ${JSON.stringify(place).replace(/"/g, '&quot;')})">🗺 Karte anzeigen</button>` +
+      `</div><div id="wf-map"></div>` +
+      `<div class="muted" style="font-size:.75rem;margin-top:6px">Beim Anzeigen wird die Adresse an OpenStreetMap gesendet.</div>` +
+      `</div>`;
+  }
+
+  /** Navigation in der Karten-App des Handys – dort ist sie besser als in der Web-App. */
+  function openRoute(address) {
+    window.open('https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(address), '_blank');
+  }
+
+  /** Karte erst auf Antippen laden (siehe wayfindingHTML). */
+  async function showMap(btn, address) {
+    const box = document.getElementById('wf-map');
+    if (!box) return;
+    btn.disabled = true;
+    box.innerHTML = '<div class="muted" style="font-size:.85rem;padding:8px 0">Karte wird geladen …</div>';
+    try {
+      const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' +
+        encodeURIComponent(address), { headers: { 'Accept': 'application/json' } });
+      const hits = await r.json();
+      if (!hits || !hits.length) throw new Error('Adresse nicht gefunden');
+      const lat = parseFloat(hits[0].lat), lon = parseFloat(hits[0].lon), d = 0.004;
+      const bbox = [lon - d, lat - d / 2, lon + d, lat + d / 2].join(',');
+      box.innerHTML =
+        `<iframe class="wf-map" loading="lazy" referrerpolicy="no-referrer" title="Karte" ` +
+        `src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}"></iframe>` +
+        `<div class="muted" style="font-size:.72rem">Karte © OpenStreetMap-Mitwirkende</div>`;
+    } catch (e) {
+      btn.disabled = false;
+      box.innerHTML = '<div class="muted" style="font-size:.85rem">Karte nicht verfügbar – bitte „Route starten" nutzen.</div>';
+    }
+  }
+
   async function openClientDetail(id) {
     const modal = document.getElementById('detail-modal');
     const body = document.getElementById('dt-body');
@@ -2572,8 +2741,11 @@
         avatarHTML(name, 64, photoPath, 'client') +
         `<div><div style="font-weight:700;font-size:1.1rem">${esc(name)}</div>` +
         `<div class="muted">${esc([c.care_level, placeOf(c)].filter(Boolean).join(' · ')) || 'Keine Angaben'}</div></div>` +
-        (canEditClients() ? `<button class="ghost" style="margin-left:auto" onclick="closeDetail();openClientForm('${c.id}')">Bearbeiten</button>` : '') +
-        `</div>` +
+        `<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">` +
+        `<button class="ghost" onclick="printClientReport('${c.id}')">📄 Pflegedoku als PDF</button>` +
+        (canEditClients() ? `<button class="ghost" onclick="closeDetail();openClientForm('${c.id}')">Bearbeiten</button>` : '') +
+        `</div></div>` +
+        wayfindingHTML(c) +
         `<div class="panel" style="margin-top:6px">${stamm || none('Keine Stammdaten hinterlegt.')}</div>` +
         sect('Dokumentation', d.reports.length, reports) +
         sect('Risiken & Hinweise', d.risks.length, risks) +
