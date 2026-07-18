@@ -552,6 +552,16 @@
   .tour-item .tacts button.warn { color: #b45309; border-color: #f0d3a8; }
   .tour-item .tnote { width: 100%; margin: 2px 0 6px 58px; font-size: .8rem; color: #b45309; }
   .tour-item.is-done { opacity: .62; }
+  /* Körperschema (selbst gezeichnet) – Stelle antippen statt tippen */
+  .body-picker { display: flex; gap: 10px; margin: 6px 0 4px; }
+  .body-col { flex: 1; max-width: 190px; text-align: center; }
+  .body-cap { font-size: .75rem; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+  svg.body-fig { width: 100%; height: auto; max-height: 240px; }
+  .body-shape { fill: var(--chip); stroke: var(--line); stroke-width: .8; }
+  .body-spot { fill: transparent; stroke: transparent; cursor: pointer; }
+  .body-spot:hover { fill: rgba(18,165,148,.30); }
+  .body-spot.sel { fill: rgba(18,165,148,.55); stroke: var(--primary-dark); stroke-width: 1.4; }
+
   /* Wunddoku: Maßnahmen zum Antippen + Vorschau-Beleg */
   .measure-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; margin-top: 4px; }
   .measure { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line);
@@ -865,9 +875,11 @@
           <div class="panel" style="margin-top:16px">
             <h3>Neue Wunddokumentation</h3>
             <div class="grid2">
-              <div><label>Lokalisation (wo am Körper)</label><input id="wd-location" placeholder="z. B. Steißbein, Ferse links"></div>
+              <div><label>Lokalisation (wo am Körper)</label><input id="wd-location" placeholder="z. B. Steißbein, Ferse links" oninput="syncBodyPicker()"></div>
               <div><label>Wundart</label><input id="wd-type" placeholder="z. B. Dekubitus, Ulcus cruris"></div>
             </div>
+            <div class="sublabel" style="margin-top:8px">Stelle antippen – oder oben eintippen</div>
+            <div id="wd-body" class="body-picker"></div>
             <div class="grid2">
               <div><label>Länge (cm)</label><input id="wd-length" inputmode="decimal" placeholder="z. B. 3,5"></div>
               <div><label>Breite (cm)</label><input id="wd-width" inputmode="decimal" placeholder="z. B. 2"></div>
@@ -2290,6 +2302,86 @@
       img.src = url;
     });
   }
+  /* ---- Körperschema zur Wundlokalisation ----
+   * Selbst gezeichnet (wie elderAvatarSVG): Vorlagen aus Fachverlagen sind
+   * urheberrechtlich geschützt und dürfen nicht nachgebaut werden. Bewusst schematisch
+   * statt anatomisch – es geht darum, die Stelle EINDEUTIG zu benennen, nicht um ein
+   * medizinisches Bild. Antippen setzt die Lokalisation; tippen bleibt weiter möglich.
+   */
+  // Die Figur besteht aus Grundformen, deren Koordinaten unten exakt wiederverwendet
+  // werden. Ein handgezeichneter Pfad war hier zuerst falsch: die Punkte für Füße und
+  // Fersen lagen AUSSERHALB der Figur, weil Pfad und Punktliste auseinanderliefen.
+  const BODY_GEO = {
+    head: { cx: 45, cy: 16, r: 10 },
+    torso: { x: 28, y: 31, w: 34, h: 58 },   // 31 … 89
+    armR: { x: 18, y: 34, w: 9, h: 58 },     // 34 … 92
+    armL: { x: 63, y: 34, w: 9, h: 58 },
+    hips: { x: 30, y: 87, w: 30, h: 18 },    // 87 … 105
+    legR: { x: 32, y: 100, w: 11, h: 108 },  // 100 … 208, Mitte 37.5
+    legL: { x: 47, y: 100, w: 11, h: 108 },  // Mitte 52.5
+  };
+  const BODY_SPOTS = [
+    // [x, y, r, Bezeichnung, Ansicht]  – v = von vorn, h = von hinten
+    [45, 16, 9, 'Kopf', 'v'], [45, 29, 5, 'Hals', 'v'],
+    [34, 38, 6, 'Schulter rechts', 'v'], [56, 38, 6, 'Schulter links', 'v'],
+    [45, 54, 9, 'Brust', 'v'], [45, 76, 9, 'Bauch', 'v'],
+    [22, 58, 5, 'Arm rechts', 'v'], [68, 58, 5, 'Arm links', 'v'],
+    [22, 86, 5, 'Hand rechts', 'v'], [68, 86, 5, 'Hand links', 'v'],
+    [37, 97, 6, 'Hüfte rechts', 'v'], [53, 97, 6, 'Hüfte links', 'v'],
+    [37, 122, 7, 'Oberschenkel rechts', 'v'], [53, 122, 7, 'Oberschenkel links', 'v'],
+    [37, 150, 6, 'Knie rechts', 'v'], [53, 150, 6, 'Knie links', 'v'],
+    [37, 178, 6, 'Unterschenkel rechts', 'v'], [53, 178, 6, 'Unterschenkel links', 'v'],
+    [37, 203, 6, 'Fuß rechts', 'v'], [53, 203, 6, 'Fuß links', 'v'],
+    [45, 16, 9, 'Hinterkopf', 'h'], [45, 40, 8, 'Nacken / Schulterblatt', 'h'],
+    [45, 62, 9, 'Rücken', 'h'], [45, 82, 7, 'Lendenwirbelsäule', 'h'],
+    [45, 98, 6, 'Steißbein', 'h'],
+    [37, 108, 6, 'Gesäß rechts', 'h'], [53, 108, 6, 'Gesäß links', 'h'],
+    [37, 130, 7, 'Oberschenkel rückseitig rechts', 'h'], [53, 130, 7, 'Oberschenkel rückseitig links', 'h'],
+    [37, 155, 6, 'Kniekehle rechts', 'h'], [53, 155, 6, 'Kniekehle links', 'h'],
+    [37, 180, 6, 'Wade rechts', 'h'], [53, 180, 6, 'Wade links', 'h'],
+    [37, 203, 6, 'Ferse rechts', 'h'], [53, 203, 6, 'Ferse links', 'h'],
+  ];
+
+  /** Schematische Figur aus Grundformen – zweimal verwendet (vorn/hinten). */
+  function bodyOutline() {
+    const g = BODY_GEO;
+    const box = (b, rx) => `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${rx}"/>`;
+    return `<circle cx="${g.head.cx}" cy="${g.head.cy}" r="${g.head.r}"/>` +
+      '<rect x="41" y="24" width="8" height="9" rx="3"/>' +
+      box(g.torso, 11) + box(g.armR, 4.5) + box(g.armL, 4.5) + box(g.hips, 9) +
+      box(g.legR, 5.5) + box(g.legL, 5.5) +
+      '<ellipse cx="37.5" cy="209" rx="7" ry="4.5"/><ellipse cx="52.5" cy="209" rx="7" ry="4.5"/>';
+  }
+  function bodySVG(view) {
+    const spots = BODY_SPOTS.filter(s => s[4] === view);
+    return `<svg viewBox="0 0 90 220" class="body-fig" role="group" aria-label="${view === 'v' ? 'Ansicht von vorn' : 'Ansicht von hinten'}">` +
+      `<g class="body-shape">${bodyOutline()}</g>` +
+      spots.map(([x, y, r, label]) =>
+        `<circle class="body-spot" cx="${x}" cy="${y}" r="${r}" data-loc="${esc(label)}"><title>${esc(label)}</title></circle>`
+      ).join('') + '</svg>';
+  }
+  function renderBodyPicker() {
+    const box = document.getElementById('wd-body');
+    if (!box || box.dataset.ready) return;
+    box.innerHTML =
+      `<div class="body-col"><div class="body-cap">Von vorn</div>${bodySVG('v')}</div>` +
+      `<div class="body-col"><div class="body-cap">Von hinten</div>${bodySVG('h')}</div>`;
+    box.querySelectorAll('.body-spot').forEach(el => {
+      el.addEventListener('click', () => {
+        box.querySelectorAll('.body-spot').forEach(o => o.classList.remove('sel'));
+        el.classList.add('sel');
+        document.getElementById('wd-location').value = el.dataset.loc;
+      });
+    });
+    box.dataset.ready = '1';
+  }
+  /** Getippte Lokalisation im Schema markieren, damit beide Wege zusammenpassen. */
+  function syncBodyPicker() {
+    const v = (document.getElementById('wd-location').value || '').trim().toLowerCase();
+    document.querySelectorAll('#wd-body .body-spot').forEach(el =>
+      el.classList.toggle('sel', !!v && el.dataset.loc.toLowerCase() === v));
+  }
+
   // Formularfeld -> Feldname im Backend. An EINER Stelle, damit Speichern, Leeren und
   // das Befüllen aus dem Diktat nicht auseinanderlaufen.
   const WOUND_STATUS_FIELDS = [
@@ -2411,6 +2503,7 @@
         ? list.map(c => `<option value="${c.id}">${esc(c.last_name)}, ${esc(c.first_name)}</option>`).join('')
         : '<option value="">(keine Klienten – bitte anlegen)</option>';
       renderWoundMeasures();
+      renderBodyPicker();
       loadWoundList();
     } catch (e) { flash('wd-err', e.message); }
   }
@@ -2459,6 +2552,7 @@
         .concat(WOUND_STATUS_FIELDS.map(f => f[0]))
         .forEach(id => document.getElementById(id).value = '');
       document.querySelectorAll('#wd-measures input:checked').forEach(cb => cb.checked = false);
+      syncBodyPicker();   // Markierung im Körperschema mit zurücksetzen
       document.getElementById('wd-fill-hint').textContent = '';
       document.getElementById('wd-photo').value = '';
       document.getElementById('wd-preview').classList.add('hidden');
@@ -2711,11 +2805,30 @@
       const e = esc;
       const STATUS_DE = { confirmed: 'Freigegeben', submitted: 'Wartet auf Freigabe', draft: 'KI-Entwurf' };
 
-      const field = (l, v) => v ? `<div><dt>${e(l)}</dt><dd>${e(v)}</dd></div>` : '';
-      const head = field('Pflegegrad', c.care_level) + field(w.place, placeOf(c)) +
-        field('Notfallkontakt', c.emergency_contact) +
-        field('Versorgung', c.care_setting === 'stationaer' ? 'Stationär' : 'Ambulant') +
-        field('Hinweise', c.notes);
+      // Kopfkacheln wie im Entwurf: Person, Versorgung, Zeitraum, Ersteller auf einen Blick.
+      const card = (l, v) => v ? `<div class="kcard"><div class="kl">${e(l)}</div><div class="kv">${v}</div></div>` : '';
+      const dates = d.reports.map(r => r.created_at).filter(Boolean).sort();
+      const span = dates.length
+        ? (dates.length === 1 ? new Date(dates[0]).toLocaleDateString('de-DE')
+          : new Date(dates[0]).toLocaleDateString('de-DE') + ' – ' + new Date(dates[dates.length - 1]).toLocaleDateString('de-DE'))
+        : '—';
+      // Dokumentations-ID: nachvollziehbar und ohne Zufall – Datum + Kurzform der Personen-ID.
+      const stamp = new Date();
+      const docId = 'PD-' + stamp.toISOString().slice(0, 10) + '-' + String(c.id).replace(/-/g, '').slice(0, 4).toUpperCase();
+      const cards =
+        card(w.person, `${e(name)}<span class="ks">${e([c.care_level, placeOf(c)].filter(Boolean).join(' · '))}</span>`) +
+        card('Versorgung', (c.care_setting === 'stationaer' ? 'Stationär' : 'Ambulant') +
+          `<span class="ks">${e(c.emergency_contact ? 'Notfall: ' + c.emergency_contact : '')}</span>`) +
+        card('Zeitraum', e(span) + `<span class="ks">${d.reports.length === 1 ? '1 Eintrag' : d.reports.length + ' Einträge'}</span>`) +
+        card('Erstellt von', e((user && user.full_name) || '') + `<span class="ks">${e(stamp.toLocaleString('de-DE'))}</span>`);
+      const notes = c.notes ? `<div class="hintbox"><b>Hinweise zur Person:</b> ${e(c.notes)}</div>` : '';
+
+      // Der Fußtext darf NICHT pauschal behaupten, alles sei geprüft und freigegeben:
+      // ein noch offener KI-Entwurf im Auszug wäre sonst eine falsche Aussage in der Akte.
+      const openCount = d.reports.filter(r => r.status !== 'confirmed').length;
+      const statusNote = !d.reports.length ? ''
+        : openCount === 0 ? ', alle von der Pflegedienstleitung freigegeben'
+        : `, davon ${openCount} noch nicht freigegeben (im Verlauf gekennzeichnet)`;
 
       const entries = d.reports.length ? d.reports.map(r => {
         const dt = r.created_at ? new Date(r.created_at) : null;
@@ -2747,11 +2860,14 @@ body { font-family: "Segoe UI", system-ui, Arial, sans-serif; color: #14181a; fo
 .sheet-head h1 { font-size: 16pt; margin: 0 0 2px; color: #0e7c86; letter-spacing: .2px; }
 .sheet-head .org { font-size: 10pt; color: #555; }
 .sheet-head .made { text-align: right; font-size: 9pt; color: #666; }
-.person { background: #f4f8f8; border: 1px solid #d6e4e5; border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; }
-.person .nm { font-size: 13pt; font-weight: 700; margin-bottom: 6px; }
-.person dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px 24px; margin: 0; }
-.person dt { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .4px; color: #6b7677; }
-.person dd { margin: 0 0 3px; font-size: 10.5pt; }
+.docid { font-family: ui-monospace, Consolas, monospace; font-size: 9pt; color: #43585a;
+  background: #eef4f5; border: 1px solid #cfd8d9; border-radius: 4px; padding: 2px 7px; display: inline-block; }
+.kcards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.kcard { background: #f4f8f8; border: 1px solid #d6e4e5; border-radius: 6px; padding: 8px 10px; }
+.kcard .kl { font-size: 8pt; text-transform: uppercase; letter-spacing: .4px; color: #6b7677; margin-bottom: 2px; }
+.kcard .kv { font-size: 10.5pt; font-weight: 600; line-height: 1.3; }
+.kcard .ks { display: block; font-size: 8.5pt; font-weight: 400; color: #6b7677; }
+.hintbox { border-left: 3px solid #0e7c86; background: #f7fbfb; padding: 7px 10px; margin-bottom: 14px; font-size: 10pt; }
 h2 { font-size: 11.5pt; margin: 16px 0 6px; color: #0e7c86; border-bottom: 1px solid #cfd8d9; padding-bottom: 3px; }
 table { border-collapse: collapse; width: 100%; }
 thead { display: table-header-group; }
@@ -2776,17 +2892,17 @@ ul { margin: 4px 0 0 18px; padding: 0; } li { margin-bottom: 3px; }
 <div class="noprint"><button onclick="window.print()">Drucken / Als PDF sichern</button></div>
 <div class="sheet-head">
   <div><h1>Pflegedokumentation</h1><div class="org">${e(org)}</div></div>
-  <div class="made">Erstellt am ${e(new Date().toLocaleString('de-DE'))}<br>durch ${e((user && user.full_name) || '')}</div>
+  <div class="made"><span class="docid">${e(docId)}</span><br>Auszug aus der Verlaufsdokumentation</div>
 </div>
-<div class="person"><div class="nm">${e(name)}</div><dl>${head}</dl></div>
+<div class="kcards">${cards}</div>
+${notes}
 <h2>Verlaufsdokumentation</h2>
 <table><thead><tr><th>Datum</th><th>Eintrag</th><th>Dokumentiert von</th></tr></thead><tbody>${entries}</tbody></table>
 ${risks}${wounds}
 <div class="sign"><div>Datum, Unterschrift Pflegekraft</div><div>Datum, Unterschrift Pflegedienstleitung</div></div>
 <div class="foot">Auszug aus der eigenen Pflegedokumentation, erzeugt mit Pflegeassistent.
-Enthält ${d.reports.length === 1 ? '1 Eintrag' : d.reports.length + ' Einträge'}.
-Die Angaben wurden von Pflegekräften geprüft und bestätigt; dieses Blatt ist eine Kopie zur Ablage
-und ersetzt keine unterschriebene Fassung.</div>
+Enthält ${d.reports.length === 1 ? '1 Eintrag' : d.reports.length + ' Einträge'}${statusNote}.
+Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung.</div>
 </body></html>`;
 
       const wnd = window.open('', '_blank');
