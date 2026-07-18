@@ -295,15 +295,30 @@
   .av-photo .pimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
   /* PDL-Dashboard: Foto-Hero + Schnell-starten */
-  .dhero { display: grid; grid-template-columns: 1.1fr 1fr 240px; align-items: stretch; gap: 0;
+  .dhero { display: grid; grid-template-columns: 1.7fr 260px; align-items: stretch; gap: 0;
     background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden;
     margin-bottom: 18px; box-shadow: 0 10px 30px rgba(16,24,40,.06); min-height: 220px; }
   .dhero-text { padding: 34px 34px; display: flex; flex-direction: column; justify-content: center; }
   .dhero-text h1 { font-size: 2rem; margin: 0 0 8px; letter-spacing: -.02em; }
   .dhero-text p { color: var(--muted); margin: 0; font-size: 1.02rem; max-width: 34ch; }
-  .dhero-photo { position: relative; background-position: center; background-size: cover; min-height: 200px;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent); }
+  /* Ablauf des Tages: vier Schritte aus echten Zahlen, jeder ein Sprung in die Ansicht.
+     Ersetzt das frühere Dekofoto – gleicher Platz, aber mit Aussage. */
+  .wf-chain { display: flex; align-items: stretch; gap: 0; margin-top: 20px; flex-wrap: wrap; }
+  /* color/background explizit: die globale button-Regel setzt weiße Schrift auf grünem
+     Grund – ohne Override wäre die Beschriftung weiß auf weiß (genau so passiert). */
+  .wf-step { display: flex; align-items: center; gap: 10px; padding: 10px 16px 10px 0; background: none;
+    border: 0; text-align: left; cursor: pointer; position: relative; color: var(--ink); border-radius: 10px; }
+  .wf-step:hover { background: var(--chip); }
+  .wf-step + .wf-step { padding-left: 16px; }
+  .wf-step + .wf-step::before { content: ""; position: absolute; left: 0; top: 50%; width: 1px; height: 30px;
+    transform: translateY(-50%); background: var(--line); }
+  .wf-step .wf-dot { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center;
+    background: var(--chip); color: var(--primary-dark); font-weight: 800; font-size: .9rem; }
+  .wf-step.alert .wf-dot { background: rgba(185,28,28,.10); color: #b91c1c; }
+  .wf-step.clear .wf-dot { background: rgba(21,128,61,.10); color: #15803d; }
+  .wf-step .wf-lbl { font-size: .84rem; font-weight: 600; line-height: 1.25; }
+  .wf-step .wf-sub { font-size: .74rem; color: var(--muted); font-weight: 500; }
+  .wf-step:hover .wf-lbl { color: var(--primary-dark); }
   .dhero-quick { padding: 22px; border-left: 1px solid var(--line); background: var(--bg);
     display: flex; flex-direction: column; gap: 8px; }
   .dhero-quick h4 { margin: 0 0 6px; font-size: .95rem; }
@@ -311,7 +326,7 @@
     background: var(--card); border: 1px solid var(--line); color: var(--ink); font-weight: 600; font-size: .86rem; text-align: left; }
   .qa:hover { background: var(--chip); }
   .qa svg { width: 17px; height: 17px; color: var(--primary); flex: none; }
-  @media (max-width: 1150px) { .dhero { grid-template-columns: 1fr; } .dhero-photo { display: none; } .dhero-quick { border-left: none; border-top: 1px solid var(--line); } }
+  @media (max-width: 1150px) { .dhero { grid-template-columns: 1fr; } .dhero-quick { border-left: none; border-top: 1px solid var(--line); } }
 
   /* KPI-Karten mit farbiger Tönung */
   .kpi { position: relative; overflow: hidden; }
@@ -764,8 +779,10 @@
             <div class="dhero-text">
               <h1 id="greet">Guten Tag! 👋</h1>
               <p id="greet-sub">Was heute offen ist – auf einen Blick.</p>
+              <!-- Statt eines Dekofotos: der Arbeitsweg des Tages aus echten Zahlen,
+                   jeder Schritt springt in die passende Ansicht. -->
+              <div class="wf-chain" id="d-workflow"></div>
             </div>
-            <div class="dhero-photo" style="background-image:url('img/hero-care.jpg')"></div>
             <div class="dhero-quick">
               <h4>Schnell starten</h4>
               <button class="qa" onclick="navTo('doc')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Neue Dokumentation</button>
@@ -3670,9 +3687,30 @@ und ersetzt keine unterschriebene Fassung.</div>
     if (currentView) navTo(currentView);
   }
 
+  /** Der Arbeitsweg des Tages als Kette: prüfen → freigeben → Hinweise → Einsätze.
+   *  Zeigt echte Zahlen aus dem Offen-Radar und springt in die jeweilige Ansicht;
+   *  „0" wird grün, damit Erledigtes auch als erledigt aussieht. */
+  function renderWorkflowChain(k) {
+    const box = document.getElementById('d-workflow');
+    if (!box) return;
+    const steps = [
+      { n: k.open_documentation || 0, lbl: 'Doku prüfen', sub: 'noch nicht freigegeben', view: 'dash' },
+      { n: k.to_review || 0, lbl: 'Freigeben', sub: 'wartet auf dich', view: 'dash' },
+      { n: k.open_risks || 0, lbl: 'Hinweise', sub: 'offen', view: 'risiken' },
+      { n: k.visits_today || 0, lbl: 'Einsätze heute', sub: 'geplant', view: 'einsaetze' },
+    ];
+    box.innerHTML = steps.map(s => {
+      const tone = s.n === 0 ? 'clear' : (s.lbl === 'Hinweise' ? 'alert' : '');
+      return `<button class="wf-step ${tone}" onclick="navTo('${s.view}')">` +
+        `<span class="wf-dot">${s.n}</span>` +
+        `<span><span class="wf-lbl">${esc(s.lbl)}</span><br><span class="wf-sub">${esc(s.sub)}</span></span></button>`;
+    }).join('');
+  }
+
   async function loadDashboard() {
     try {
       const d = await api('/api/v1/dashboard/pdl');
+      renderWorkflowChain(d.kpis || {});
       document.getElementById('kpis').innerHTML = Object.entries(d.kpis).filter(([k]) => k !== 'ai_costs_today_eur').map(([k, v]) => {
         const m = KPI_META[k] || { label: k, color: '#0e7c86', icon: '', trend: '' };
         return `<div class="kpi" style="--kpi-c:${m.color}"><div class="kicon" style="background:${m.color}1a;color:${m.color}">${m.icon}</div><div class="val">${v}</div><div class="lbl">${m.label}</div><div class="trend" style="color:${m.color}">${m.trend || ''}</div></div>`;
