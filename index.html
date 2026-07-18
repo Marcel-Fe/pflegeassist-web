@@ -1456,7 +1456,10 @@
 
   let currentView = 'dash';
   // Pflegekraft-Handy: schlankes, operatives Nav-Set. PDL/Chef sehen den vollen Umfang.
-  const CAREGIVER_VIEWS = ['start', 'einsaetze', 'klienten', 'doc', 'wunddoku', 'aufgaben', 'nachrichten', 'hilfe'];
+  // 'einstellungen' gehört dazu: dort stehen das eigene Konto, die Darstellung, der
+  // QR-Code fürs Handy und die Selbsthilfe-Knöpfe. Wer sich allein helfen soll, muss
+  // da hinkommen. Auswertungen/Personal/Export bleiben der Leitung vorbehalten.
+  const CAREGIVER_VIEWS = ['start', 'einsaetze', 'klienten', 'doc', 'wunddoku', 'aufgaben', 'nachrichten', 'hilfe', 'einstellungen'];
   // ---- Handy-Navigation: Schublade + Bottom-Tabs ----
   function openDrawer() { document.querySelector('.sidebar').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
   function closeDrawer() { document.querySelector('.sidebar').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
@@ -1689,10 +1692,12 @@
     if (!box) return;
     const tv = todaysVisits.slice().sort((a, b) => new Date(a.scheduled_start) - new Date(b.scheduled_start));
     if (!tv.length) { box.innerHTML = '<div class="muted">Für heute sind keine Einsätze geplant.</div>'; return; }
+    // Antippen öffnet die Person: im Einsatz zählen genau diese Angaben – Notizen wie
+    // „Schlüssel im Kasten", Notfallkontakt, offene Hinweise.
     box.innerHTML = tv.map(v => {
       const st = TOUR_STATUS[v.status] || ['plan', 'offen'];
       const t = new Date(v.scheduled_start).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-      return '<div class="tour-item"><span class="tdot ' + st[0] + '"></span><span class="ttime">' + t + '</span><div class="grow"><div class="vname">' + esc(v.client) + '</div><div class="vsub">' + esc(svcFor(v.client)) + '</div></div><span class="status ' + st[0] + '">' + st[1] + '</span></div>';
+      return '<div class="tour-item" style="cursor:pointer" onclick="openClientDetail(\'' + v.client_id + '\')"><span class="tdot ' + st[0] + '"></span><span class="ttime">' + t + '</span><div class="grow"><div class="vname">' + esc(v.client) + '</div><div class="vsub">' + esc(svcFor(v.client)) + '</div></div><span class="status ' + st[0] + '">' + st[1] + '</span></div>';
     }).join('');
   }
   async function loadStart() {
