@@ -518,6 +518,30 @@
   .tour-item .ttime { font-weight: 700; color: var(--primary-dark); font-size: .85rem; width: 46px; flex: none; }
   .tour-item .tdot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
   .tdot.done { background: #15803d; } .tdot.prog { background: #2563eb; } .tdot.plan { background: #c9ced1; }
+  .tdot.miss { background: #b45309; }
+
+  /* Handy-Tagesplan: unterwegs zählt nur, was noch offen ist. */
+  .day-strip { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
+  .day-strip .ds-num { font-size: 1.7rem; font-weight: 800; color: var(--primary-dark); line-height: 1; }
+  .day-strip .ds-txt { font-size: .85rem; }
+  .day-strip .ds-bar { flex: 1; height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; min-width: 60px; }
+  .day-strip .ds-fill { height: 100%; background: #15803d; border-radius: 99px; transition: width .3s; }
+
+  /* Einsatz-Karte: alles, was im Flur zählt, ohne Untermenü. */
+  .tour-item.tv { flex-wrap: wrap; align-items: flex-start; }
+  .tour-item .tacts { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; margin: 8px 0 2px 58px; }
+  .tour-item .tacts button { font-size: .82rem; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text); font-weight: 600; cursor: pointer; min-height: 40px; }
+  .tour-item .tacts button.prim { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+  .tour-item .tacts button.warn { color: #b45309; border-color: #f0d3a8; }
+  .tour-item .tnote { width: 100%; margin: 2px 0 6px 58px; font-size: .8rem; color: #b45309; }
+  .tour-item.is-done { opacity: .62; }
+  .start-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .start-actions button { flex: 1; min-width: 150px; min-height: 46px; }
+  @media (max-width: 560px) {
+    .tour-item .tacts, .tour-item .tnote { margin-left: 0; }
+  }
 </style>
 </head>
 <body>
@@ -704,20 +728,16 @@
             </div>
             <button class="date-btn" id="c-date"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> …</button>
           </div>
-          <button class="doc-cta" onclick="navTo('doc')">
-            <span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></span>
-            <span class="doc-cta-txt"><b>Dokumentation starten</b><small>Sprechen statt tippen · KI erstellt einen Entwurf – du prüfst und bestätigst.</small></span>
-          </button>
-          <div class="mkpi-grid" id="c-kpis"></div>
-          <div class="panel" id="c-next" style="margin-bottom:16px"><div class="muted">Lädt …</div></div>
-          <div class="panel" id="c-briefing" style="margin-bottom:16px"></div>
-          <div class="panel" style="margin-bottom:16px">
+          <!-- Handy = Tagesplan. Ein Fortschrittsband statt vier Kennzahl-Kacheln:
+               unterwegs zählt nur, was noch offen ist. -->
+          <div class="day-strip" id="c-progress"></div>
+          <div class="panel" style="margin-bottom:14px">
             <div class="panel-head"><h3 id="tour-title">Heutige Tour</h3><button class="link" style="color:var(--primary-dark);font-weight:600" onclick="navTo('einsaetze')">Alle</button></div>
             <div id="c-tour"><div class="muted">Lädt …</div></div>
           </div>
-          <div class="panel">
-            <div class="panel-head"><h3 id="c-tasks-h">Aufgaben</h3><button class="link" style="color:var(--primary-dark);font-weight:600" onclick="navTo('aufgaben')">Alle anzeigen</button></div>
-            <div id="c-tasks"><div class="muted">Lädt …</div></div>
+          <div class="start-actions">
+            <button class="ghost" onclick="navTo('doc')">🎤 Freie Dokumentation</button>
+            <button class="ghost" onclick="openIntakeReport()">＋ Neuaufnahme melden</button>
           </div>
         </section>
 
@@ -1188,6 +1208,13 @@
     <div class="modal-card">
       <div class="panel-head"><h3 id="dt-title">Details</h3><button class="ghost" onclick="closeDetail()">✕</button></div>
       <div id="dt-body"><div class="muted">Lädt …</div></div>
+    </div>
+  </div>
+  <!-- Kleiner Allzweck-Dialog (Notiz „nicht angetroffen", Neuaufnahme melden) -->
+  <div id="ui-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeModal()">
+    <div class="modal-card" style="max-width:460px">
+      <div class="panel-head"><h3 id="um-title">…</h3><button class="ghost" onclick="closeModal()">✕</button></div>
+      <div id="um-body"></div>
     </div>
   </div>
 </div>
@@ -1682,7 +1709,17 @@
       '<ul class="hint-list">' + items.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>' +
       '<div class="muted" style="font-size:.78rem;margin-top:9px">Hinweise aus der bisherigen Dokumentation – keine Diagnose. Bitte im Einsatz prüfen.</div>';
   }
-  const TOUR_STATUS = { abgeschlossen: ['done', 'erledigt'], unterwegs: ['prog', 'in Bearbeitung'], in_bearbeitung: ['prog', 'in Bearbeitung'], geplant: ['plan', 'offen'], planned: ['plan', 'offen'] };
+  const TOUR_STATUS = { abgeschlossen: ['done', 'erledigt'], unterwegs: ['prog', 'in Bearbeitung'], in_bearbeitung: ['prog', 'in Bearbeitung'], geplant: ['plan', 'offen'], planned: ['plan', 'offen'], nicht_angetroffen: ['miss', 'nicht angetroffen'] };
+  // Tagesplan-Zustand: die Startseite arbeitet auf dieser Liste, damit ein Abhaken
+  // sofort sichtbar ist, ohne alles neu zu laden.
+  let todaysVisits = [], openRisksByClient = {}, pendingVisitId = null;
+
+  function openModal(title, bodyHTML) {
+    document.getElementById('um-title').textContent = title;
+    document.getElementById('um-body').innerHTML = bodyHTML;
+    document.getElementById('ui-modal').classList.remove('hidden');
+  }
+  function closeModal() { document.getElementById('ui-modal').classList.add('hidden'); }
   const SHIFT_ORDER = ['frueh', 'spaet', 'nacht'];
   const SHIFT_LABEL = { frueh: 'Frühdienst', spaet: 'Spätdienst', nacht: 'Nachtdienst' };
   // Antippen öffnet die Person: im Einsatz zählen genau diese Angaben – Notizen wie
@@ -1690,7 +1727,101 @@
   function tourItemHTML(v) {
     const st = TOUR_STATUS[v.status] || ['plan', 'offen'];
     const t = new Date(v.scheduled_start).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-    return '<div class="tour-item" style="cursor:pointer" onclick="openClientDetail(\'' + v.client_id + '\')"><span class="tdot ' + st[0] + '"></span><span class="ttime">' + t + '</span><div class="grow"><div class="vname">' + esc(v.client) + '</div><div class="vsub">' + esc(svcFor(v.client)) + '</div></div><span class="status ' + st[0] + '">' + st[1] + '</span></div>';
+    const settled = ['abgeschlossen', 'done', 'nicht_angetroffen'].includes(v.status);
+    // Offene Risiken der Person direkt am Einsatz – dort, wo sie gebraucht werden,
+    // statt in einem eigenen Briefing-Block weiter oben. Immer als Hinweis, nie als Urteil.
+    const hints = (openRisksByClient[v.client_id] || []).slice(0, 2)
+      .map(r => '<div class="vsub" style="color:#b45309">Hinweis: ' + esc(r.title) + '</div>').join('');
+    const note = v.note ? '<div class="tnote">Notiz: ' + esc(v.note) + '</div>' : '';
+    // Kurze Beschriftungen: bei 390 px müssen die drei Knöpfe in EINE Zeile passen,
+    // sonst wird jede Karte doppelt so hoch und die Liste unübersichtlich.
+    const acts = settled
+      ? '<div class="tacts"><button onclick="setVisitStatus(\'' + v.id + '\',\'geplant\')">↩︎ Zurück</button>' +
+        '<button onclick="docForVisit(\'' + v.client_id + '\',\'' + v.id + '\')">🎤 Doku</button></div>'
+      : '<div class="tacts"><button class="prim" onclick="setVisitStatus(\'' + v.id + '\',\'abgeschlossen\')">✓ War da</button>' +
+        '<button onclick="docForVisit(\'' + v.client_id + '\',\'' + v.id + '\')">🎤 Doku</button>' +
+        '<button class="warn" onclick="openMissedNote(\'' + v.id + '\')">Nicht da</button></div>';
+    return '<div class="tour-item tv' + (settled ? ' is-done' : '') + '">' +
+      '<span class="tdot ' + st[0] + '"></span><span class="ttime">' + t + '</span>' +
+      '<div class="grow" style="cursor:pointer" onclick="openClientDetail(\'' + v.client_id + '\')">' +
+      '<div class="vname">' + esc(v.client) + '</div><div class="vsub">' + esc(svcFor(v.client)) + '</div>' + hints + '</div>' +
+      '<span class="status ' + st[0] + '">' + st[1] + '</span>' + note + acts + '</div>';
+  }
+
+  /** Einsatz abhaken bzw. zurücksetzen – ein Antippen, keine Rückfrage. */
+  async function setVisitStatus(visitId, status, note) {
+    const body = { status };
+    if (note !== undefined) body.note = note;
+    try {
+      const updated = await api('/api/v1/visits/' + visitId, { method: 'PATCH', body });
+      const i = todaysVisits.findIndex(v => v.id === visitId);
+      if (i >= 0) todaysVisits[i] = Object.assign({}, todaysVisits[i], updated);
+      renderDayStrip();
+      renderTour(todaysVisits);
+      flashToast(status === 'abgeschlossen' ? 'Erledigt ✓'
+        : status === 'nicht_angetroffen' ? 'Als „nicht angetroffen" vermerkt.' : 'Zurückgesetzt.');
+    } catch (e) { flashToast(explainError(e)); }
+  }
+
+  /** „Nicht angetroffen" braucht einen Grund – eine unerklärte Lücke im Tagesplan
+   *  ist für die Leitung schlimmer als ein dokumentiertes „war nicht da". */
+  function openMissedNote(visitId) {
+    const v = todaysVisits.find(x => x.id === visitId);
+    openModal('Nicht angetroffen',
+      '<p class="muted" style="margin-top:0">' + esc(v ? v.client : '') +
+      ' war nicht da. Bitte kurz festhalten, warum – das sieht die Leitung.</p>' +
+      '<div class="chip-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
+      MISSED_REASONS.map(r => '<button class="ghost" style="font-size:.82rem" onclick="document.getElementById(\'miss-note\').value=' +
+        JSON.stringify(r).replace(/"/g, '&quot;') + '">' + esc(r) + '</button>').join('') + '</div>' +
+      '<textarea id="miss-note" rows="3" placeholder="z. B. Niemand geöffnet, Nachbarin informiert."></textarea>' +
+      '<div class="err" id="miss-err"></div>' +
+      '<div style="display:flex;gap:10px;margin-top:12px">' +
+      '<button onclick="saveMissedNote(\'' + visitId + '\')">Speichern</button>' +
+      '<button class="ghost" onclick="closeModal()">Abbrechen</button></div>');
+  }
+  const MISSED_REASONS = ['Niemand geöffnet', 'Im Krankenhaus', 'Besuch abgelehnt', 'Nicht zu Hause'];
+  async function saveMissedNote(visitId) {
+    const note = document.getElementById('miss-note').value.trim();
+    if (!note) { document.getElementById('miss-err').textContent = 'Bitte kurz den Grund angeben.'; return; }
+    closeModal();
+    await setVisitStatus(visitId, 'nicht_angetroffen', note);
+  }
+
+  /** Direkt aus dem Einsatz dokumentieren: Person ist schon gewählt, kein Suchen. */
+  function docForVisit(clientId, visitId) {
+    pendingVisitId = visitId;
+    navTo('doc');
+    const trySelect = () => {
+      const sel = document.getElementById('doc-client');
+      if (sel && sel.options.length) { sel.value = clientId; }
+      else setTimeout(trySelect, 200);
+    };
+    trySelect();
+  }
+
+  /** Neuaufnahme MELDEN – anlegen bleibt bei der Leitung (Pflegevertrag, Einwilligung,
+   *  Pflegegrad, Kostenträger sind Verwaltungssache). */
+  function openIntakeReport() {
+    openModal('Neuaufnahme melden',
+      '<p class="muted" style="margin-top:0">Die Leitung legt die Person an und klärt Vertrag und Pflegegrad. ' +
+      'Du meldest nur, dass jemand Neues da ist.</p>' +
+      '<label>Name der Person</label><input id="nr-name" placeholder="z. B. Gerda Neumann">' +
+      '<label style="margin-top:8px">Was ist wichtig? (optional)</label>' +
+      '<textarea id="nr-notes" rows="3" placeholder="z. B. Zieht Samstag ein, Zimmer 12, läuft unsicher."></textarea>' +
+      '<div class="err" id="nr-err"></div>' +
+      '<div style="display:flex;gap:10px;margin-top:12px">' +
+      '<button onclick="sendIntakeReport()">Melden</button>' +
+      '<button class="ghost" onclick="closeModal()">Abbrechen</button></div>');
+  }
+  async function sendIntakeReport() {
+    const name = document.getElementById('nr-name').value.trim();
+    if (!name) { document.getElementById('nr-err').textContent = 'Bitte den Namen angeben.'; return; }
+    try {
+      const r = await api('/api/v1/intake/report', { method: 'POST',
+        body: { name, notes: document.getElementById('nr-notes').value.trim() || null } });
+      closeModal();
+      flashToast(r.message || 'Gemeldet.');
+    } catch (e) { document.getElementById('nr-err').textContent = explainError(e); }
   }
   function shiftHeadHTML(shift, count) {
     return '<div class="sublabel" style="margin:10px 0 4px;padding-top:8px;border-top:1px solid var(--line);display:flex;justify-content:space-between">' +
@@ -1725,37 +1856,41 @@
     document.getElementById('c-greet').textContent = g + ', ' + first + '! 👋';
     const dateBtn = document.getElementById('c-date');
     if (dateBtn) dateBtn.lastChild.textContent = ' ' + now.getDate() + '. ' + MONTHS_DE[now.getMonth()] + ' ' + now.getFullYear();
+    // Bewusst schlank: unterwegs braucht die Pflegekraft den Tagesplan, nicht vier
+    // Kennzahl-Kacheln. Risiken hängen als Hinweis am jeweiligen Einsatz.
     try {
-      const [visits, tasks, clients, risks] = await Promise.all([
-        api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/clients'), api('/api/v1/risks').catch(() => [])
+      const [visits, risks] = await Promise.all([
+        api('/api/v1/visits'), api('/api/v1/risks').catch(() => [])
       ]);
       const today = now.toDateString();
-      const todaysVisits = visits.filter(v => v.scheduled_start && new Date(v.scheduled_start).toDateString() === today);
-      const inProgress = todaysVisits.filter(v => ['unterwegs', 'in_bearbeitung'].includes(v.status)).length;
-      const openTasks = tasks.filter(t => t.status === 'open');
-      const dueToday = openTasks.filter(t => t.due_at && new Date(t.due_at).toDateString() === today).length;
-      const openRisks = (risks || []).filter(r => r.status === 'open');
-
-      document.getElementById('c-kpis').innerHTML = [
-        mkpiCard(SVG.users, '#0e7c86', 'rgba(18,165,148,.14)', clients.length, words().persons, 'aktiv betreut', '#0e7c86'),
-        mkpiCard(SVG.calendar, '#2563eb', 'rgba(37,99,235,.12)', todaysVisits.length, 'Einsätze heute', inProgress ? inProgress + ' in Bearbeitung' : 'geplant', '#2563eb'),
-        mkpiCard(SVG.alert, '#b91c1c', 'rgba(185,28,28,.10)', openRisks.length, 'Offene Risiken', openRisks.length ? 'Handlungsbedarf' : 'alles im grünen Bereich', openRisks.length ? '#b91c1c' : '#15803d'),
-        mkpiCard(SVG.check, '#7c3aed', 'rgba(124,58,237,.12)', openTasks.length, 'Offene Aufgaben', dueToday ? dueToday + ' fällig heute' : 'nichts fällig heute', '#7c3aed'),
-      ].join('');
-
-      renderNextVisit(visits, clients, now);
-      renderBriefing(risks);
+      todaysVisits = visits.filter(v => v.scheduled_start && new Date(v.scheduled_start).toDateString() === today);
+      openRisksByClient = {};
+      (risks || []).filter(r => r.status === 'open').forEach(r => {
+        if (!r.client_id) return;
+        (openRisksByClient[r.client_id] = openRisksByClient[r.client_id] || []).push(r);
+      });
+      renderDayStrip();
       renderTour(todaysVisits);
-
-      document.getElementById('c-tasks-h').textContent = 'Aufgaben (' + openTasks.length + ')';
-      document.getElementById('c-tasks').innerHTML = openTasks.length ? openTasks.slice(0, 5).map(t => {
-        const p = (t.priority || 'normal').toLowerCase();
-        const sub = [t.client ? esc(t.client) : '', t.due_at ? 'fällig ' + fmtDate(t.due_at) : ''].filter(Boolean).join(' · ');
-        return `<div class="task-item"><span class="box"></span><div class="grow"><div class="tt">${esc(t.title)}</div><div class="ts">${sub || 'Offen'}</div></div><span class="prio ${p}">${cap(p)}</span></div>`;
-      }).join('') : '<div class="muted">Keine offenen Aufgaben. 🎉</div>';
     } catch (e) {
-      document.getElementById('c-kpis').innerHTML = `<div class="muted">${esc(e.message)}</div>`;
+      document.getElementById('c-tour').innerHTML = errorBoxHTML(e);
+      document.getElementById('c-progress').innerHTML = '';
     }
+  }
+
+  /** Fortschrittsband: „noch 3 von 9" – die einzige Zahl, die unterwegs zählt. */
+  function renderDayStrip() {
+    const box = document.getElementById('c-progress');
+    if (!box) return;
+    const total = todaysVisits.length;
+    if (!total) { box.innerHTML = '<div class="ds-txt muted">Für heute ist nichts geplant.</div>'; return; }
+    const done = todaysVisits.filter(v => ['abgeschlossen', 'done', 'nicht_angetroffen'].includes(v.status)).length;
+    const open = total - done;
+    const pct = Math.round(done / total * 100);
+    box.innerHTML =
+      '<div><div class="ds-num">' + open + '</div></div>' +
+      '<div class="grow"><div class="ds-txt"><b>' + (open === 1 ? 'Einsatz offen' : 'Einsätze offen') + '</b>' +
+      ' <span class="muted">· ' + done + ' von ' + total + ' erledigt</span></div>' +
+      '<div class="ds-bar" style="margin-top:6px"><div class="ds-fill" style="width:' + pct + '%"></div></div></div>';
   }
 
   function renderNextVisit(visits, clients, now) {
@@ -3501,10 +3636,11 @@
         const up = await apiUpload('/api/v1/documentation/upload', fd);
         voice_note_id = up.voice_note_id;
       }
-      const d = await api('/api/v1/documentation/draft', { method: 'POST', body: { client_id, transcript: transcript || null, voice_note_id } });
+      const d = await api('/api/v1/documentation/draft', { method: 'POST',
+        body: { client_id, transcript: transcript || null, voice_note_id, visit_id: pendingVisitId } });
       lastReportId = d.report_id;
-      // Verbraucht: die nächste Dokumentation darf diese Aufnahme nicht erneut anhängen.
-      uploadedVoiceNoteId = null; recordedBlob = null;
+      // Verbraucht: die nächste Dokumentation darf weder Aufnahme noch Einsatz erneut anhängen.
+      uploadedVoiceNoteId = null; recordedBlob = null; pendingVisitId = null;
       document.getElementById('draft-card').classList.remove('hidden');
       document.getElementById('draft-status').textContent = d.status;
       document.getElementById('draft-report').textContent = d.pflegebericht + (d.uebergabe ? '\n\nÜbergabe: ' + d.uebergabe : '');
