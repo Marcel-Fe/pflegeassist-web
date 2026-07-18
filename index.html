@@ -781,7 +781,7 @@
               <span class="muted" id="rec-status"></span>
               <audio id="rec-preview" controls class="hidden" style="height:34px"></audio>
             </div>
-            <div class="muted" style="font-size:.85rem;margin-top:4px">Tipp: In Chrome/Edge (PC &amp; Android) erscheint dein gesprochener Text sofort im Feld. Auf dem iPhone bitte Text tippen.</div>
+            <div class="muted" style="font-size:.85rem;margin-top:4px" id="doc-dict-tip">Tipp: Dein gesprochener Text erscheint im Feld. Bitte vor dem Entwurf prüfen.</div>
             <label style="margin-top:10px">… oder Audiodatei hochladen</label>
             <input type="file" id="doc-audio" accept="audio/*">
             <div style="height:12px"></div>
@@ -949,8 +949,9 @@
               <button onclick="uploadDienstplan()">Importieren</button>
               <button class="ghost" onclick="downloadImportTemplate()">CSV-Vorlage ↓</button>
             </div>
-            <div class="muted" style="font-size:.82rem;margin-top:6px">Spalten: <b>klient, datum, von, bis, leistung, pflegekraft</b> (Trennzeichen ; oder ,). Pflicht: klient + datum.</div>
+            <div class="muted" style="font-size:.82rem;margin-top:6px">Spalten: <b>klient, datum, von, bis, leistung, pflegekraft, schicht</b> (Trennzeichen ; oder ,). Pflicht: klient + datum. <b>schicht</b> (Früh/Spät/Nacht) nur im Heim – fehlt sie, wird sie aus der Uhrzeit abgeleitet.</div>
             <div id="imp-result" style="margin-top:10px"></div>
+            <div id="imp-history" style="margin-top:12px"></div>
           </div>
           <div class="panel"><div id="list-einsaetze" class="list"><div class="muted">Lädt …</div></div></div>
         </section>
@@ -1364,6 +1365,7 @@
       n.classList.toggle('hidden', !visible);
     });
     applyCareWording();  // ambulant „Klienten/Adresse" vs. stationär „Bewohner/Zimmer"
+    loadCapabilities();  // kann dieser Server Aufnahmen transkribieren? (iPhone-Diktat)
     loadClients();
     navTo(mgr ? 'dash' : 'start');
     updateThemeBtn();
@@ -1537,14 +1539,8 @@
     try { box.innerHTML = qrSVG(url, 168); }
     catch (e) { box.innerHTML = '<div class="muted" style="font-size:.8rem">QR-Code nicht möglich – bitte Adresse abtippen.</div>'; }
 
-    // Ehrlich sagen, ob Diktat auf DIESEM Gerät geht (iPhone/Safari kann es nicht).
-    const sp = document.getElementById('set-speech');
-    const hasSpeech = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    sp.textContent = hasSpeech && !isIOS
-      ? 'Verfügbar – du kannst sprechen statt tippen.'
-      : (isIOS ? 'Auf iPhone/iPad noch nicht verfügbar – bitte den Text tippen.'
-               : 'Dieser Browser unterstützt kein Diktat – bitte Chrome oder Edge nutzen.');
+    // Ehrlich sagen, ob Diktat auf DIESEM Gerät geht: live im Browser oder über den Server.
+    document.getElementById('set-speech').textContent = dictationStatusText();
   }
   function setDark(on) {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -1687,18 +1683,39 @@
       '<div class="muted" style="font-size:.78rem;margin-top:9px">Hinweise aus der bisherigen Dokumentation – keine Diagnose. Bitte im Einsatz prüfen.</div>';
   }
   const TOUR_STATUS = { abgeschlossen: ['done', 'erledigt'], unterwegs: ['prog', 'in Bearbeitung'], in_bearbeitung: ['prog', 'in Bearbeitung'], geplant: ['plan', 'offen'], planned: ['plan', 'offen'] };
+  const SHIFT_ORDER = ['frueh', 'spaet', 'nacht'];
+  const SHIFT_LABEL = { frueh: 'Frühdienst', spaet: 'Spätdienst', nacht: 'Nachtdienst' };
+  // Antippen öffnet die Person: im Einsatz zählen genau diese Angaben – Notizen wie
+  // „Schlüssel im Kasten", Notfallkontakt, offene Hinweise.
+  function tourItemHTML(v) {
+    const st = TOUR_STATUS[v.status] || ['plan', 'offen'];
+    const t = new Date(v.scheduled_start).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    return '<div class="tour-item" style="cursor:pointer" onclick="openClientDetail(\'' + v.client_id + '\')"><span class="tdot ' + st[0] + '"></span><span class="ttime">' + t + '</span><div class="grow"><div class="vname">' + esc(v.client) + '</div><div class="vsub">' + esc(svcFor(v.client)) + '</div></div><span class="status ' + st[0] + '">' + st[1] + '</span></div>';
+  }
+  function shiftHeadHTML(shift, count) {
+    return '<div class="sublabel" style="margin:10px 0 4px;padding-top:8px;border-top:1px solid var(--line);display:flex;justify-content:space-between">' +
+      '<span>' + SHIFT_LABEL[shift] + '</span><span class="muted">' + count + '</span></div>';
+  }
   function renderTour(todaysVisits) {
     const box = document.getElementById('c-tour');
     if (!box) return;
     const tv = todaysVisits.slice().sort((a, b) => new Date(a.scheduled_start) - new Date(b.scheduled_start));
     if (!tv.length) { box.innerHTML = '<div class="muted">Für heute sind keine Einsätze geplant.</div>'; return; }
-    // Antippen öffnet die Person: im Einsatz zählen genau diese Angaben – Notizen wie
-    // „Schlüssel im Kasten", Notfallkontakt, offene Hinweise.
-    box.innerHTML = tv.map(v => {
-      const st = TOUR_STATUS[v.status] || ['plan', 'offen'];
-      const t = new Date(v.scheduled_start).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-      return '<div class="tour-item" style="cursor:pointer" onclick="openClientDetail(\'' + v.client_id + '\')"><span class="tdot ' + st[0] + '"></span><span class="ttime">' + t + '</span><div class="grow"><div class="vname">' + esc(v.client) + '</div><div class="vsub">' + esc(svcFor(v.client)) + '</div></div><span class="status ' + st[0] + '">' + st[1] + '</span></div>';
-    }).join('');
+    // Im Heim gibt es keine Anfahrt: dort arbeitet man in Früh-/Spät-/Nachtdienst über den
+    // Wohnbereich. Eine reine Uhrzeitenliste bildet das nicht ab.
+    if (isStationaer() && tv.some(v => v.shift)) {
+      const known = tv.filter(v => SHIFT_ORDER.includes(v.shift));
+      const other = tv.filter(v => !SHIFT_ORDER.includes(v.shift));
+      let html = SHIFT_ORDER.map(s => {
+        const items = known.filter(v => v.shift === s);
+        return items.length ? shiftHeadHTML(s, items.length) + items.map(tourItemHTML).join('') : '';
+      }).join('');
+      // Einsätze ohne Schicht (z. B. aus einem alten Import) gehen nicht verloren.
+      if (other.length) html += shiftHeadHTML('frueh', other.length).replace(SHIFT_LABEL.frueh, 'Ohne Schicht') + other.map(tourItemHTML).join('');
+      box.innerHTML = html;
+      return;
+    }
+    box.innerHTML = tv.map(tourItemHTML).join('');
   }
   async function loadStart() {
     const now = new Date();
@@ -2154,7 +2171,7 @@
     { cat: 'Dokumentieren', title: 'Pflegebericht erstellen (Sprache oder Text)', kw: 'dokumentation bericht ki entwurf sprechen diktat tippen schreiben', img: 'doku.jpg',
       body: '<ol><li>Menü <b>Dokumentation</b> öffnen.</li><li><b>Klient/in</b> auswählen.</li><li>Entweder auf <b>🎤 Aufnehmen &amp; diktieren</b> tippen und sprechen – der Text erscheint live – oder einfach ins Feld tippen.</li><li>Auf <b>KI-Bericht erstellen</b> tippen. Die KI formt einen sauberen Pflegebericht-Entwurf.</li></ol>' },
     { cat: 'Dokumentieren', title: 'Live-Diktat: sprechen statt tippen', kw: 'diktat mikrofon sprechen aufnahme transkription spracherkennung stimme',
-      body: '<ol><li>Im Dokumentations-Screen auf <b>🎤 Aufnehmen &amp; diktieren</b> tippen.</li><li>Beim ersten Mal <b>Mikrofon erlauben</b>.</li><li>Sprich normal – dein Text erscheint <b>sofort</b> im Feld.</li><li>Auf <b>⏹ Stopp</b> tippen, Text prüfen, dann <b>KI-Bericht erstellen</b>.</li></ol><p>Funktioniert in <b>Chrome/Edge</b> (PC &amp; Android). Auf dem <b>iPhone</b> bitte tippen (siehe „Probleme lösen").</p>' },
+      body: '<ol><li>Im Dokumentations-Screen auf <b>🎤 Aufnehmen &amp; diktieren</b> tippen.</li><li>Beim ersten Mal <b>Mikrofon erlauben</b>.</li><li>Sprich normal.</li><li>Auf <b>⏹ Stopp</b> tippen, Text prüfen, dann <b>KI-Entwurf erstellen</b>.</li></ol><p>In <b>Chrome/Edge</b> (PC &amp; Android) erscheint der Text <b>schon beim Sprechen</b>. Auf dem <b>iPhone</b> erscheint er <b>nach dem Stopp</b> – dort erkennt der Server die Aufnahme. Was auf deinem Gerät gilt, steht unter <b>Einstellungen → Diktat</b>.</p><p>Der Text ist immer nur ein Vorschlag: <b>bitte prüfen</b>, bevor du den Entwurf erstellst.</p>' },
     { cat: 'Dokumentieren', title: 'KI-Entwurf prüfen & freigeben', kw: 'freigabe pdl entwurf bestätigen prüfen genehmigen bericht verbindlich',
       body: '<p>Pflegekräfte erstellen <b>Entwürfe</b>. Die <b>Pflegedienstleitung (PDL)</b> prüft den Entwurf und gibt ihn mit <b>„Freigeben"</b> frei. Erst danach gilt der Bericht als verbindlich.</p><p>Aus dem Bericht entstehen automatisch <b>Risiko-Hinweise</b> und <b>Aufgaben</b>.</p>' },
     { cat: 'Wunddokumentation', title: 'Wunde mit Foto dokumentieren', kw: 'wunde wunddoku foto kamera dekubitus größe messen lokalisation stadium', img: 'wunddoku.jpg',
@@ -2191,7 +2208,7 @@
     { cat: 'Probleme lösen', title: 'Das Mikrofon/Diktat funktioniert nicht', kw: 'mikrofon diktat geht nicht erlauben berechtigung fehler stumm',
       body: '<ol><li>Beim Antippen von 🎤 muss der Browser <b>Mikrofon erlauben</b> – auf „Zulassen" tippen.</li><li>Benutze <b>Chrome</b> oder <b>Edge</b> (Android/PC).</li><li>Prüfe, ob ein anderes Programm das Mikrofon belegt.</li><li>Notfalls den Text einfach <b>tippen</b> – das Ergebnis ist gleich.</li></ol>' },
     { cat: 'Probleme lösen', title: 'Auf dem iPhone erscheint kein Diktat-Text', kw: 'iphone safari diktat ios spracherkennung geht nicht apple',
-      body: '<p>Das Live-Diktat wird auf dem <b>iPhone (Safari)</b> noch nicht zuverlässig unterstützt. Bitte den Text dort <b>tippen</b> – oder ein Android-Handy/PC mit Chrome nutzen. Eine iPhone-Lösung ist geplant.</p>' },
+      body: '<p>Auf dem <b>iPhone (Safari)</b> gibt es kein Live-Diktat im Browser. Deshalb läuft es dort anders: du sprichst, tippst auf <b>⏹ Stopp</b> – und der Text erscheint <b>kurz danach</b>, weil der Server die Aufnahme erkennt.</p><p>Bleibt das Feld leer, prüfe unter <b>Einstellungen → Diktat</b>, was auf deinem Gerät möglich ist. Steht dort „nicht verfügbar", ist die Server-Erkennung in eurem Betrieb nicht eingeschaltet – dann bitte den Text <b>tippen</b> und die Leitung ansprechen.</p><p>Häufige Ursache sonst: das <b>Mikrofon ist gesperrt</b> (Einstellungen → Safari → Mikrofon) oder es war <b>zu leise</b>.</p>' },
     { cat: 'Probleme lösen', title: 'Passwort vergessen', kw: 'passwort vergessen zurücksetzen reset neu login',
       body: '<p>Auf der Anmeldeseite auf <b>„Passwort vergessen?"</b> tippen und der Anleitung folgen. Kommt keine Mail an, wende dich an die Leitung/den Admin, der den Zugang zurücksetzen kann.</p>' },
     { cat: 'Probleme lösen', title: '„Zugang abgelaufen / nicht freigeschaltet"', kw: 'zugang abgelaufen gesperrt bezahlen verlängern freischalten miete',
@@ -2607,23 +2624,49 @@
     } catch (e) { flashToast(e.message); }
   }
 
+  /** „Zuletzt importiert" – zeigt, ob der Dienstplan dieser Woche schon drin ist.
+   *  Ohne diese Liste lädt die Leitung ihn im Zweifel ein zweites Mal hoch. */
+  async function loadImportHistory() {
+    const box = document.getElementById('imp-history');
+    if (!box) return;
+    try {
+      const rows = await api('/api/v1/imports/history');
+      if (!rows.length) { box.innerHTML = '<div class="muted" style="font-size:.82rem">Noch kein Dienstplan importiert.</div>'; return; }
+      box.innerHTML = '<div class="sublabel" style="margin-bottom:4px">Zuletzt importiert</div>' +
+        rows.map(r => {
+          const problems = r.skipped ? ` · <span style="color:#b45309">${r.skipped} übersprungen</span>` : '';
+          const hint = r.first_error ? `<div class="muted" style="font-size:.76rem">${esc(r.first_error)}</div>` : '';
+          return `<div style="padding:6px 0;border-top:1px solid var(--line)"><div style="font-size:.85rem">
+            <b>${esc(r.file)}</b> · ${esc(r.when)} · ${esc(r.by)}</div>
+            <div class="muted" style="font-size:.8rem">${r.created} Einsätze angelegt${problems}</div>${hint}</div>`;
+        }).join('');
+    } catch (e) { box.innerHTML = ''; }   // Verlauf ist ein Extra – nie die Liste blockieren
+  }
+
   async function loadEinsaetze() {
-    document.getElementById('import-panel').classList.toggle('hidden', !isManager());
+    const mgr = isManager();
+    document.getElementById('import-panel').classList.toggle('hidden', !mgr);
+    if (mgr) loadImportHistory();
     try {
       const list = await api('/api/v1/visits');
       if (!list.length) return listEmpty('list-einsaetze', 'Keine Einsätze vorhanden.');
       document.getElementById('list-einsaetze').innerHTML = list.map(v => {
         const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
-        return `<div class="visit" style="cursor:pointer" onclick="openClientDetail('${v.client_id}')">${avatarHTML(v.client, 38, clientPhotoPath(v.client_id), 'client')}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}</div></div><span class="status ${st[0]}">${st[1]}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>`;
+        return `<div class="visit" style="cursor:pointer" onclick="openClientDetail('${v.client_id}')">${avatarHTML(v.client, 38, clientPhotoPath(v.client_id), 'client')}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}${v.shift_label ? ' · ' + esc(v.shift_label) : ''}</div></div><span class="status ${st[0]}">${st[1]}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>`;
       }).join('');
       hydratePhotos(document.getElementById('list-einsaetze'));
     } catch (e) { listError('list-einsaetze', e.message); }
   }
 
   function downloadImportTemplate() {
-    const csv = 'klient;datum;von;bis;leistung;pflegekraft\r\n' +
-      'Schmidt, Erika;15.07.2026;08:00;08:45;Grundpflege;Anna Müller\r\n' +
-      'Weber, Hans;15.07.2026;09:30;10:00;Medikamentengabe;Anna Müller\r\n';
+    // Im Heim gehört die Schicht in den Plan, ambulant wäre die Spalte nur Ballast.
+    const csv = isStationaer()
+      ? 'klient;datum;von;bis;leistung;pflegekraft;schicht\r\n' +
+        'Schmidt, Erika;15.07.2026;06:30;07:00;Grundpflege;Lena Vogt;Früh\r\n' +
+        'Weber, Hans;15.07.2026;15:00;15:30;Medikamentengabe;Lena Vogt;Spät\r\n'
+      : 'klient;datum;von;bis;leistung;pflegekraft\r\n' +
+        'Schmidt, Erika;15.07.2026;08:00;08:45;Grundpflege;Anna Müller\r\n' +
+        'Weber, Hans;15.07.2026;09:30;10:00;Medikamentengabe;Anna Müller\r\n';
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'dienstplan-vorlage.csv';
@@ -2646,7 +2689,7 @@
         (r.skipped ? ` · ${r.skipped} übersprungen` : '') + '.</div>' +
         (errs.length ? `<ul class="hint-list" style="margin-top:8px">${errs.map(e => '<li>' + esc(e) + '</li>').join('')}</ul>` : '');
       inp.value = '';
-      loadEinsaetze();
+      loadEinsaetze();   // lädt auch den Import-Verlauf neu
     } catch (e) { box.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
   }
 
@@ -3278,8 +3321,40 @@
   }
 
   let mediaRecorder = null, recordedChunks = [], recordedBlob = null, recognition = null, capturing = false, dictBase = '', dictFinal = '';
+  // Sprachnotiz, die bereits beim Stoppen hochgeladen und serverseitig transkribiert wurde –
+  // sie wird beim Entwurf wiederverwendet, statt dieselbe Aufnahme zweimal zu senden.
+  let uploadedVoiceNoteId = null;
+  // Kann der Server Aufnahmen transkribieren? Erst wenn ja, ist Diktat auf dem iPhone möglich.
+  let serverTranscription = false;
+
+  async function loadCapabilities() {
+    try {
+      const c = await api('/api/v1/documentation/capabilities');
+      serverTranscription = !!(c && c.server_transcription);
+    } catch (e) { serverTranscription = false; }
+    updateDictationHints();
+  }
 
   function speechSupported() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+  /** Diktat möglich? Entweder live im Browser oder – auf dem iPhone – über den Server. */
+  function dictationPossible() { return speechSupported() || serverTranscription; }
+  /** Ein Satz, der auf DIESEM Gerät stimmt – nicht „geht" oder „geht nicht" pauschal. */
+  function dictationStatusText() {
+    if (speechSupported()) return 'Verfügbar – dein Text erscheint beim Sprechen sofort im Feld.';
+    if (serverTranscription) return 'Verfügbar – sprich, der Text erscheint nach dem Stopp (Aufnahme wird auf dem Server erkannt).';
+    return 'Auf diesem Gerät noch nicht verfügbar – bitte den Text tippen.';
+  }
+  /** Hinweistexte im Dokumentations-Screen an das Gerät anpassen. */
+  function updateDictationHints() {
+    const tip = document.getElementById('doc-dict-tip');
+    if (tip) tip.textContent = speechSupported()
+      ? 'Tipp: Dein gesprochener Text erscheint sofort im Feld. Bitte vor dem Entwurf prüfen.'
+      : (serverTranscription
+        ? 'Tipp: Sprich einfach los. Nach „Stopp" wird die Aufnahme erkannt und erscheint als Text – bitte prüfen.'
+        : 'Dieses Gerät kann nicht diktieren – bitte den Text tippen oder eine Audiodatei hochladen.');
+    const sp = document.getElementById('set-speech');
+    if (sp) sp.textContent = dictationStatusText();
+  }
 
   // Live-Diktat: transkribiert im Browser (gratis) direkt ins Textfeld, während gesprochen wird.
   function startDictation() {
@@ -3306,9 +3381,49 @@
     try { recognition.start(); return true; } catch (e) { return false; }
   }
 
+  /** Dateiendung passend zum aufgenommenen Format – Safari liefert MP4/AAC, Chrome WebM.
+   *  Mit falscher Endung lehnt die Spracherkennung die Datei ab. */
+  function recordingFileName(mimeType) {
+    const t = (mimeType || '').toLowerCase();
+    if (t.includes('mp4') || t.includes('aac') || t.includes('m4a')) return 'aufnahme.m4a';
+    if (t.includes('ogg')) return 'aufnahme.ogg';
+    if (t.includes('wav')) return 'aufnahme.wav';
+    if (t.includes('mpeg') || t.includes('mp3')) return 'aufnahme.mp3';
+    return 'aufnahme.webm';
+  }
+
+  /** Aufnahme zum Server schicken und den erkannten Text ins Feld setzen.
+   *  Gibt es kein Live-Diktat (iPhone/Safari), ist das der Weg zu „Sprechen statt tippen". */
+  async function transcribeRecording() {
+    const rec = document.getElementById('rec-status');
+    const client_id = document.getElementById('doc-client').value;
+    if (!client_id) { rec.textContent = 'Aufnahme bereit – bitte zuerst eine Person wählen.'; return; }
+    rec.textContent = '⏳ Aufnahme wird erkannt … das dauert einen Moment.';
+    try {
+      const fd = new FormData();
+      fd.append('client_id', client_id);
+      fd.append('audio', recordedBlob, recordingFileName(recordedBlob.type));
+      const up = await apiUpload('/api/v1/documentation/upload', fd);
+      uploadedVoiceNoteId = up.voice_note_id;
+      if (up.transcript) {
+        const ta = document.getElementById('doc-transcript');
+        ta.value = (ta.value.trim() ? ta.value.trim() + ' ' : '') + up.transcript;
+        rec.textContent = 'Text erkannt – bitte prüfen und ergänzen, dann „KI-Entwurf erstellen".';
+      } else {
+        rec.textContent = 'Aufnahme gespeichert.';
+        flash('doc-err', up.note || 'Es war nichts Verständliches zu hören – bitte den Text tippen.');
+      }
+    } catch (e) {
+      rec.textContent = 'Aufnahme bereit.';
+      flash('doc-err', e.message);
+    }
+  }
+
   async function startCapture() {
     flash('doc-err', '');
     const btn = document.getElementById('rec-btn'), rec = document.getElementById('rec-status');
+    uploadedVoiceNoteId = null;   // neue Aufnahme: alte Sprachnotiz nicht wiederverwenden
+    recordedBlob = null;
     const dictating = speechSupported() ? startDictation() : false;
     let recording = false;
     if (navigator.mediaDevices && window.MediaRecorder) {
@@ -3318,23 +3433,28 @@
         mediaRecorder = new MediaRecorder(stream);
         mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) recordedChunks.push(e.data); };
         mediaRecorder.onstop = () => {
-          recordedBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+          recordedBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
           const pv = document.getElementById('rec-preview');
           pv.src = URL.createObjectURL(recordedBlob); pv.classList.remove('hidden');
           stream.getTracks().forEach(t => t.stop());
+          // Ohne Live-Diktat bleibt das Textfeld sonst leer: dann erkennt der Server den Text.
+          if (!dictating && serverTranscription && recordedBlob.size) transcribeRecording();
         };
         mediaRecorder.start();
         recording = true;
       } catch (e) { mediaRecorder = null; }
     }
     if (!dictating && !recording) {
-      flash('doc-err', speechSupported() ? 'Mikrofonzugriff verweigert oder nicht verfügbar.' : 'Dein Browser unterstützt kein Diktat – bitte Text tippen oder Datei hochladen.');
+      flash('doc-err', speechSupported() ? 'Mikrofonzugriff verweigert oder nicht verfügbar.' : 'Dieses Gerät kann nicht aufnehmen – bitte Text tippen oder Datei hochladen.');
       return;
     }
     capturing = true;
     btn.textContent = '⏹ Stopp';
     rec.dataset.dict = dictating ? '1' : '';
-    rec.textContent = dictating ? '🎤 Höre zu … sprich jetzt (Text erscheint live)' : '🎤 Aufnahme läuft …';
+    rec.dataset.server = (!dictating && recording && serverTranscription) ? '1' : '';
+    rec.textContent = dictating
+      ? '🎤 Höre zu … sprich jetzt (Text erscheint live)'
+      : (serverTranscription ? '🎤 Sprich jetzt … der Text kommt nach dem Stopp' : '🎤 Aufnahme läuft …');
   }
 
   function stopCapture() {
@@ -3343,7 +3463,9 @@
     if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
     const btn = document.getElementById('rec-btn'), rec = document.getElementById('rec-status');
     btn.textContent = '🎤 Aufnehmen & diktieren';
-    rec.textContent = rec.dataset.dict === '1' ? 'Diktat übernommen – Text prüfen, dann „KI-Bericht erstellen".' : 'Aufnahme bereit.';
+    if (rec.dataset.dict === '1') rec.textContent = 'Diktat übernommen – Text prüfen, dann „KI-Entwurf erstellen".';
+    else if (rec.dataset.server !== '1') rec.textContent = 'Aufnahme bereit.';
+    // Bei Server-Erkennung setzt transcribeRecording() den Text selbst (läuft nach onstop).
   }
 
   function toggleRecording() { capturing ? stopCapture() : startCapture(); }
@@ -3354,18 +3476,22 @@
     const transcript = document.getElementById('doc-transcript').value.trim();
     if (!client_id) { flash('doc-err', 'Bitte einen Klienten wählen.'); return; }
     try {
-      let voice_note_id = null;
+      // Wurde die Aufnahme schon beim Stoppen erkannt, dieselbe Datei nicht erneut senden
+      // (das würde ein zweites Mal Spracherkennung kosten).
+      let voice_note_id = uploadedVoiceNoteId;
       const audioFile = document.getElementById('doc-audio').files[0];
-      const audioBlob = recordedBlob || audioFile;
+      const audioBlob = voice_note_id ? null : (recordedBlob || audioFile);
       if (audioBlob) {
         const fd = new FormData();
         fd.append('client_id', client_id);
-        fd.append('audio', audioBlob, recordedBlob ? 'aufnahme.webm' : audioFile.name);
+        fd.append('audio', audioBlob, recordedBlob ? recordingFileName(recordedBlob.type) : audioFile.name);
         const up = await apiUpload('/api/v1/documentation/upload', fd);
         voice_note_id = up.voice_note_id;
       }
       const d = await api('/api/v1/documentation/draft', { method: 'POST', body: { client_id, transcript: transcript || null, voice_note_id } });
       lastReportId = d.report_id;
+      // Verbraucht: die nächste Dokumentation darf diese Aufnahme nicht erneut anhängen.
+      uploadedVoiceNoteId = null; recordedBlob = null;
       document.getElementById('draft-card').classList.remove('hidden');
       document.getElementById('draft-status').textContent = d.status;
       document.getElementById('draft-report').textContent = d.pflegebericht + (d.uebergabe ? '\n\nÜbergabe: ' + d.uebergabe : '');
