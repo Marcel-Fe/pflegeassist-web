@@ -934,7 +934,7 @@
             <div style="margin-top:14px"><b>Hinweise</b><ul class="hint-list" id="in-hints"></ul></div>
             <div style="margin-top:14px"><b>Offene Fragen für den Erstbesuch</b><ul class="hint-list" id="in-questions"></ul></div>
             <div style="margin-top:14px"><b>Aufgaben für die PDL</b><ul class="hint-list" id="in-tasks"></ul></div>
-            <div class="muted" style="font-size:.8rem;margin-top:12px">Vorschläge aus den Notizen – bitte fachlich prüfen und ergänzen. Danach den Klienten unter „Klienten → Neuer Klient" anlegen.</div>
+            <div class="muted" style="font-size:.8rem;margin-top:12px" id="in-hint">Vorschläge aus den Notizen – bitte fachlich prüfen und ergänzen. Danach die Person unter „Klienten → Neuer Klient" anlegen.</div>
           </div>
         </section>
 
@@ -943,7 +943,7 @@
           <h2>Einsätze</h2>
           <div class="panel hidden" id="import-panel" style="margin-bottom:16px">
             <div class="panel-head"><h3>Dienstplan importieren</h3><span class="chip" style="background:#e0f2fe;color:#0369a1">PDL / Büro</span></div>
-            <div class="sublabel">Tour aus dem Bestandssystem (z. B. snap-Export) als CSV hochladen – kein Abtippen. Bekannte Klienten werden per Name zugeordnet; unbekannte Zeilen werden übersprungen und gemeldet.</div>
+            <div class="sublabel" id="imp-sub">Tour aus dem Bestandssystem (z. B. snap-Export) als CSV hochladen – kein Abtippen. Bekannte Klienten werden per Name zugeordnet; unbekannte Zeilen werden übersprungen und gemeldet.</div>
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px">
               <input type="file" id="imp-file" accept=".csv,text/csv,.txt" style="width:auto">
               <button onclick="uploadDienstplan()">Importieren</button>
@@ -1015,7 +1015,7 @@
               <div><label>Bis</label><input type="date" id="ex-to" onchange="previewExport()"></div>
             </div>
             <div class="grid2">
-              <div><label>Klient/in</label><select id="ex-client" onchange="previewExport()"><option value="">Alle Klienten</option></select></div>
+              <div><label id="ex-client-label">Klient/in</label><select id="ex-client" onchange="previewExport()"><option value="">Alle Klienten</option></select></div>
               <div><label>Wundfotos einschließen</label><select id="ex-photos"><option value="true">Ja, mit Fotos</option><option value="false">Nein, nur Daten</option></select></div>
             </div>
             <div class="banner" id="ex-preview" style="margin-top:12px;margin-bottom:0">Zeitraum wählen …</div>
@@ -1893,14 +1893,15 @@
 
   const CSV_IC = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h2M8 17h2M12 13h4M12 17h4"/></svg>';
   function loadExport() {
+    const w = words();   // im Heim „Bewohner", ambulant „Klienten"
     const cards = [
-      ['Klienten', 'Stammdaten aller aktiven Klienten', 'klienten', '/api/v1/clients'],
+      [w.persons, 'Stammdaten aller aktiven ' + w.persons, 'klienten', '/api/v1/clients'],
       ['Einsätze', 'Alle erfassten Einsätze', 'einsaetze', '/api/v1/visits'],
       ['Aufgaben', 'Offene und erledigte Aufgaben', 'aufgaben', '/api/v1/tasks'],
       ['Risiken', 'Dokumentierte Risiken', 'risiken', '/api/v1/risks']];
     document.getElementById('export-cards').innerHTML = cards.map(([t, s, key, path]) =>
-      `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">${t}</div><div class="es">${s}</div></div><button onclick="exportCsv('${path}','${key}')">CSV ↓</button></div>`).join('') +
-      `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">Gesamtbericht</div><div class="es">Druckbare Übersicht (Klienten, Einsätze, Aufgaben, Risiken)</div></div><button onclick="printReport()">Drucken / PDF ↧</button></div>`;
+      `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">${esc(t)}</div><div class="es">${esc(s)}</div></div><button onclick="exportCsv('${path}','${key}')">CSV ↓</button></div>`).join('') +
+      `<div class="exp-card"><div class="ex-ic">${CSV_IC}</div><div class="grow"><div class="et">Gesamtbericht</div><div class="es">Druckbare Übersicht (${esc(w.persons)}, Einsätze, Aufgaben, Risiken)</div></div><button onclick="printReport()">Drucken / PDF ↧</button></div>`;
 
     // Zeitraum vorbelegen: die letzten 30 Tage (gleicher Default wie im Backend)
     const from = document.getElementById('ex-from'), to = document.getElementById('ex-to');
@@ -1919,10 +1920,10 @@
     try {
       const clients = clientsCache && clientsCache.length ? clientsCache : await api('/api/v1/clients');
       const current = sel.value;
-      sel.innerHTML = '<option value="">Alle Klienten</option>' + clients
+      sel.innerHTML = `<option value="">Alle ${esc(words().persons)}</option>` + clients
         .map(c => `<option value="${esc(c.id)}">${esc(c.first_name + ' ' + c.last_name)}</option>`).join('');
       sel.value = current;
-    } catch (e) { /* Filter bleibt auf „Alle Klienten" */ }
+    } catch (e) { /* Filter bleibt auf „Alle …" */ }
   }
 
   function exportQuery() {
@@ -2330,6 +2331,18 @@
     if (ct) ct.textContent = w.persons + ' nach Pflegegrad';
     const cs = document.getElementById('chart-clients-sub');
     if (cs) cs.textContent = 'Aktive ' + w.persons;
+    // Import-Panel: im Heim gibt es keine „Tour" und keine „Klienten".
+    const impSub = document.getElementById('imp-sub');
+    if (impSub) impSub.textContent = (isStationaer() ? 'Dienstplan' : 'Tour') +
+      ' aus dem Bestandssystem (z. B. snap-Export) als CSV hochladen – kein Abtippen. Bekannte ' +
+      w.persons + ' werden per Name zugeordnet; unbekannte Zeilen werden übersprungen und gemeldet.';
+    const exLabel = document.getElementById('ex-client-label');
+    if (exLabel) exLabel.textContent = w.personIn;
+    const exAll = document.querySelector('#ex-client option[value=""]');
+    if (exAll) exAll.textContent = 'Alle ' + w.persons;
+    const inHint = document.getElementById('in-hint');
+    if (inHint) inHint.textContent = 'Vorschläge aus den Notizen – bitte fachlich prüfen und ergänzen. ' +
+      'Danach die Person unter „' + w.persons + ' → Neue/r ' + w.person + '" anlegen.';
   }
 
   async function loadKlienten() {
