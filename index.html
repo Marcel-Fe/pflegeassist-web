@@ -274,6 +274,21 @@
   .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 900px) { .cols2 { grid-template-columns: 1fr; } }
 
+  /* Selbsthilfe: Fehler mit Klartext + Loesungsweg (statt technischer Meldung) */
+  .help-error { border: 1px solid #fbd5b5; background: #fff8f1; border-radius: 12px; padding: 14px 16px; }
+  :root[data-theme="dark"] .help-error { background: #2a1f16; border-color: #6b4a2a; }
+  .help-error .he-t { font-weight: 700; color: #b45309; margin-bottom: 4px; }
+  :root[data-theme="dark"] .help-error .he-t { color: #f0b071; }
+  .help-error .he-h { color: var(--ink); font-size: .92rem; line-height: 1.5; }
+  .help-error .he-a { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .help-error .he-d { margin-top: 8px; font-size: .78rem; color: var(--muted); }
+  .help-error .he-d summary { cursor: pointer; }
+  /* Hilfe-Knopf in der Ansicht-Ueberschrift */
+  .view-help { margin-left: 8px; vertical-align: middle; width: 26px; height: 26px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--card); color: var(--muted); font-weight: 700;
+    font-size: .82rem; cursor: pointer; padding: 0; line-height: 1; }
+  .view-help:hover { background: var(--chip); color: var(--primary-dark); }
+
   /* Foto-Avatare (lizenzfreie Portraits, mit Initialen-Fallback) */
   .av-photo { position: relative; display: inline-grid; place-items: center; border-radius: 50%; flex: none;
     overflow: hidden; background: linear-gradient(135deg, #12a594, #0a5b63); color: #fff; font-weight: 700; }
@@ -854,8 +869,14 @@
             <label>Profilfoto (optional)</label>
             <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
               <img id="kl-photo-preview" class="hidden" style="width:64px;height:64px;object-fit:cover;border-radius:50%;border:1px solid var(--line)">
-              <input type="file" id="kl-photo" accept="image/*" style="width:auto" onchange="previewClientPhoto()">
+              <span id="kl-photo-drawn" class="hidden"></span>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <button type="button" class="ghost" id="kl-photo-pick" onclick="document.getElementById('kl-photo').click()">Foto auswählen</button>
+                <button type="button" class="ghost hidden" id="kl-photo-del" onclick="deleteClientPhoto()">Foto entfernen</button>
+              </div>
+              <input type="file" id="kl-photo" accept="image/*" class="hidden" onchange="previewClientPhoto()">
             </div>
+            <div class="muted" style="font-size:.8rem;margin-top:6px" id="kl-photo-hint">Ohne Foto wird eine gezeichnete Darstellung verwendet.</div>
             <div class="err" id="kl-err"></div>
             <div style="height:10px"></div>
             <button onclick="saveClient()">Speichern</button>
@@ -1048,13 +1069,72 @@
         <!-- EINSTELLUNGEN -->
         <section class="view hidden" id="view-einstellungen">
           <h2>Einstellungen</h2>
+
           <div class="panel">
+            <div class="panel-head"><h3>Mein Konto</h3></div>
+            <div class="setting-row"><div><div class="tt">Name</div></div><div class="muted" id="set-name">–</div></div>
+            <div class="setting-row"><div><div class="tt">E-Mail</div></div><div class="muted" id="set-mail">–</div></div>
+            <div class="setting-row"><div><div class="tt">Rolle</div></div><div class="muted" id="set-role">–</div></div>
+            <div class="setting-row"><div><div class="tt">Einrichtung</div></div><div class="muted" id="set-org">–</div></div>
+            <div class="setting-row" style="border:0"><div><div class="tt">Zugang gültig bis</div><div class="ts">Danach ist eine Verlängerung nötig.</div></div><div class="muted" id="set-access">–</div></div>
+          </div>
+
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-head"><h3>App aufs Handy laden</h3></div>
+            <div class="sublabel">Mit dem Handy den Code abscannen – die Kamera-App genügt. Danach im Browser-Menü <b>„Zum Startbildschirm hinzufügen"</b> wählen, dann startet Pflegeassistent wie eine normale App.</div>
+            <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-top:12px">
+              <div id="qr-code" style="background:#fff;padding:10px;border-radius:12px;border:1px solid var(--line)"></div>
+              <div style="min-width:240px;flex:1">
+                <div class="tt" style="margin-bottom:4px">Adresse zum Abtippen</div>
+                <div class="muted" id="qr-url" style="word-break:break-all;font-size:.86rem">–</div>
+                <div style="height:10px"></div>
+                <button class="ghost" onclick="copyAppUrl()">Adresse kopieren</button>
+                <button class="ghost" onclick="openHelpTopic('installieren handy')">Anleitung</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-head"><h3>Darstellung</h3></div>
             <div class="setting-row">
               <div>
                 <div class="tt">Foto-Avatare anzeigen</div>
-                <div class="ts">Zeigt Portraitfotos statt Initialen bei Klienten und Einsätzen. Für mehr Datenschutz oder eine schlichtere Ansicht kann dies deaktiviert werden – dann erscheinen überall Initialen.</div>
+                <div class="ts">Zeigt Portraitfotos bzw. gezeichnete Darstellungen. Ausgeschaltet erscheinen überall nur Initialen – schlichter und datensparsamer.</div>
               </div>
               <label class="switch"><input type="checkbox" id="opt-photos" onchange="setPhotos(this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="setting-row" style="border:0">
+              <div>
+                <div class="tt">Dunkles Design</div>
+                <div class="ts">Angenehmer bei Nacht- und Spätdiensten.</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="opt-dark" onchange="setDark(this.checked)"><span class="slider"></span></label>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-head"><h3>Hilfe &amp; Probleme lösen</h3></div>
+            <div class="sublabel">Die häufigsten Stolpersteine – ein Tipp genügt.</div>
+            <div class="grid2" style="margin-top:10px">
+              <button class="ghost" onclick="openHelpTopic('mikrofon diktat')">🎤 Diktat geht nicht</button>
+              <button class="ghost" onclick="openHelpTopic('iphone safari')">📱 iPhone: kein Diktat-Text</button>
+              <button class="ghost" onclick="openHelpTopic('verbindung internet')">📶 Keine Verbindung</button>
+              <button class="ghost" onclick="openHelpTopic('langsam server')">🐌 Erste Seite lädt lange</button>
+              <button class="ghost" onclick="openHelpTopic('passwort vergessen')">🔑 Passwort vergessen</button>
+              <button class="ghost" onclick="openHelpTopic('rollen berechtigung')">👤 Menüpunkt fehlt</button>
+              <button class="ghost" onclick="openHelpTopic('import csv')">📄 Import meldet Fehler</button>
+              <button class="ghost" onclick="openHelpTopic('')">📖 Alle Hilfethemen</button>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-head"><h3>Gerät &amp; Sitzung</h3></div>
+            <div class="setting-row">
+              <div><div class="tt">Diktat auf diesem Gerät</div><div class="ts" id="set-speech">Wird geprüft …</div></div>
+            </div>
+            <div class="setting-row" style="border:0">
+              <div><div class="tt">Neu laden erzwingen</div><div class="ts">Hilft, wenn etwas hakt oder eine Ansicht veraltet wirkt.</div></div>
+              <button class="ghost" onclick="hardReload()">Neu laden</button>
             </div>
           </div>
         </section>
@@ -1100,6 +1180,13 @@
     <div class="modal-card">
       <div class="panel-head"><h3 id="rm-title">Bericht ansehen</h3><button class="ghost" onclick="closeReport()">✕</button></div>
       <div id="rm-body"><div class="muted">Lädt …</div></div>
+    </div>
+  </div>
+  <!-- DETAILANSICHT einer betreuten Person -->
+  <div id="detail-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeDetail()">
+    <div class="modal-card">
+      <div class="panel-head"><h3 id="dt-title">Details</h3><button class="ghost" onclick="closeDetail()">✕</button></div>
+      <div id="dt-body"><div class="muted">Lädt …</div></div>
     </div>
   </div>
 </div>
@@ -1404,15 +1491,165 @@
     else if (view === 'hilfe') { document.getElementById('view-hilfe').classList.remove('hidden'); renderHelp(); }
     else if (view === 'einstellungen') {
       document.getElementById('view-einstellungen').classList.remove('hidden');
-      document.getElementById('opt-photos').checked = photosEnabled();
+      loadSettings();
     }
     else {
       document.getElementById('view-generic').classList.remove('hidden');
       document.getElementById('generic-title').textContent = VIEW_TITLES[view] || 'Bereich';
     }
+    injectViewHelp(view);
   }
 
-  function listError(id, msg) { document.getElementById(id).innerHTML = `<div class="muted">${esc(msg)}</div>`; }
+  // ---- Einstellungen ----
+  /** Adresse, die auf dem Handy geöffnet werden soll. Zeigt die API-Adresse mit, falls
+   *  die Oberfläche von einem anderen Ort geladen wurde (z. B. GitHub Pages). */
+  function appShareUrl() {
+    const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+    if (API && !base.startsWith(API)) return base + '?api=' + encodeURIComponent(API);
+    return base;
+  }
+  function loadSettings() {
+    document.getElementById('opt-photos').checked = photosEnabled();
+    document.getElementById('opt-dark').checked =
+      document.documentElement.getAttribute('data-theme') === 'dark';
+    document.getElementById('set-name').textContent = (user && user.full_name) || '–';
+    document.getElementById('set-mail').textContent = (user && user.email) || '–';
+    document.getElementById('set-role').textContent = (user && (ROLE_LABEL[user.role] || user.role)) || '–';
+    document.getElementById('set-org').textContent = (user && user.organization_name) || '–';
+
+    // Zugang: Restlaufzeit verständlich statt als rohes Datum.
+    const acc = document.getElementById('set-access');
+    acc.textContent = 'Wird geprüft …';
+    api('/api/v1/subscription/me').then(s => {
+      if (!s || !s.access_until) { acc.textContent = s && s.active ? 'Unbegrenzt' : 'Nicht aktiv'; return; }
+      const d = new Date(s.access_until);
+      const days = Math.ceil((d - new Date()) / 864e5);
+      acc.textContent = d.toLocaleDateString('de-DE') + (days > 0 ? ` (noch ${days} Tage)` : ' (abgelaufen)');
+    }).catch(() => { acc.textContent = 'Konnte nicht geladen werden'; });
+
+    // QR-Code lokal rechnen – die Adresse verlässt das Gerät nicht.
+    const url = appShareUrl();
+    document.getElementById('qr-url').textContent = url;
+    const box = document.getElementById('qr-code');
+    try { box.innerHTML = qrSVG(url, 168); }
+    catch (e) { box.innerHTML = '<div class="muted" style="font-size:.8rem">QR-Code nicht möglich – bitte Adresse abtippen.</div>'; }
+
+    // Ehrlich sagen, ob Diktat auf DIESEM Gerät geht (iPhone/Safari kann es nicht).
+    const sp = document.getElementById('set-speech');
+    const hasSpeech = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    sp.textContent = hasSpeech && !isIOS
+      ? 'Verfügbar – du kannst sprechen statt tippen.'
+      : (isIOS ? 'Auf iPhone/iPad noch nicht verfügbar – bitte den Text tippen.'
+               : 'Dieser Browser unterstützt kein Diktat – bitte Chrome oder Edge nutzen.');
+  }
+  function setDark(on) {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark !== on) toggleTheme();   // eine Wahrheit für Kopfzeilen-Knopf und Schalter
+  }
+  function copyAppUrl() {
+    const url = appShareUrl();
+    const done = () => flashToast('Adresse kopiert: ' + url);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done).catch(() => prompt('Adresse kopieren:', url));
+    } else prompt('Adresse kopieren:', url);
+  }
+  /** Neu laden und dabei zwischengespeicherte Dateien verwerfen (PWA kann veralten). */
+  async function hardReload() {
+    try {
+      if (window.caches && caches.keys) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch (e) { /* Cache-Leeren ist ein Extra, kein Muss */ }
+    location.reload();
+  }
+
+  // ---- Kontextsensitive Hilfe: „?" in jeder Ansicht ----
+  // Wer im Einsatz allein vor dem Handy steht, soll sich ohne Anruf helfen können.
+  // Der Knopf springt in die Hilfe und filtert direkt auf das passende Thema.
+  const VIEW_HELP = {
+    start: 'tagesplan', dash: 'dashboard', doc: 'dokumentation sprache diktat',
+    wunddoku: 'wunddoku', klienten: 'klienten anlegen', personal: 'personal mitarbeiter',
+    intake: 'aufnahme', einsaetze: 'einsätze import', aufgaben: 'aufgaben', risiken: 'risiken',
+    statistik: 'statistik', qm: 'qualität', export: 'export', nachrichten: 'nachrichten',
+    einstellungen: 'einstellungen', admin: 'kunden',
+  };
+  function injectViewHelp(view) {
+    if (view === 'hilfe') return;                       // in der Hilfe selbst überflüssig
+    const sec = document.getElementById('view-' + view) ||
+                (document.getElementById('view-generic').classList.contains('hidden') ? null : document.getElementById('view-generic'));
+    if (!sec) return;
+    const h = sec.querySelector('h2');
+    if (!h || h.querySelector('.view-help')) return;    // schon vorhanden
+    const b = document.createElement('button');
+    b.className = 'view-help';
+    b.type = 'button';
+    b.textContent = '?';
+    b.title = 'Hilfe zu diesem Bereich';
+    b.setAttribute('aria-label', 'Hilfe zu diesem Bereich');
+    b.onclick = () => openHelpTopic(VIEW_HELP[view] || '');
+    h.appendChild(b);
+  }
+  /** Hilfe öffnen und direkt auf ein Thema filtern (aus „?" oder aus einer Fehlerbox). */
+  function openHelpTopic(topic) {
+    navTo('hilfe');
+    const s = document.getElementById('help-search');
+    if (s) { s.value = topic || ''; renderHelp(); }
+  }
+
+  // ---- Selbsthilfe: verständliche Fehler statt technischer Meldungen ----
+  // Ziel: wer allein vor dem Handy oder am PDL-Rechner sitzt, muss sich selbst helfen
+  // können. Jede Störung bekommt deshalb Klartext + einen konkreten nächsten Schritt.
+  const ERROR_HELP = [
+    { match: /failed to fetch|networkerror|load failed|fetch/i,
+      title: 'Keine Verbindung zum Server',
+      hint: 'Prüfe deine Internetverbindung (WLAN/Mobilfunk). Falls die App länger nicht benutzt wurde, startet der Server gerade – warte etwa eine Minute und tippe erneut.',
+      topic: 'verbindung internet' },
+    { match: /sitzung abgelaufen|401/i,
+      title: 'Sitzung abgelaufen',
+      hint: 'Aus Sicherheitsgründen wirst du nach längerer Zeit abgemeldet. Bitte melde dich einfach neu an.',
+      topic: 'anmelden passwort' },
+    { match: /keine berechtigung|403/i,
+      title: 'Dafür fehlt dir die Berechtigung',
+      hint: 'Dieser Bereich ist der Pflegedienstleitung vorbehalten. Wende dich an deine Leitung, wenn du Zugriff brauchst.',
+      topic: 'rollen berechtigung' },
+    { match: /402|zugang/i,
+      title: 'Zugang nicht aktiv',
+      hint: 'Der Zugang deiner Einrichtung ist abgelaufen oder noch nicht freigeschaltet. Die Leitung kann ihn verlängern lassen.',
+      topic: 'zugang abgelaufen' },
+    { match: /413|größer als|zu gross|zu groß/i,
+      title: 'Datei zu groß',
+      hint: 'Wähle ein kleineres Bild oder fotografiere mit geringerer Auflösung. Fotos werden automatisch verkleinert – sehr große Dateien lehnt der Server trotzdem ab.',
+      topic: 'foto bild' },
+    { match: /pflichtspalten|vorlage|422|unlesbar/i,
+      title: 'Die Datei passt noch nicht',
+      hint: 'Lade die CSV-Vorlage herunter und übertrage deine Daten hinein. Wichtig sind die Spalten „klient" und „datum".',
+      topic: 'import csv' },
+    { match: /nicht gefunden|404/i,
+      title: 'Nicht gefunden',
+      hint: 'Der Eintrag wurde vielleicht gerade gelöscht oder deaktiviert. Lade die Seite neu.',
+      topic: '' },
+    { match: /5\d\d|server/i,
+      title: 'Der Server hat ein Problem',
+      hint: 'Das liegt nicht an dir. Versuche es in ein paar Minuten erneut – bleibt es dabei, melde es der Leitung.',
+      topic: 'verbindung internet' },
+  ];
+  function explainError(msg) {
+    const text = String(msg || '');
+    const hit = ERROR_HELP.find(e => e.match.test(text));
+    return hit || { title: 'Das hat nicht geklappt', hint: text || 'Bitte versuche es erneut.', topic: 'allgemein' };
+  }
+  /** Fehlerbox mit Klartext, konkretem Tipp und direktem Weg in die Hilfe. */
+  function errorBoxHTML(msg) {
+    const e = explainError(msg);
+    return `<div class="help-error"><div class="he-t">${esc(e.title)}</div>` +
+      `<div class="he-h">${esc(e.hint)}</div>` +
+      `<div class="he-a"><button class="ghost" onclick="openHelpTopic('${e.topic}')">Hilfe dazu</button>` +
+      `<button class="ghost" onclick="location.reload()">Neu laden</button></div>` +
+      `<details class="he-d"><summary>Technische Details</summary><div>${esc(msg)}</div></details></div>`;
+  }
+  function listError(id, msg) { document.getElementById(id).innerHTML = errorBoxHTML(msg); }
   function listEmpty(id, msg) { document.getElementById(id).innerHTML = `<div class="muted">${esc(msg)}</div>`; }
 
   function fmtDate(iso) {
@@ -1956,6 +2193,23 @@
       body: '<p>Der bezahlte Zeitraum ist abgelaufen oder noch nicht freigeschaltet. Über den Knopf <b>„Zugang anfragen / verlängern"</b> Kontakt aufnehmen – nach der Zahlung wird der Zugang freigeschaltet, dann funktioniert wieder alles.</p>' },
     { cat: 'Probleme lösen', title: 'Die Seite lädt beim ersten Öffnen langsam', kw: 'langsam laden warten server schläft kaltstart dauert lange hängt',
       body: '<p>Der kostenlose Server „schläft" bei Nichtnutzung ein. Der <b>erste</b> Aufruf danach dauert ca. <b>30–50 Sekunden</b>, danach ist alles schnell. Einfach kurz warten – nicht mehrfach neu laden.</p>' },
+    { cat: 'Probleme lösen', title: 'Keine Verbindung / „Fehler beim Laden"', kw: 'verbindung internet offline kein netz fehler laden unterwegs funkloch wlan mobilfunk',
+      body: '<p>Unterwegs kommt das häufig vor. So gehst du vor:</p>' +
+            '<ol><li><b>Netz prüfen</b>: Hast du im Treppenhaus oder Keller Empfang? Ein paar Schritte weiter reicht oft.</li>' +
+            '<li><b>Neu laden</b> antippen (Knopf steht in der Fehlermeldung).</li>' +
+            '<li>Kam längere Zeit niemand in die App, <b>startet der Server gerade</b> – etwa eine Minute warten.</li></ol>' +
+            '<p><b>Wichtig für den Einsatz:</b> Was du noch nicht gespeichert hast, geht bei Verbindungsverlust verloren. Bei schlechtem Netz erst den Text eingeben, dann speichern, sobald du wieder Empfang hast. Notfalls den Wortlaut kurz in die Notiz-App tippen und später übertragen.</p>' },
+    { cat: 'Probleme lösen', title: 'Ich sehe weniger Menüpunkte als meine Kollegin', kw: 'menü fehlt weniger punkte rollen berechtigung pflegekraft leitung pdl sehe nicht statistik export personal',
+      body: '<p>Das ist Absicht und kein Fehler. Die App zeigt jeder Rolle nur, was sie im Alltag braucht:</p>' +
+            '<ul><li><b>Pflegekraft (Handy)</b>: Mein Tag, Einsätze, Betreute, Dokumentation, Wunddoku, Aufgaben, Nachrichten, Hilfe.</li>' +
+            '<li><b>Pflegedienstleitung (Web)</b>: zusätzlich Statistiken, Qualitätsmanagement, Export, Personal und Aufnahme-Assistent.</li></ul>' +
+            '<p>So bleibt das Handy übersichtlich. Brauchst du einen Bereich für deine Arbeit, sprich mit deiner Leitung – sie kann deine Rolle ändern.</p>' },
+    { cat: 'Probleme lösen', title: 'Der Dienstplan-Import meldet Fehler', kw: 'import csv excel fehler vorlage spalten datum klient übersprungen snap dienstplan hochladen',
+      body: '<ol><li>Nutze die <b>CSV-Vorlage</b> (Knopf im Einsätze-Bereich) und trage deine Daten dort ein.</li>' +
+            '<li>Pflicht sind die Spalten <b>klient</b> und <b>datum</b>. Ohne sie lehnt die App die Datei ab.</li>' +
+            '<li>Steht „Klient nicht gefunden": Der Name in der Datei muss zu einer <b>angelegten Person</b> passen (z. B. „Becker, Hans" oder „Hans Becker"). Lege fehlende Personen vorher an.</li>' +
+            '<li>Datum am besten als <b>15.07.2026</b>, Uhrzeit als <b>08:00</b>.</li></ol>' +
+            '<p>Übersprungene Zeilen werden einzeln aufgelistet – der Rest wird trotzdem übernommen. Du kannst die Datei nach dem Korrigieren einfach erneut hochladen.</p>' },
     { cat: 'Probleme lösen', title: 'Ein Foto oder Bild wird nicht angezeigt', kw: 'foto bild lädt nicht fehlt wunde anzeige',
       body: '<p>Meist hilft <b>neu laden</b> der Seite. Prüfe außerdem, ob du noch angemeldet bist. Fotos sind geschützt und erscheinen nur im eingeloggten Zustand.</p>' },
     { cat: 'Probleme lösen', title: 'Ich kann keinen Klienten auswählen', kw: 'kein klient auswahl leer dokumentation wunddoku anlegen',
@@ -1973,8 +2227,21 @@
         `<button class="chip" style="cursor:pointer;border:1px solid var(--line)" onclick="helpFilter('')">Alle</button>`;
       chips.dataset.done = '1';
     }
-    const match = a => !q || (a.cat + ' ' + a.title + ' ' + a.kw + ' ' + a.body).toLowerCase().includes(q);
-    const hits = HELP.filter(match);
+    // Wortweise suchen statt die ganze Eingabe als Zeichenkette: „mikrofon geht nicht"
+    // kommt nirgends wörtlich vor – wer so sucht, stünde sonst ohne Treffer da.
+    // Erst alle Wörter (genau), sonst mindestens eines (nach Trefferzahl sortiert).
+    const words = q.split(/\s+/).filter(Boolean);
+    const hay = a => (a.cat + ' ' + a.title + ' ' + a.kw + ' ' + a.body).toLowerCase();
+    let hits;
+    if (!words.length) hits = HELP.slice();
+    else {
+      const scored = HELP.map(a => {
+        const t = hay(a);
+        return { a, n: words.filter(w => t.includes(w)).length };
+      }).filter(x => x.n > 0);
+      const all = scored.filter(x => x.n === words.length);
+      hits = (all.length ? all : scored.sort((x, y) => y.n - x.n)).map(x => x.a);
+    }
     const box = document.getElementById('help-results');
     if (!hits.length) { box.innerHTML = '<div class="panel"><div class="muted">Nichts gefunden. Versuch ein anderes Wort – oder tippe unten auf eine Kategorie.</div></div>'; return; }
     box.innerHTML = HELP_CATS.map(cat => {
@@ -2056,17 +2323,97 @@
         const sub = [esc(c.care_level || ''), esc(placeOf(c))].filter(Boolean).join(' · ');
         const dim = c.is_active ? '' : 'opacity:.55';
         const flag = c.is_active ? '' : '<span class="chip">Deaktiviert</span>';
-        const actions = edit
-          ? `<button class="ghost" onclick="openClientForm('${c.id}')">Bearbeiten</button>` +
+        // „Details" sehen alle (auch Pflegekräfte); Bearbeiten/Deaktivieren bleibt der Leitung.
+        const actions = `<button class="ghost" onclick="event.stopPropagation();openClientDetail('${c.id}')">Details</button>` + (edit
+          ? `<button class="ghost" onclick="event.stopPropagation();openClientForm('${c.id}')">Bearbeiten</button>` +
             (c.is_active
-              ? `<button class="ghost" onclick="toggleClientActive('${c.id}',false)">Deaktivieren</button>`
-              : `<button class="ghost" onclick="toggleClientActive('${c.id}',true)">Aktivieren</button>`)
-          : (c.emergency_contact ? `<span class="muted">☎ ${esc(c.emergency_contact)}</span>` : '');
+              ? `<button class="ghost" onclick="event.stopPropagation();toggleClientActive('${c.id}',false)">Deaktivieren</button>`
+              : `<button class="ghost" onclick="event.stopPropagation();toggleClientActive('${c.id}',true)">Aktivieren</button>`)
+          : '');
         const photoPath = c.has_photo ? '/api/v1/clients/' + c.id + '/photo' : null;
-        return `<div class="visit" style="${dim}">${avatarHTML(name, 38, photoPath, 'client')}<div class="grow"><div class="vname">${esc(name)} ${flag}</div><div class="vsub">${sub || 'Keine Angaben'}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap">${actions}</div></div>`;
+        return `<div class="visit" style="${dim};cursor:pointer" onclick="openClientDetail('${c.id}')">${avatarHTML(name, 38, photoPath, 'client')}<div class="grow"><div class="vname">${esc(name)} ${flag}</div><div class="vsub">${sub || 'Keine Angaben'}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap">${actions}</div></div>`;
       }).join('');
       hydratePhotos(document.getElementById('list-klienten'));
     } catch (e) { listError('list-klienten', e.message); }
+  }
+
+  // ---- Detailansicht einer betreuten Person ----
+  function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); }
+
+  async function openClientDetail(id) {
+    const modal = document.getElementById('detail-modal');
+    const body = document.getElementById('dt-body');
+    document.getElementById('dt-title').textContent = 'Lädt …';
+    body.innerHTML = '<div class="muted">Lädt …</div>';
+    modal.classList.remove('hidden');
+    try {
+      const d = await api('/api/v1/clients/' + id + '/detail');
+      const c = d.client;
+      const name = `${c.first_name} ${c.last_name}`;
+      const w = words();
+      document.getElementById('dt-title').textContent = name;
+
+      const row = (label, value) => value
+        ? `<div class="setting-row" style="border:0;padding:6px 0"><div class="tt" style="min-width:150px">${esc(label)}</div><div class="muted">${esc(value)}</div></div>` : '';
+      const stamm = row('Pflegegrad', c.care_level) + row(w.place, placeOf(c)) +
+        row('Notfallkontakt', c.emergency_contact) + row('Notizen', c.notes) +
+        row('Versorgung', c.care_setting === 'stationaer' ? 'Stationär – wohnt im Haus' : 'Ambulant – wird zu Hause versorgt') +
+        row('Status', c.is_active ? 'Aktiv' : 'Deaktiviert');
+
+      const sect = (title, count, inner) =>
+        `<div class="panel" style="margin-top:12px"><div class="panel-head"><h3>${esc(title)}</h3>` +
+        `<span class="chip">${count}</span></div>${inner}</div>`;
+      const none = t => `<div class="muted">${esc(t)}</div>`;
+
+      const reports = d.reports.length ? d.reports.map(r => {
+        const st = r.status === 'confirmed' ? ['done', 'Freigegeben']
+          : r.status === 'submitted' ? ['prog', 'Wartet auf Freigabe'] : ['plan', 'KI-Entwurf'];
+        return `<div class="visit"><div class="grow"><div class="vname">${esc(fmtDate(r.created_at))} · ${esc(r.author)}</div>` +
+          `<div class="vsub">${esc((r.report_text || '').slice(0, 120))}${(r.report_text || '').length > 120 ? '…' : ''}</div></div>` +
+          `<span class="status ${st[0]}">${st[1]}</span>` +
+          `<button class="ghost" onclick="openReport('${r.report_id}')">Ansehen</button></div>`;
+      }).join('') : none('Noch keine Dokumentation vorhanden.');
+
+      const risks = d.risks.length ? d.risks.map(r =>
+        `<div class="visit"><div class="grow"><div class="vname">${esc(r.title)}</div>` +
+        `<div class="vsub">${esc(r.description || '')}</div></div>` +
+        `<span class="chip">${esc(cap(r.level || ''))}</span></div>`).join('') : none('Keine Risiken erfasst.');
+
+      const tasks = d.tasks.length ? d.tasks.map(t =>
+        `<div class="visit"><div class="grow"><div class="vname">${esc(t.title)}</div>` +
+        `<div class="vsub">${esc(cap(t.priority || 'normal'))}${t.due_at ? ' · fällig ' + esc(fmtDate(t.due_at)) : ''}</div></div>` +
+        `<span class="status ${t.status === 'open' ? 'plan' : 'done'}">${t.status === 'open' ? 'Offen' : 'Erledigt'}</span></div>`).join('')
+        : none('Keine Aufgaben.');
+
+      const wounds = d.wounds.length ? d.wounds.map(x =>
+        `<div class="visit"><div class="grow"><div class="vname">${esc(x.body_location)}${x.wound_type ? ' · ' + esc(x.wound_type) : ''}</div>` +
+        `<div class="vsub">${esc(fmtDate(x.created_at))}${x.stage ? ' · ' + esc(x.stage) : ''}${x.description ? ' · ' + esc(x.description) : ''}</div></div>` +
+        (x.has_photo ? '<span class="chip">Foto</span>' : '') + '</div>').join('') : none('Keine Wunddokumentation.');
+
+      const visits = d.visits.length ? d.visits.map(v => {
+        const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
+        return `<div class="visit"><div class="grow"><div class="vname">${esc(fmtDate(v.scheduled_start))}</div></div>` +
+          `<span class="status ${st[0]}">${st[1]}</span></div>`;
+      }).join('') : none('Keine Einsätze erfasst.');
+
+      const photoPath = c.has_photo ? '/api/v1/clients/' + c.id + '/photo' : null;
+      body.innerHTML =
+        `<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:6px">` +
+        avatarHTML(name, 64, photoPath, 'client') +
+        `<div><div style="font-weight:700;font-size:1.1rem">${esc(name)}</div>` +
+        `<div class="muted">${esc([c.care_level, placeOf(c)].filter(Boolean).join(' · ')) || 'Keine Angaben'}</div></div>` +
+        (canEditClients() ? `<button class="ghost" style="margin-left:auto" onclick="closeDetail();openClientForm('${c.id}')">Bearbeiten</button>` : '') +
+        `</div>` +
+        `<div class="panel" style="margin-top:6px">${stamm || none('Keine Stammdaten hinterlegt.')}</div>` +
+        sect('Dokumentation', d.reports.length, reports) +
+        sect('Risiken & Hinweise', d.risks.length, risks) +
+        sect('Aufgaben', d.tasks.length, tasks) +
+        sect('Wunddokumentation', d.wounds.length, wounds) +
+        sect('Einsätze', d.visits.length, visits);
+      hydratePhotos(body);
+    } catch (e) {
+      body.innerHTML = `<div class="muted">Details konnten nicht geladen werden: ${esc(e.message)}</div>`;
+    }
   }
 
   function openClientForm(id) {
@@ -2087,13 +2434,50 @@
     document.getElementById('kl-emergency').value = c ? (c.emergency_contact || '') : '';
     document.getElementById('kl-notes').value = c ? (c.notes || '') : '';
     const fileInp = document.getElementById('kl-photo'); fileInp.value = '';
-    const pv = document.getElementById('kl-photo-preview');
-    if (c && c.has_photo) {
-      pv.classList.remove('hidden'); pv.src = '';
-      apiBlobUrl('/api/v1/clients/' + c.id + '/photo').then(u => { if (u) pv.src = u; else pv.classList.add('hidden'); });
-    } else { pv.classList.add('hidden'); pv.src = ''; }
+    renderClientPhotoState(c);
     flash('kl-err', '');
     document.getElementById('klient-form-panel').classList.remove('hidden');
+  }
+
+  /** Zeigt im Formular, was gerade gilt: echtes Foto (mit „entfernen") oder gezeichnet. */
+  function renderClientPhotoState(c) {
+    const pv = document.getElementById('kl-photo-preview');
+    const drawn = document.getElementById('kl-photo-drawn');
+    const del = document.getElementById('kl-photo-del');
+    const pick = document.getElementById('kl-photo-pick');
+    const hint = document.getElementById('kl-photo-hint');
+    const name = c ? `${c.first_name || ''} ${c.last_name || ''}`.trim() : '';
+    if (c && c.has_photo) {
+      pv.classList.remove('hidden'); pv.src = '';
+      drawn.classList.add('hidden'); drawn.innerHTML = '';
+      del.classList.remove('hidden');
+      pick.textContent = 'Foto ändern';
+      hint.textContent = 'Eigenes Foto hinterlegt. „Foto entfernen" schaltet zurück auf die gezeichnete Darstellung.';
+      apiBlobUrl('/api/v1/clients/' + c.id + '/photo').then(u => { if (u) pv.src = u; else pv.classList.add('hidden'); });
+    } else {
+      pv.classList.add('hidden'); pv.src = '';
+      del.classList.add('hidden');
+      pick.textContent = 'Foto auswählen';
+      hint.textContent = 'Ohne Foto wird eine gezeichnete Darstellung verwendet.';
+      // Vorschau der gezeichneten Darstellung – nur wenn schon ein Name feststeht.
+      if (name) { drawn.classList.remove('hidden'); drawn.innerHTML = avatarHTML(name, 64, null, 'client'); }
+      else { drawn.classList.add('hidden'); drawn.innerHTML = ''; }
+    }
+  }
+
+  async function deleteClientPhoto() {
+    const id = document.getElementById('kl-id').value;
+    if (!id) return;
+    const c = clientsCache.find(x => x.id === id);
+    const who = c ? `${c.first_name} ${c.last_name}` : 'dieser Person';
+    if (!confirm(`Foto von ${who} wirklich entfernen?`)) return;
+    try {
+      await api('/api/v1/clients/' + id + '/photo', { method: 'DELETE' });
+      if (c) c.has_photo = false;
+      document.getElementById('kl-photo').value = '';
+      renderClientPhotoState(c);
+      loadKlienten();
+    } catch (e) { flash('kl-err', 'Foto konnte nicht entfernt werden: ' + e.message); }
   }
   /** Adresse oder Zimmer zeigen – je nachdem, wie diese Person versorgt wird. */
   function applyClientFormSetting() {
@@ -2104,8 +2488,13 @@
   function closeClientForm() { document.getElementById('klient-form-panel').classList.add('hidden'); }
   function previewClientPhoto() {
     const f = document.getElementById('kl-photo').files[0];
+    if (!f) return;
     const pv = document.getElementById('kl-photo-preview');
-    if (f) { pv.src = URL.createObjectURL(f); pv.classList.remove('hidden'); }
+    pv.src = URL.createObjectURL(f);
+    pv.classList.remove('hidden');
+    document.getElementById('kl-photo-drawn').classList.add('hidden');
+    document.getElementById('kl-photo-pick').textContent = 'Anderes Foto wählen';
+    document.getElementById('kl-photo-hint').textContent = 'Neues Foto wird beim Speichern übernommen.';
   }
 
   async function saveClient() {
@@ -2220,7 +2609,7 @@
       if (!list.length) return listEmpty('list-einsaetze', 'Keine Einsätze vorhanden.');
       document.getElementById('list-einsaetze').innerHTML = list.map(v => {
         const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
-        return `<div class="visit">${avatarHTML(v.client, 38, clientPhotoPath(v.client_id), 'client')}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}</div></div><span class="status ${st[0]}">${st[1]}</span></div>`;
+        return `<div class="visit" style="cursor:pointer" onclick="openClientDetail('${v.client_id}')">${avatarHTML(v.client, 38, clientPhotoPath(v.client_id), 'client')}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${fmtDate(v.scheduled_start)}</div></div><span class="status ${st[0]}">${st[1]}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>`;
       }).join('');
       hydratePhotos(document.getElementById('list-einsaetze'));
     } catch (e) { listError('list-einsaetze', e.message); }
@@ -2357,6 +2746,287 @@
   const VISIT_STATUS = { abgeschlossen: ['done','Abgeschlossen'], unterwegs: ['prog','In Bearbeitung'], in_bearbeitung: ['prog','In Bearbeitung'], geplant: ['plan','Geplant'], planned: ['plan','Geplant'] };
   const SERVICES = ['Grundpflege, Mobilisation','Medikamentengabe','Wundversorgung','Hauswirtschaftliche Unterstützung','Grundpflege','Betreuung','Behandlungspflege','Mobilisation'];
 
+  // ---- QR-Code-Encoder (ISO/IEC 18004), Byte-Modus, EC-Level M ----
+  // Bewusst selbst gerechnet statt per QR-Dienst: die Adresse der Einrichtung
+  // soll das Geraet nicht verlassen. Gegen einen fremden Decoder geprueft.
+  /** Kompakter QR-Encoder (ISO/IEC 18004), Byte-Modus, EC-Level M, Version 1-10.
+   *  Bewusst ohne externen Dienst: die App-Adresse soll nicht an Dritte gehen. */
+
+  // --- Galois-Feld GF(256) für Reed-Solomon ---
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  (function () {
+    let x = 1;
+    for (let i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11d; }
+    for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+  })();
+  const mul = (a, b) => (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]];
+
+  function rsGenerator(deg) {
+    let poly = [1];
+    for (let i = 0; i < deg; i++) {
+      const next = new Array(poly.length + 1).fill(0);
+      for (let j = 0; j < poly.length; j++) {
+        next[j] ^= mul(poly[j], 1);
+        next[j + 1] ^= mul(poly[j], EXP[i]);
+      }
+      poly = next;
+    }
+    return poly;
+  }
+  function rsEncode(data, ecLen) {
+    const gen = rsGenerator(ecLen);
+    const res = new Array(ecLen).fill(0);
+    for (const d of data) {
+      const factor = d ^ res[0];
+      res.shift(); res.push(0);
+      for (let j = 0; j < ecLen; j++) res[j] ^= mul(gen[j + 1], factor);
+    }
+    return res;
+  }
+
+  // --- Kapazitäts-/Blocktabellen für EC-Level M, Version 1..10 ---
+  // [Gesamt-Codewörter, EC-Codewörter je Block, Blöcke Gruppe1, Datenwörter Gruppe1, Blöcke Gruppe2, Datenwörter Gruppe2]
+  const VER_M = {
+    1:  [26, 10, 1, 16, 0, 0],
+    2:  [44, 16, 1, 28, 0, 0],
+    3:  [70, 26, 1, 44, 0, 0],
+    4:  [100, 18, 2, 32, 0, 0],
+    5:  [134, 24, 2, 43, 0, 0],
+    6:  [172, 16, 4, 27, 0, 0],
+    7:  [196, 18, 4, 31, 0, 0],
+    8:  [242, 22, 2, 38, 2, 39],
+    9:  [292, 22, 3, 36, 2, 37],
+    10: [346, 26, 4, 43, 1, 44],
+  };
+  const ALIGN = {
+    1: [], 2: [6, 18], 3: [6, 22], 4: [6, 26], 5: [6, 30],
+    6: [6, 34], 7: [6, 22, 38], 8: [6, 24, 42], 9: [6, 26, 46], 10: [6, 28, 50],
+  };
+
+  function dataCapacity(ver) {
+    const [, ec, b1, d1, b2, d2] = VER_M[ver];
+    return b1 * d1 + b2 * d2;
+  }
+
+  function encodeText(text) {
+    const bytes = Array.from(new TextEncoder().encode(text));
+    let ver = 0;
+    for (let v = 1; v <= 10; v++) {
+      const lenBits = v < 10 ? 8 : 16;
+      const need = 4 + lenBits + bytes.length * 8;
+      if (need <= dataCapacity(v) * 8) { ver = v; break; }
+    }
+    if (!ver) throw new Error('Text zu lang für QR Version 10');
+
+    const bits = [];
+    const push = (val, len) => { for (let i = len - 1; i >= 0; i--) bits.push((val >> i) & 1); };
+    push(0b0100, 4);                       // Byte-Modus
+    push(bytes.length, ver < 10 ? 8 : 16); // Längenfeld
+    for (const b of bytes) push(b, 8);
+
+    const cap = dataCapacity(ver) * 8;
+    for (let i = 0; i < 4 && bits.length < cap; i++) bits.push(0);  // Terminator
+    while (bits.length % 8) bits.push(0);
+    const pad = [0xec, 0x11];
+    let pi = 0;
+    const words = [];
+    for (let i = 0; i < bits.length; i += 8) {
+      words.push(bits.slice(i, i + 8).reduce((a, b) => (a << 1) | b, 0));
+    }
+    while (words.length < dataCapacity(ver)) words.push(pad[pi++ % 2]);
+
+    // Blöcke bilden + Reed-Solomon
+    const [, ecLen, b1, d1, b2, d2] = VER_M[ver];
+    const blocks = [], ecBlocks = [];
+    let off = 0;
+    for (let i = 0; i < b1; i++) { blocks.push(words.slice(off, off + d1)); off += d1; }
+    for (let i = 0; i < b2; i++) { blocks.push(words.slice(off, off + d2)); off += d2; }
+    for (const blk of blocks) ecBlocks.push(rsEncode(blk, ecLen));
+
+    // Verschachteln
+    const out = [];
+    const maxD = Math.max(...blocks.map(b => b.length));
+    for (let i = 0; i < maxD; i++) for (const b of blocks) if (i < b.length) out.push(b[i]);
+    for (let i = 0; i < ecLen; i++) for (const e of ecBlocks) out.push(e[i]);
+    return { ver, words: out };
+  }
+
+  // --- Matrix aufbauen ---
+  function buildMatrix(ver, words) {
+    const size = ver * 4 + 17;
+    const m = Array.from({ length: size }, () => new Array(size).fill(null));
+    const res = Array.from({ length: size }, () => new Array(size).fill(false)); // reserviert?
+
+    const setF = (r, c, v) => { if (r >= 0 && r < size && c >= 0 && c < size) { m[r][c] = v; res[r][c] = true; } };
+
+    // Finder + Separator
+    const finder = (r0, c0) => {
+      for (let r = -1; r <= 7; r++) for (let c = -1; c <= 7; c++) {
+        const rr = r0 + r, cc = c0 + c;
+        if (rr < 0 || rr >= size || cc < 0 || cc >= size) continue;
+        const inner = (r >= 0 && r <= 6 && (c === 0 || c === 6)) ||
+                      (c >= 0 && c <= 6 && (r === 0 || r === 6)) ||
+                      (r >= 2 && r <= 4 && c >= 2 && c <= 4);
+        setF(rr, cc, inner);
+      }
+    };
+    finder(0, 0); finder(0, size - 7); finder(size - 7, 0);
+
+    // Timing
+    for (let i = 8; i < size - 8; i++) { setF(6, i, i % 2 === 0); setF(i, 6, i % 2 === 0); }
+
+    // Alignment
+    const al = ALIGN[ver];
+    for (const r of al) for (const c of al) {
+      if ((r <= 8 && c <= 8) || (r <= 8 && c >= size - 9) || (r >= size - 9 && c <= 8)) continue;
+      for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) {
+        setF(r + dr, c + dc, Math.max(Math.abs(dr), Math.abs(dc)) !== 1);
+      }
+    }
+
+    // Dark module + Formatbereiche reservieren
+    setF(size - 8, 8, true);
+    for (let i = 0; i < 9; i++) { if (m[8][i] === null) setF(8, i, false); if (m[i][8] === null) setF(i, 8, false); }
+    for (let i = 0; i < 8; i++) { if (m[8][size - 1 - i] === null) setF(8, size - 1 - i, false); if (m[size - 1 - i][8] === null) setF(size - 1 - i, 8, false); }
+    // Versionsinfo (ab Version 7)
+    if (ver >= 7) {
+      for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) {
+        if (m[i][size - 11 + j] === null) setF(i, size - 11 + j, false);
+        if (m[size - 11 + j][i] === null) setF(size - 11 + j, i, false);
+      }
+    }
+
+    // Datenbits im Zickzack
+    const bits = [];
+    for (const w of words) for (let i = 7; i >= 0; i--) bits.push((w >> i) & 1);
+    let bi = 0, up = true;
+    for (let col = size - 1; col > 0; col -= 2) {
+      if (col === 6) col--;  // Timing-Spalte überspringen
+      for (let i = 0; i < size; i++) {
+        const row = up ? size - 1 - i : i;
+        for (let c = 0; c < 2; c++) {
+          const cc = col - c;
+          if (res[row][cc]) continue;
+          m[row][cc] = bi < bits.length ? bits[bi++] === 1 : false;
+        }
+      }
+      up = !up;
+    }
+    return { m, res, size };
+  }
+
+  const MASKS = [
+    (r, c) => (r + c) % 2 === 0,
+    (r) => r % 2 === 0,
+    (r, c) => c % 3 === 0,
+    (r, c) => (r + c) % 3 === 0,
+    (r, c) => (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0,
+    (r, c) => ((r * c) % 2) + ((r * c) % 3) === 0,
+    (r, c) => (((r * c) % 2) + ((r * c) % 3)) % 2 === 0,
+    (r, c) => (((r + c) % 2) + ((r * c) % 3)) % 2 === 0,
+  ];
+
+  // Format-Info (EC-Level M = 0b00) mit BCH(15,5)
+  function formatBits(mask) {
+    const data = (0b00 << 3) | mask;
+    let v = data << 10;
+    for (let i = 4; i >= 0; i--) if ((v >> (i + 10)) & 1) v ^= 0b10100110111 << i;
+    return ((data << 10) | v) ^ 0b101010000010010;
+  }
+  function versionBits(ver) {
+    let v = ver << 12;
+    for (let i = 5; i >= 0; i--) if ((v >> (i + 12)) & 1) v ^= 0b1111100100101 << i;
+    return (ver << 12) | v;
+  }
+
+  function penalty(m, size) {
+    let p = 0;
+    // Regel 1: Reihen/Spalten gleicher Farbe
+    for (let i = 0; i < size; i++) {
+      for (const dir of [0, 1]) {
+        let run = 1;
+        for (let j = 1; j < size; j++) {
+          const a = dir ? m[j - 1][i] : m[i][j - 1];
+          const b = dir ? m[j][i] : m[i][j];
+          if (a === b) { run++; } else { if (run >= 5) p += 3 + (run - 5); run = 1; }
+        }
+        if (run >= 5) p += 3 + (run - 5);
+      }
+    }
+    // Regel 2: 2x2-Blöcke
+    for (let r = 0; r < size - 1; r++) for (let c = 0; c < size - 1; c++) {
+      const v = m[r][c];
+      if (v === m[r][c + 1] && v === m[r + 1][c] && v === m[r + 1][c + 1]) p += 3;
+    }
+    // Regel 3: Finder-ähnliche Muster
+    const pat = [1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0];
+    const rpat = pat.slice().reverse();
+    const chk = (arr) => {
+      for (let i = 0; i + 11 <= arr.length; i++) {
+        const seg = arr.slice(i, i + 11);
+        if (seg.every((v, k) => (v ? 1 : 0) === pat[k])) p += 40;
+        else if (seg.every((v, k) => (v ? 1 : 0) === rpat[k])) p += 40;
+      }
+    };
+    for (let i = 0; i < size; i++) { chk(m[i]); chk(m.map(r => r[i])); }
+    // Regel 4: Anteil dunkler Module
+    let dark = 0;
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) if (m[r][c]) dark++;
+    const pct = dark * 100 / (size * size);
+    p += Math.floor(Math.abs(pct - 50) / 5) * 10;
+    return p;
+  }
+
+  function qrMatrix(text) {
+    const { ver, words } = encodeText(text);
+    const { m, res, size } = buildMatrix(ver, words);
+    let best = null;
+    for (let mask = 0; mask < 8; mask++) {
+      const cand = m.map(r => r.slice());
+      for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+        if (!res[r][c] && MASKS[mask](r, c)) cand[r][c] = !cand[r][c];
+      }
+      // Formatbits setzen
+      const fb = formatBits(mask);
+      for (let i = 0; i < 15; i++) {
+        // MSB zuerst: Bit 14 liegt auf der ersten Position (8,0). Mit LSB-first ist die
+        // Format-Info spiegelverkehrt und kein Scanner kann den Code auch nur anfassen.
+        const bit = ((fb >> (14 - i)) & 1) === 1;
+        if (i < 6) cand[8][i] = bit;
+        else if (i === 6) cand[8][7] = bit;
+        else if (i === 7) cand[8][8] = bit;
+        else if (i === 8) cand[7][8] = bit;
+        else cand[14 - i][8] = bit;
+        if (i < 8) cand[size - 1 - i][8] = bit;
+        else cand[8][size - 15 + i] = bit;
+      }
+      cand[size - 8][8] = true;  // Dark module
+      if (ver >= 7) {
+        const vb = versionBits(ver);
+        for (let i = 0; i < 18; i++) {
+          const bit = ((vb >> i) & 1) === 1;
+          cand[Math.floor(i / 3)][size - 11 + (i % 3)] = bit;
+          cand[size - 11 + (i % 3)][Math.floor(i / 3)] = bit;
+        }
+      }
+      const p = penalty(cand, size);
+      if (!best || p < best.p) best = { p, m: cand };
+    }
+    return { matrix: best.m, size };
+  }
+
+  function qrSVG(text, px) {
+    const { matrix, size } = qrMatrix(text);
+    const q = 4;                      // Ruhezone
+    const total = size + q * 2;
+    const rects = [];
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+      if (matrix[r][c]) rects.push(`<rect x="${c + q}" y="${r + q}" width="1" height="1"/>`);
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" width="${px}" height="${px}" shape-rendering="crispEdges">` +
+      `<rect width="${total}" height="${total}" fill="#fff"/><g fill="#000">${rects.join('')}</g></svg>`;
+  }
+
   function initials(name) { return String(name || '?').split(/\s+/).map(s => s[0]).slice(0, 2).join('').toUpperCase(); }
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
@@ -2482,7 +3152,7 @@
       const visits = d.visits || [];
       document.getElementById('visits').innerHTML = visits.length ? visits.map((v, i) => {
         const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
-        return `<div class="visit"><span class="time">${esc(v.time)}</span>${avatarHTML(v.client, 38, clientPhotoPath(v.client_id), 'client')}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${SERVICES[i % SERVICES.length]}</div></div><span class="status ${st[0]}">${st[1]}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>`;
+        return `<div class="visit" style="cursor:pointer" onclick="openClientDetail('${v.client_id}')"><span class="time">${esc(v.time)}</span>${avatarHTML(v.client, 38, clientPhotoPath(v.client_id), 'client')}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${SERVICES[i % SERVICES.length]}</div></div><span class="status ${st[0]}">${st[1]}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>`;
       }).join('') : '<div class="muted">Keine Einsätze heute geplant.</div>';
       hydratePhotos(document.getElementById('visits'));
 
