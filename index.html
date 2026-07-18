@@ -552,6 +552,11 @@
   .tour-item .tacts button.warn { color: #b45309; border-color: #f0d3a8; }
   .tour-item .tnote { width: 100%; margin: 2px 0 6px 58px; font-size: .8rem; color: #b45309; }
   .tour-item.is-done { opacity: .62; }
+  /* Weist nach dem Diktat auf den noch fehlenden Schritt hin */
+  @keyframes pa-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(18,165,148,.55); } 50% { box-shadow: 0 0 0 10px rgba(18,165,148,0); } }
+  button.pulse { animation: pa-pulse 1.4s ease-out 3; }
+  @media (prefers-reduced-motion: reduce) { button.pulse { animation: none; outline: 3px solid var(--primary); } }
+
   /* Körperschema (selbst gezeichnet) – Stelle antippen statt tippen */
   .body-picker { display: flex; gap: 10px; margin: 6px 0 4px; }
   .body-col { flex: 1; max-width: 190px; text-align: center; }
@@ -848,6 +853,9 @@
             <div class="muted" style="font-size:.85rem;margin-top:4px" id="doc-dict-tip">Tipp: Dein gesprochener Text erscheint im Feld. Bitte vor dem Entwurf prüfen.</div>
             <label style="margin-top:10px">… oder Audiodatei hochladen</label>
             <input type="file" id="doc-audio" accept="audio/*">
+            <div class="banner hidden" id="doc-next-hint" style="margin:10px 0 0">
+              Fast fertig: Text prüfen, dann <b>KI-Entwurf erstellen</b> – erst danach geht die Dokumentation an die Pflegedienstleitung.
+            </div>
             <div style="height:12px"></div>
             <button onclick="createDraft()">KI-Entwurf erstellen</button>
             <div class="err" id="doc-err"></div>
@@ -859,8 +867,11 @@
             <div id="draft-tasks" style="margin-top:8px"></div>
             <div style="height:14px"></div>
             <p class="muted hidden" id="confirm-sentence" style="margin:0 0 10px">Ich habe den KI-Entwurf geprüft und bestätige diese Dokumentation.</p>
-            <button id="submit-btn" class="hidden" onclick="submitDraft()">Dokumentation bestätigen</button>
-            <button id="confirm-btn" class="hidden" onclick="confirmDraft()">Freigeben (PDL)</button>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button id="submit-btn" class="hidden" onclick="submitDraft()">Dokumentation bestätigen</button>
+              <button id="confirm-btn" class="hidden" onclick="confirmDraft()">Freigeben (PDL)</button>
+              <button id="sheet-btn" class="ghost hidden" onclick="printReportSheet(lastReportId)">📄 Als PDF sichern</button>
+            </div>
             <span id="confirm-note" class="muted"></span>
           </div>
         </section>
@@ -2788,6 +2799,88 @@
   // ---- Detailansicht einer betreuten Person ----
   function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); }
 
+  /** EIN Eintrag als professioneller Beleg (→ „Als PDF sichern").
+   *
+   *  Das ist das Blatt, das nach dem Dokumentieren in die Akte gehört: Kopf mit
+   *  Einrichtung und Dokumentations-ID, Stammdaten der Person, der Eintrag selbst,
+   *  Freigabestand und Unterschriftenzeilen. Der Eintrag bleibt unabhängig davon
+   *  dauerhaft in der Akte gespeichert – das PDF ist die Ausfertigung, nicht der Speicher.
+   */
+  async function printReportSheet(reportId) {
+    try {
+      const r = await api('/api/v1/documentation/' + reportId);
+      // Stammdaten IMMER frisch holen: der Zwischenspeicher ist im Doku-Screen leer,
+      // dann fehlten Pflegegrad und Adresse auf dem Beleg.
+      let c = {};
+      try { c = (await api('/api/v1/clients/' + r.client_id + '/detail')).client || {}; }
+      catch (e) { c = (clientsCache || []).find(x => x.id === r.client_id) || {}; }
+      const e = esc, w = words();
+      const org = (user && user.organization_name) || 'Pflegeassistent';
+      const dt = r.created_at ? new Date(r.created_at) : new Date();
+      const docId = 'PB-' + dt.toISOString().slice(0, 10) + '-' + String(reportId).replace(/-/g, '').slice(0, 4).toUpperCase();
+      const STATUS_DE = { confirmed: 'Freigegeben', submitted: 'Bestätigt – wartet auf Freigabe', draft: 'KI-Entwurf – noch nicht bestätigt' };
+      const row = (l, v) => v ? `<tr><th>${e(l)}</th><td>${e(v)}</td></tr>` : '';
+      const block = (t, v) => v ? `<h2>${e(t)}</h2><div class="txt">${e(v)}</div>` : '';
+      const list = (t, arr) => (arr && arr.length)
+        ? `<h2>${e(t)}</h2><ul>${arr.map(x => `<li>${e(x)}</li>`).join('')}</ul>` : '';
+      const risks = (r.risks || []).length
+        ? `<h2>Risiken &amp; Hinweise</h2><ul>${r.risks.map(x =>
+            `<li><b>${e(x.title)}</b>${x.level ? ' (' + e(cap(x.level)) + ')' : ''}${x.description ? ' – ' + e(x.description) : ''}</li>`).join('')}</ul>`
+        : '';
+
+      const html = `<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>Pflegebericht ${e(r.client)} ${e(dt.toLocaleDateString('de-DE'))}</title><style>
+@page { size: A4; margin: 16mm 14mm 18mm; }
+body { font-family: "Segoe UI", system-ui, Arial, sans-serif; color: #14181a; font-size: 11pt; line-height: 1.5; margin: 0; }
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start;
+  border-bottom: 2.5px solid #0e7c86; padding-bottom: 8px; margin-bottom: 14px; }
+.sheet-head h1 { font-size: 16pt; margin: 0 0 2px; color: #0e7c86; }
+.sheet-head .org { font-size: 10pt; color: #555; }
+.docid { font-family: ui-monospace, Consolas, monospace; font-size: 9pt; color: #43585a;
+  background: #eef4f5; border: 1px solid #cfd8d9; border-radius: 4px; padding: 2px 7px; }
+table.meta { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+table.meta th { text-align: left; width: 30%; background: #f4f8f8; color: #43585a; font-size: 9.5pt;
+  padding: 6px 9px; border: 1px solid #d6e4e5; font-weight: 600; }
+table.meta td { padding: 6px 9px; border: 1px solid #d6e4e5; font-size: 10.5pt; }
+h2 { font-size: 11.5pt; margin: 15px 0 5px; color: #0e7c86; border-bottom: 1px solid #cfd8d9; padding-bottom: 3px; }
+.txt { white-space: pre-wrap; }
+ul { margin: 4px 0 0 18px; padding: 0; } li { margin-bottom: 3px; }
+.state { display: inline-block; font-size: 9.5pt; padding: 3px 10px; border-radius: 99px;
+  background: #eef4f5; color: #0e7c86; font-weight: 600; }
+.sign { margin-top: 30px; display: flex; gap: 40px; page-break-inside: avoid; }
+.sign div { flex: 1; border-top: 1px solid #9aa7a8; padding-top: 4px; font-size: 9pt; color: #6b7677; }
+.foot { margin-top: 18px; border-top: 1px solid #dde5e6; padding-top: 6px; font-size: 8.5pt; color: #7a8688; }
+@media print { .noprint { display: none; } }
+.noprint { position: fixed; top: 10px; right: 10px; }
+.noprint button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 0; background: #0e7c86; color: #fff; cursor: pointer; }
+</style></head><body>
+<div class="noprint"><button onclick="window.print()">Drucken / Als PDF sichern</button></div>
+<div class="sheet-head">
+  <div><h1>Pflegebericht</h1><div class="org">${e(org)}</div></div>
+  <div style="text-align:right"><span class="docid">${e(docId)}</span></div>
+</div>
+<table class="meta">
+${row(w.person, r.client)}${row('Pflegegrad', c.care_level)}${row(w.place, placeOf(c))}
+${row('Datum', dt.toLocaleDateString('de-DE') + ', ' + dt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr')}
+${row('Dokumentiert von', r.author)}
+<tr><th>Stand</th><td><span class="state">${e(STATUS_DE[r.status] || r.status)}</span></td></tr>
+</table>
+${block('Pflegebericht', r.report_text)}
+${list('Beobachtungen', r.observations)}
+${list('Maßnahmen', r.measures)}
+${block('Übergabe', r.handover_text)}
+${risks}
+<div class="sign"><div>Datum, Unterschrift Pflegekraft</div><div>Datum, Unterschrift Pflegedienstleitung</div></div>
+<div class="foot">Der Entwurf wurde mit KI-Unterstützung erstellt und von der Pflegekraft geprüft.
+Dieses Blatt ist eine Ausfertigung aus der Pflegedokumentation; der Eintrag bleibt in der Akte gespeichert.
+Es ersetzt keine unterschriebene Fassung.</div>
+</body></html>`;
+      const wnd = window.open('', '_blank');
+      if (!wnd) { flashToast('Bitte Pop-ups für diese Seite erlauben.'); return; }
+      wnd.document.write(html); wnd.document.close();
+    } catch (err) { flashToast('Beleg konnte nicht erstellt werden: ' + explainError(err)); }
+  }
+
   /** Pflegedokumentation einer Person als druckbares Dokument (→ „Als PDF sichern").
    *
    *  Bewusst im Browser gerendert statt auf dem Server: ein PDF-Paket wäre für Render
@@ -3004,7 +3097,8 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
         return `<div class="visit"><div class="grow"><div class="vname">${esc(fmtDate(r.created_at))} · ${esc(r.author)}</div>` +
           `<div class="vsub">${esc((r.report_text || '').slice(0, 120))}${(r.report_text || '').length > 120 ? '…' : ''}</div></div>` +
           `<span class="status ${st[0]}">${st[1]}</span>` +
-          `<button class="ghost" onclick="openReport('${r.report_id}')">Ansehen</button></div>`;
+          `<button class="ghost" onclick="openReport('${r.report_id}')">Ansehen</button>` +
+          `<button class="ghost" title="Als PDF sichern" onclick="printReportSheet('${r.report_id}')">📄</button></div>`;
       }).join('') : none('Noch keine Dokumentation vorhanden.');
 
       const risks = d.risks.length ? d.risks.map(r =>
@@ -4101,6 +4195,19 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
     if (rec.dataset.dict === '1') rec.textContent = 'Diktat übernommen – Text prüfen, dann „KI-Entwurf erstellen".';
     else if (rec.dataset.server !== '1') rec.textContent = 'Aufnahme bereit.';
     // Bei Server-Erkennung setzt transcribeRecording() den Text selbst (läuft nach onstop).
+    highlightNextStep();
+  }
+
+  /** Nach dem Stoppen ist die Dokumentation NICHT fertig – es fehlen noch zwei Schritte.
+   *  Ohne diesen Hinweis endet der Weg still: gesprochen, gestoppt, nichts übermittelt. */
+  function highlightNextStep() {
+    const btn = document.querySelector('#view-doc button[onclick="createDraft()"]');
+    if (!btn) return;
+    btn.classList.add('pulse');
+    btn.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    setTimeout(() => btn.classList.remove('pulse'), 6000);
+    const hint = document.getElementById('doc-next-hint');
+    if (hint) hint.classList.remove('hidden');
   }
 
   function toggleRecording() { capturing ? stopCapture() : startCapture(); }
@@ -4128,7 +4235,10 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       lastReportId = d.report_id;
       // Verbraucht: die nächste Dokumentation darf weder Aufnahme noch Einsatz erneut anhängen.
       uploadedVoiceNoteId = null; recordedBlob = null; pendingVisitId = null;
+      document.getElementById('doc-next-hint').classList.add('hidden');
+      document.getElementById('sheet-btn').classList.add('hidden');   // erst nach Bestätigen
       document.getElementById('draft-card').classList.remove('hidden');
+      document.getElementById('draft-card').scrollIntoView({ block: 'start', behavior: 'smooth' });
       document.getElementById('draft-status').textContent = d.status;
       document.getElementById('draft-report').textContent = d.pflegebericht + (d.uebergabe ? '\n\nÜbergabe: ' + d.uebergabe : '');
       document.getElementById('draft-risks').innerHTML = (d.risiko_hinweise || [])
@@ -4149,7 +4259,11 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       document.getElementById('draft-status').textContent = r.status;
       document.getElementById('submit-btn').classList.add('hidden');
       document.getElementById('confirm-sentence').classList.add('hidden');
-      document.getElementById('confirm-note').textContent = 'Bestätigt ✓ · zur Freigabe an die Pflegedienstleitung.';
+      // Unmissverständlich sagen, dass es raus ist – vorher blieb offen, ob etwas ankam.
+      document.getElementById('confirm-note').innerHTML =
+        '<b style="color:#15803d">✓ An die Pflegedienstleitung übermittelt.</b><br>' +
+        '<span class="muted">Der Eintrag ist in der Akte gespeichert und dort dauerhaft abrufbar.</span>';
+      document.getElementById('sheet-btn').classList.remove('hidden');
     } catch (e) { flash('doc-err', e.message); }
   }
 
@@ -4158,7 +4272,9 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       const r = await api('/api/v1/documentation/confirm', { method: 'POST', body: { report_id: lastReportId } });
       document.getElementById('draft-status').textContent = r.status;
       document.getElementById('confirm-btn').classList.add('hidden');
-      document.getElementById('confirm-note').textContent = 'Freigegeben ✓';
+      document.getElementById('confirm-note').innerHTML =
+        '<b style="color:#15803d">✓ Freigegeben und in der Akte abgelegt.</b>';
+      document.getElementById('sheet-btn').classList.remove('hidden');
       if (isManager()) loadDashboard();
     } catch (e) { flash('doc-err', e.message); }
   }
