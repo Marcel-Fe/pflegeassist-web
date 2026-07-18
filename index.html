@@ -33,28 +33,70 @@
 </script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PHJlY3Qgd2lkdGg9JzMyJyBoZWlnaHQ9JzMyJyByeD0nOCcgZmlsbD0nIzBlN2M4NicvPjxwYXRoIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDQsNCknIGQ9J00xMiAyMS4zNWwtMS40NS0xLjMyQzUuNCAxNS4zNiAyIDEyLjI4IDIgOC41IDIgNS40MiA0LjQyIDMgNy41IDNjMS43NCAwIDMuNDEuODEgNC41IDIuMDlDMTMuMDkgMy44MSAxNC43NiAzIDE2LjUgMyAxOS41OCAzIDIyIDUuNDIgMjIgOC41YzAgMy43OC0zLjQgNi44Ni04LjU1IDExLjU0TDEyIDIxLjM1eicgZmlsbD0nI2ZmZicvPjwvc3ZnPg==" />
 <style>
+  /* ===== Design-Tokens =====
+     Zwei Regeln, an die sich alles Weitere hält:
+     1. Gefüllte Flächen nutzen --primary/--primary-dark und beschriften mit --on-primary.
+     2. Markenfarbiger TEXT auf Karten nutzt --brand-ink (hell dunkelgrün, dunkel hell) —
+        --primary als Schriftfarbe bricht im Dunkelmodus, --brand-ink nicht.
+     Alle Werte sind gegen ihren Untergrund gemessen (>= 4.5:1), nicht geschätzt. */
   :root {
-    --bg: #f3f6f9; --card: #ffffff; --ink: #1f2a37; --muted: #6b7280;
+    /* Marke Liveno Care: Verlauf Türkis → Blau → Violett wie im App-Zeichen */
+    --brand-1: #2dd4bf; --brand-2: #3b82f6; --brand-3: #8b5cf6;
+    --brand-grad: linear-gradient(120deg, var(--brand-1) 0%, var(--brand-2) 52%, var(--brand-3) 100%);
+
+    --bg: #f3f6f9; --card: #ffffff; --ink: #1f2a37; --muted: #5f6874;
     --primary: #0e7c86; --primary-dark: #0a5b63; --accent: #2dd4bf; --line: #e5e9ef;
-    --ok: #15803d; --warn: #b45309; --danger: #b91c1c; --chip: #eef4f5;
+    --brand-ink: #0a5b63; --on-primary: #ffffff;
+    --ok: #15803d; --warn: #b45309; --danger: #b91c1c; --info: #1d4ed8; --chip: #eef4f5;
+    --ok-bg: #dcfce7; --warn-bg: #fef3c7; --danger-bg: #fee2e2; --info-bg: #dbeafe;
+    /* Akzente für Kennzahlen/Diagramme — je Thema eigene Werte, damit sie überall lesbar bleiben */
+    --c-teal: #0e7c86; --c-blue: #2563eb; --c-violet: #7c3aed;
+    --c-amber: #b45309; --c-red: #b91c1c; --c-green: #15803d; --c-mint: #0f766e;
+
+    /* Bühne des Dashboards: selbst gezeichnet, keine Bilddatei */
+    --stage: radial-gradient(900px 330px at 90% -32%, rgba(139,92,246,.20), transparent 60%),
+             radial-gradient(720px 300px at 2% 118%, rgba(45,212,191,.30), transparent 58%),
+             linear-gradient(120deg, #e9f6f7 0%, #ffffff 50%, #f0eafe 100%);
+    --stage-line: rgba(14,124,134,.16);
+
+    --radius-s: 10px; --radius-m: 14px; --radius-l: 20px;
+    --shadow-s: 0 1px 2px rgba(16,24,40,.06);
+    --shadow-m: 0 8px 20px rgba(16,24,40,.07);
+    --shadow-l: 0 18px 44px rgba(16,24,40,.12);
+    --space-1: 6px; --space-2: 10px; --space-3: 14px; --space-4: 18px; --space-5: 26px;
   }
   :root[data-theme="dark"] {
-    --bg: #0b1620; --card: #111f2b; --ink: #e6eef2; --muted: #93a4b3;
-    --line: #233543; --chip: #16323a;
+    --bg: #0a1119; --card: #121d29; --ink: #e6eef2; --muted: #9db0bf;
+    --line: #24384a; --chip: #17303a;
+    --primary: #12747d; --primary-dark: #0e7c86; --accent: #5eead4;
+    --brand-ink: #5eead4; --on-primary: #ffffff;
+    --ok: #4ade80; --warn: #fbbf24; --danger: #fca5a5; --info: #93c5fd;
+    --ok-bg: #12331f; --warn-bg: #3a2a10; --danger-bg: #3d1e1e; --info-bg: #16283f;
+    --c-teal: #2dd4bf; --c-blue: #7dabf8; --c-violet: #c4b5fd;
+    --c-amber: #fbbf24; --c-red: #fca5a5; --c-green: #4ade80; --c-mint: #5eead4;
+
+    --stage: radial-gradient(1100px 320px at 88% -40%, rgba(139,92,246,.30), transparent 62%),
+             radial-gradient(760px 300px at 6% 125%, rgba(45,212,191,.20), transparent 60%),
+             linear-gradient(120deg, #14202e 0%, #121d29 52%, #1b1a33 100%);
+    --stage-line: rgba(94,234,212,.20);
+
+    --shadow-s: 0 1px 2px rgba(0,0,0,.45);
+    --shadow-m: 0 8px 22px rgba(0,0,0,.45);
+    --shadow-l: 0 20px 48px rgba(0,0,0,.55);
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
          background: var(--bg); color: var(--ink); }
   button { font: inherit; cursor: pointer; border: none; border-radius: 8px; padding: 10px 16px;
-           background: var(--primary); color: #fff; font-weight: 600; }
+           background: var(--primary); color: var(--on-primary); font-weight: 600; }
   button:hover { background: var(--primary-dark); }
-  button.ghost { background: transparent; color: var(--primary); border: 1px solid var(--line); }
+  button.ghost { background: transparent; color: var(--brand-ink); border: 1px solid var(--line); }
   button.ghost:hover { background: var(--chip); }
   input, select, textarea { font: inherit; width: 100%; padding: 10px 12px; border: 1px solid var(--line);
            border-radius: 8px; background: var(--card); color: var(--ink); }
   label { display: block; font-size: .85rem; color: var(--muted); margin: 12px 0 4px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-          padding: 20px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-m);
+          padding: 20px; box-shadow: var(--shadow-s); }
   .muted { color: var(--muted); }
   .row { display: flex; gap: 12px; align-items: center; }
   .grow { flex: 1; }
@@ -108,7 +150,7 @@
   .auth-card { width: 100%; max-width: 440px; background: var(--card); border: 1px solid var(--line);
     border-radius: 18px; padding: 34px; box-shadow: 0 20px 44px rgba(16,24,40,.10); animation: rise .5s ease both; }
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  .pill { display: inline-block; background: var(--chip); color: var(--primary-dark); font-weight: 700;
+  .pill { display: inline-block; background: var(--chip); color: var(--brand-ink); font-weight: 700;
     font-size: .78rem; padding: 6px 12px; border-radius: 999px; }
   .auth-card h1 { font-size: 1.7rem; margin: 14px 0 4px; }
   .auth-card .lead { color: var(--muted); margin: 0 0 22px; }
@@ -122,16 +164,16 @@
   .remember-row { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 2px; font-size: .9rem; }
   .remember-row label { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--ink); cursor: pointer; }
   .remember-row input { width: auto; accent-color: var(--primary); }
-  .link { color: var(--primary); font-weight: 600; text-decoration: none; cursor: pointer;
+  .link { color: var(--brand-ink); font-weight: 600; text-decoration: none; cursor: pointer;
     background: none; border: none; padding: 0; font: inherit; }
   .link:hover { text-decoration: underline; }
   .btn-primary { width: 100%; height: 50px; border-radius: 11px; font-size: 1rem; margin-top: 14px;
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    background: linear-gradient(135deg, #12a594, #0a5b63); box-shadow: 0 10px 22px rgba(14,124,134,.30); }
-  .btn-primary:hover { filter: brightness(1.06); background: linear-gradient(135deg, #12a594, #0a5b63); }
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)); box-shadow: 0 10px 22px rgba(14,124,134,.30); }
+  .btn-primary:hover { filter: brightness(1.12); background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
   .divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .82rem; margin: 18px 0; }
   .divider::before, .divider::after { content: ""; height: 1px; flex: 1; background: var(--line); }
-  .btn-outline { width: 100%; height: 48px; border-radius: 11px; background: transparent; color: var(--primary-dark);
+  .btn-outline { width: 100%; height: 48px; border-radius: 11px; background: transparent; color: var(--brand-ink);
     border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; }
   .btn-outline:hover { background: var(--chip); }
   :root[data-theme="dark"] .btn-outline { color: var(--ink); }
@@ -155,10 +197,10 @@
     padding: 11px 12px; border-radius: 10px; background: none; color: var(--muted); font-weight: 600; font-size: .92rem; }
   .nav-item svg { width: 19px; height: 19px; flex: none; }
   .nav-item:hover { background: var(--chip); color: var(--ink); }
-  .nav-item.active { background: linear-gradient(135deg, rgba(18,165,148,.16), rgba(14,124,134,.08)); color: var(--primary-dark); }
-  .nav-item .nbadge { margin-left: auto; background: var(--chip); color: var(--primary-dark);
+  .nav-item.active { background: linear-gradient(135deg, rgba(45,212,191,.18), rgba(139,92,246,.10)); color: var(--brand-ink); }
+  .nav-item .nbadge { margin-left: auto; background: var(--chip); color: var(--brand-ink);
     border-radius: 999px; font-size: .72rem; padding: 1px 8px; font-weight: 700; }
-  .nav-item .nbadge.red { background: #fee2e2; color: var(--danger); }
+  .nav-item .nbadge.red { background: var(--danger-bg); color: var(--danger); }
   .nav-sep { height: 1px; background: var(--line); margin: 10px 6px; }
   .ki-status { margin-top: auto; background: linear-gradient(160deg, #0e7c86, #0a5b63); color: #fff;
     border-radius: 14px; padding: 15px; font-size: .84rem; }
@@ -175,42 +217,53 @@
   .iconbtn { width: 42px; height: 42px; border-radius: 11px; background: var(--bg); border: 1px solid var(--line);
     display: grid; place-items: center; color: var(--muted); position: relative; padding: 0; }
   .iconbtn:hover { background: var(--chip); }
-  .iconbtn .dot { position: absolute; top: -5px; right: -5px; background: #ef4444; color: #fff; border-radius: 999px;
+  .iconbtn .tlbl { display: none; }
+  .iconbtn .dot { position: absolute; top: -5px; right: -5px; background: #b91c1c; color: #fff; border-radius: 999px;
     font-size: .64rem; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 4px; font-weight: 700; }
   .user-chip { display: flex; align-items: center; gap: 10px; }
   .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none;
-    background: linear-gradient(135deg, #12a594, #0a5b63); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: .85rem; }
+    background: var(--brand-grad); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: .85rem; }
   .user-chip .who .name { font-weight: 700; font-size: .9rem; }
   .user-chip .who .role { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 
-  .content { padding: 26px; max-width: 1520px; }
+  .content { padding: var(--space-5) var(--space-5) 96px; max-width: 1520px; }
   .greet-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
   .greet-row h1 { font-size: 1.7rem; margin: 0 0 4px; }
   .date-btn { background: var(--card); border: 1px solid var(--line); color: var(--ink); font-weight: 600;
     display: flex; gap: 8px; align-items: center; white-space: nowrap; }
 
-  .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 18px; }
-  @media (max-width: 1300px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 640px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
-  .kpi .kicon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 12px; }
+  /* auto-fit statt sechs fester Spalten: auf mittleren Breiten wurde sonst gequetscht */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
+    gap: var(--space-3); margin-bottom: var(--space-4); }
+  @media (max-width: 420px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-m);
+    padding: var(--space-4); box-shadow: var(--shadow-s); transition: transform .16s ease, box-shadow .16s ease; }
+  .kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow-m); }
+  /* Icon-Fläche: getönt aus derselben Akzentfarbe wie die Kachel, statt fester Hex-Werte
+     aus dem JS - so trägt sie in beiden Themes. */
+  .kpi .kicon { width: 40px; height: 40px; border-radius: var(--radius-s); display: grid; place-items: center;
+    margin-bottom: 12px; color: var(--kpi-c, var(--brand-ink)); }
+  .kpi .kicon::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: var(--kpi-c, var(--primary)); opacity: .14; }
+  .kpi .kicon > svg { position: relative; z-index: 1; }
   .kpi .val { font-size: 1.7rem; font-weight: 800; }
   .kpi .lbl { color: var(--muted); font-size: .8rem; margin-top: 2px; }
   .kpi .trend { font-size: .76rem; margin-top: 8px; color: var(--muted); }
 
   .cols3 { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 16px; }
   @media (max-width: 1150px) { .cols3 { grid-template-columns: 1fr; } .app { grid-template-columns: 1fr; } .sidebar { display: none; } }
-  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-m);
+    padding: var(--space-4); box-shadow: var(--shadow-s); }
   .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .panel-head h3 { margin: 0; font-size: 1.02rem; }
   .visit { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
   .visit:last-of-type { border-bottom: none; }
-  .visit .time { font-weight: 700; color: var(--primary-dark); font-size: .88rem; width: 46px; flex: none; }
+  .visit .time { font-weight: 700; color: var(--brand-ink); font-size: .88rem; width: 46px; flex: none; }
   .visit .vname { font-weight: 600; font-size: .92rem; }
   .visit .vsub { color: var(--muted); font-size: .8rem; }
   .status { font-size: .72rem; padding: 4px 10px; border-radius: 999px; font-weight: 600; margin-left: auto; white-space: nowrap; }
-  .status.done { background: #dcfce7; color: #15803d; }
-  .status.prog { background: #dbeafe; color: #2563eb; }
+  .status.done { background: var(--ok-bg); color: var(--ok); }
+  .status.prog { background: var(--info-bg); color: var(--info); }
   .status.plan { background: var(--chip); color: var(--muted); }
   .btn-soft { width: 100%; margin-top: 12px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); font-weight: 600; }
   .btn-soft:hover { background: var(--chip); }
@@ -226,10 +279,10 @@
   .task-item .tt { font-weight: 600; font-size: .9rem; }
   .task-item .ts { color: var(--muted); font-size: .78rem; }
   .prio { margin-left: auto; font-size: .72rem; padding: 3px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
-  .prio.hoch { background: #fee2e2; color: var(--danger); }
-  .prio.mittel { background: #fef3c7; color: var(--warn); }
-  .prio.niedrig { background: #dcfce7; color: var(--ok); }
-  .prio.normal { background: var(--chip); color: var(--primary-dark); }
+  .prio.hoch { background: var(--danger-bg); color: var(--danger); }
+  .prio.mittel { background: var(--warn-bg); color: var(--warn); }
+  .prio.niedrig { background: var(--ok-bg); color: var(--ok); }
+  .prio.normal { background: var(--chip); color: var(--brand-ink); }
   .act { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: .86rem; }
   .act .muted { margin-left: auto; font-size: .76rem; white-space: nowrap; }
   .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -287,17 +340,24 @@
   .view-help { margin-left: 8px; vertical-align: middle; width: 26px; height: 26px; border-radius: 50%;
     border: 1px solid var(--line); background: var(--card); color: var(--muted); font-weight: 700;
     font-size: .82rem; cursor: pointer; padding: 0; line-height: 1; }
-  .view-help:hover { background: var(--chip); color: var(--primary-dark); }
+  .view-help:hover { background: var(--chip); color: var(--brand-ink); }
 
   /* Foto-Avatare (lizenzfreie Portraits, mit Initialen-Fallback) */
   .av-photo { position: relative; display: inline-grid; place-items: center; border-radius: 50%; flex: none;
-    overflow: hidden; background: linear-gradient(135deg, #12a594, #0a5b63); color: #fff; font-weight: 700; }
+    overflow: hidden; background: var(--brand-grad); color: #fff; font-weight: 700; }
   .av-photo .pimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
   /* PDL-Dashboard: Foto-Hero + Schnell-starten */
-  .dhero { display: grid; grid-template-columns: 1.7fr 260px; align-items: stretch; gap: 0;
-    background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden;
-    margin-bottom: 18px; box-shadow: 0 10px 30px rgba(16,24,40,.06); min-height: 220px; }
+  /* Bühne: Verlauf + selbst gezeichnetes Punktraster (Inline-SVG als data-URI, keine Bilddatei).
+     Hell und dunkel getrennt über --stage, damit der Text in beiden Fällen trägt. */
+  .dhero { position: relative; display: grid; grid-template-columns: 1.7fr 260px; align-items: stretch; gap: 0;
+    background: var(--stage); border: 1px solid var(--line); border-radius: var(--radius-l); overflow: hidden;
+    margin-bottom: var(--space-4); box-shadow: var(--shadow-m); min-height: 220px; }
+  .dhero::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background-image: radial-gradient(var(--stage-line) 1px, transparent 1.4px); background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(115deg, #000 0%, transparent 62%);
+    mask-image: linear-gradient(115deg, #000 0%, transparent 62%); }
+  .dhero > * { position: relative; z-index: 1; }
   .dhero-text { padding: 34px 34px; display: flex; flex-direction: column; justify-content: center; }
   .dhero-text h1 { font-size: 2rem; margin: 0 0 8px; letter-spacing: -.02em; }
   .dhero-text p { color: var(--muted); margin: 0; font-size: 1.02rem; max-width: 34ch; }
@@ -313,25 +373,28 @@
   .wf-step + .wf-step::before { content: ""; position: absolute; left: 0; top: 50%; width: 1px; height: 30px;
     transform: translateY(-50%); background: var(--line); }
   .wf-step .wf-dot { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center;
-    background: var(--chip); color: var(--primary-dark); font-weight: 800; font-size: .9rem; }
-  .wf-step.alert .wf-dot { background: rgba(185,28,28,.10); color: #b91c1c; }
-  .wf-step.clear .wf-dot { background: rgba(21,128,61,.10); color: #15803d; }
+    background: var(--chip); color: var(--brand-ink); font-weight: 800; font-size: 1rem; }
+  .wf-step.alert .wf-dot { background: var(--danger-bg); color: var(--danger); }
+  .wf-step.clear .wf-dot { background: var(--ok-bg); color: var(--ok); }
   .wf-step .wf-lbl { font-size: .84rem; font-weight: 600; line-height: 1.25; }
   .wf-step .wf-sub { font-size: .74rem; color: var(--muted); font-weight: 500; }
-  .wf-step:hover .wf-lbl { color: var(--primary-dark); }
-  .dhero-quick { padding: 22px; border-left: 1px solid var(--line); background: var(--bg);
-    display: flex; flex-direction: column; gap: 8px; }
+  .wf-step:hover .wf-lbl { color: var(--brand-ink); }
+  .dhero-quick { padding: 22px; border-left: 1px solid var(--line); background: rgba(255,255,255,.42);
+    display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(2px); }
+  :root[data-theme="dark"] .dhero-quick { background: rgba(8,14,22,.34); }
   .dhero-quick h4 { margin: 0 0 6px; font-size: .95rem; }
   .qa { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 11px; width: 100%;
     background: var(--card); border: 1px solid var(--line); color: var(--ink); font-weight: 600; font-size: .86rem; text-align: left; }
   .qa:hover { background: var(--chip); }
-  .qa svg { width: 17px; height: 17px; color: var(--primary); flex: none; }
+  .qa svg { width: 17px; height: 17px; color: var(--brand-ink); flex: none; }
   @media (max-width: 1150px) { .dhero { grid-template-columns: 1fr; } .dhero-quick { border-left: none; border-top: 1px solid var(--line); } }
 
   /* KPI-Karten mit farbiger Tönung */
   .kpi { position: relative; overflow: hidden; }
-  .kpi::after { content: ""; position: absolute; right: -30px; top: -30px; width: 120px; height: 120px; border-radius: 50%;
-    background: var(--kpi-c, var(--primary)); opacity: .10; }
+  /* Weicher Farbschleier statt harter Kreiskante - der Kreis las sich wie ein Fleck. */
+  .kpi::after { content: ""; position: absolute; right: -50px; top: -70px; width: 200px; height: 200px;
+    border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, var(--kpi-c, var(--primary)) 0%, transparent 68%); opacity: .20; }
   .kpi .kicon { position: relative; z-index: 1; }
 
   /* Chevron in Listenzeilen */
@@ -403,8 +466,8 @@
   .check-item { display: flex; align-items: center; gap: 12px; padding: 11px 4px; border-bottom: 1px solid var(--line); }
   .check-item:last-child { border-bottom: none; }
   .check-item .ci-ic { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; flex: none; }
-  .ci-ok { background: #dcfce7; color: var(--ok); }
-  .ci-warn { background: #fef3c7; color: var(--warn); }
+  .ci-ok { background: var(--ok-bg); color: var(--ok); }
+  .ci-warn { background: var(--warn-bg); color: var(--warn); }
   .ci-open { background: var(--chip); color: var(--muted); }
   .check-item .ci-t { font-weight: 600; font-size: .9rem; }
   .check-item .ci-s { color: var(--muted); font-size: .78rem; }
@@ -413,7 +476,7 @@
   /* Export-Karten */
   .exp-card { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px solid var(--line);
     border-radius: 14px; background: var(--card); }
-  .exp-card .ex-ic { width: 44px; height: 44px; border-radius: 12px; background: var(--chip); color: var(--primary);
+  .exp-card .ex-ic { width: 44px; height: 44px; border-radius: 12px; background: var(--chip); color: var(--brand-ink);
     display: grid; place-items: center; flex: none; }
   .exp-card .grow .et { font-weight: 700; }
   .exp-card .grow .es { color: var(--muted); font-size: .82rem; }
@@ -443,23 +506,28 @@
   .list { list-style: none; padding: 0; margin: 0; }
   .list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .list li:last-child { border-bottom: none; }
-  .chip { font-size: .72rem; padding: 3px 8px; border-radius: 999px; background: var(--chip); color: var(--primary-dark); font-weight: 600; }
-  .chip.warn { background: #fef3c7; color: var(--warn); }
-  .chip.hoch, .chip.kritisch { background: #fee2e2; color: var(--danger); }
+  .chip { font-size: .72rem; padding: 3px 8px; border-radius: 999px; background: var(--chip); color: var(--brand-ink); font-weight: 600; }
+  .chip.warn { background: var(--warn-bg); color: var(--warn); }
+  .chip.hoch, .chip.kritisch { background: var(--danger-bg); color: var(--danger); }
   .stack { display: grid; gap: 16px; }
   .report { white-space: pre-wrap; background: var(--chip); border-radius: 10px; padding: 14px; }
-  .banner { background: #fff8e6; border: 1px solid #f5e2b3; color: #7a5b12; padding: 10px 14px;
-            border-radius: 10px; font-size: .88rem; margin-bottom: 16px; }
+  .banner { background: var(--warn-bg); border: 1px solid var(--warn-bg); color: var(--warn); padding: 10px 14px;
+            border-radius: var(--radius-s); font-size: .88rem; margin-bottom: 16px; }
   .api-row { font-size: .8rem; }
-  a { color: var(--primary-dark); }
+  a { color: var(--brand-ink); }
 
   /* ===== Handy: Pflegekraft-Startseite, Bottom-Nav, Drawer, mobiler Kopf ===== */
   .link { background: none; padding: 0; }
   /* KPI-Kacheln im Mockup-Look (weiße Karte, getönte Icon-Fläche, farbige Unterzeile) */
   .mkpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
   @media (max-width: 720px) { .mkpi-grid { grid-template-columns: repeat(2, 1fr); } }
-  .mkpi { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 15px; }
-  .mkpi .mk-ic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 12px; }
+  .mkpi { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-m);
+    padding: var(--space-4); box-shadow: var(--shadow-s); }
+  .mkpi .mk-ic { width: 40px; height: 40px; border-radius: var(--radius-s); display: grid; place-items: center;
+    margin-bottom: 12px; position: relative; color: var(--kpi-c, var(--brand-ink)); }
+  .mkpi .mk-ic::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: var(--kpi-c, var(--primary)); opacity: .14; }
+  .mkpi .mk-ic > svg { position: relative; z-index: 1; }
   .mkpi .mk-ic svg { width: 20px; height: 20px; }
   .mkpi .mk-v { font-size: 1.7rem; font-weight: 800; line-height: 1; }
   .mkpi .mk-l { color: var(--muted); font-size: .82rem; margin-top: 4px; }
@@ -471,11 +539,11 @@
   .qa-circle { display: flex; flex-direction: column; align-items: center; gap: 8px; background: none; padding: 6px 2px;
     color: var(--ink); font-weight: 600; font-size: .78rem; text-align: center; }
   .qa-circle .qc { width: 56px; height: 56px; border-radius: 50%; background: var(--card); border: 1px solid var(--line);
-    display: grid; place-items: center; color: var(--primary-dark); box-shadow: 0 4px 12px rgba(16,24,40,.06); }
+    display: grid; place-items: center; color: var(--brand-ink); box-shadow: var(--shadow-s); }
   .qa-circle .qc svg { width: 22px; height: 22px; }
   .qa-circle:hover .qc { background: var(--chip); }
   .route-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 999px;
-    border: 1px solid var(--line); background: var(--card); color: var(--primary-dark); font-weight: 600; font-size: .84rem; }
+    border: 1px solid var(--line); background: var(--card); color: var(--brand-ink); font-weight: 600; font-size: .84rem; }
   .route-btn:hover { background: var(--chip); }
 
   /* Hamburger + mobile Marke im Kopf (Desktop: aus) */
@@ -498,17 +566,27 @@
     .drawer-backdrop.open { display: block; position: fixed; inset: 0; background: rgba(8,20,24,.45); z-index: 55; }
     .bottom-nav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--card);
       border-top: 1px solid var(--line); padding: 7px 4px calc(7px + env(safe-area-inset-bottom)); justify-content: space-around;
-      box-shadow: 0 -6px 20px rgba(16,24,40,.06); }
+      box-shadow: var(--shadow-l); }
+    /* Der Kopf hebt sich beim Scrollen ab, statt in den Inhalt zu laufen */
+    .topbar { box-shadow: var(--shadow-s); }
+    /* Einsatz-Karten dichter, damit mehr Tagesplan aufs Bild passt.
+       Breite der Knöpfe bewusst NICHT angefasst - sie passen gemessen in eine Zeile. */
+    .tour-item { padding: var(--space-2) 0; }
     .is-admin .bottom-nav { display: none; }
     .fab { display: none; }
     .topbar-right { gap: 8px; }
     .topbar .theme-btn, .user-chip .who, .user-chip .chev { display: none; }
     .topbar-right > .ghost { padding: 9px 12px; font-size: .82rem; }
   }
+  /* Auf schmalen Geräten lief der Kopf über und schnitt „Abmelden" ab.
+     Das Zeichen bleibt, der Schriftzug weicht - gemessen, nicht geschätzt. */
+  @media (max-width: 460px) {
+    .mobile-brand .wordmark { display: none; }
+  }
   .bn-item { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; padding: 3px 2px;
     background: none; color: var(--muted); font-size: .66rem; font-weight: 600; }
   .bn-item svg { width: 22px; height: 22px; }
-  .bn-item.active { color: var(--primary); }
+  .bn-item.active { color: var(--brand-ink); }
 
   /* Grosser "Dokumentation starten"-Button (Handy) */
   .doc-cta { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; margin-bottom: 16px;
@@ -530,27 +608,27 @@
   /* Heutige Tour (Timeline) */
   .tour-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .tour-item:last-child { border-bottom: none; }
-  .tour-item .ttime { font-weight: 700; color: var(--primary-dark); font-size: .85rem; width: 46px; flex: none; }
+  .tour-item .ttime { font-weight: 700; color: var(--brand-ink); font-size: .85rem; width: 46px; flex: none; }
   .tour-item .tdot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-  .tdot.done { background: #15803d; } .tdot.prog { background: #2563eb; } .tdot.plan { background: #c9ced1; }
-  .tdot.miss { background: #b45309; }
+  .tdot.done { background: var(--ok); } .tdot.prog { background: var(--info); } .tdot.plan { background: var(--line); }
+  .tdot.miss { background: var(--warn); }
 
   /* Handy-Tagesplan: unterwegs zählt nur, was noch offen ist. */
-  .day-strip { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
-  .day-strip .ds-num { font-size: 1.7rem; font-weight: 800; color: var(--primary-dark); line-height: 1; }
+  .day-strip { display: flex; align-items: center; gap: 12px; background: var(--stage); border: 1px solid var(--line);
+    border-radius: var(--radius-m); padding: var(--space-3); margin-bottom: var(--space-3); box-shadow: var(--shadow-s); }
+  .day-strip .ds-num { font-size: 1.7rem; font-weight: 800; color: var(--brand-ink); line-height: 1; }
   .day-strip .ds-txt { font-size: .85rem; }
   .day-strip .ds-bar { flex: 1; height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; min-width: 60px; }
-  .day-strip .ds-fill { height: 100%; background: #15803d; border-radius: 99px; transition: width .3s; }
+  .day-strip .ds-fill { height: 100%; background: var(--ok); border-radius: 99px; transition: width .3s; }
 
   /* Einsatz-Karte: alles, was im Flur zählt, ohne Untermenü. */
   .tour-item.tv { flex-wrap: wrap; align-items: flex-start; }
   .tour-item .tacts { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; margin: 8px 0 2px 58px; }
   .tour-item .tacts button { font-size: .82rem; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--card); color: var(--text); font-weight: 600; cursor: pointer; min-height: 40px; }
-  .tour-item .tacts button.prim { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
-  .tour-item .tacts button.warn { color: #b45309; border-color: #f0d3a8; }
-  .tour-item .tnote { width: 100%; margin: 2px 0 6px 58px; font-size: .8rem; color: #b45309; }
+    background: var(--card); color: var(--ink); font-weight: 600; cursor: pointer; min-height: 40px; }
+  .tour-item .tacts button.prim { background: var(--primary-dark); color: var(--on-primary); border-color: var(--primary-dark); }
+  .tour-item .tacts button.warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-bg); }
+  .tour-item .tnote { width: 100%; margin: 2px 0 6px 58px; font-size: .8rem; color: var(--warn); }
   .tour-item.is-done { opacity: .62; }
   /* Weist nach dem Diktat auf den noch fehlenden Schritt hin */
   @keyframes pa-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(18,165,148,.55); } 50% { box-shadow: 0 0 0 10px rgba(18,165,148,0); } }
@@ -565,14 +643,14 @@
   .body-shape { fill: var(--chip); stroke: var(--line); stroke-width: .8; }
   .body-spot { fill: transparent; stroke: transparent; cursor: pointer; }
   .body-spot:hover { fill: rgba(18,165,148,.30); }
-  .body-spot.sel { fill: rgba(18,165,148,.55); stroke: var(--primary-dark); stroke-width: 1.4; }
+  .body-spot.sel { fill: rgba(45,212,191,.55); stroke: var(--brand-ink); stroke-width: 1.4; }
 
   /* Wunddoku: Maßnahmen zum Antippen + Vorschau-Beleg */
   .measure-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; margin-top: 4px; }
   .measure { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line);
     border-radius: 10px; font-size: .87rem; font-weight: 500; cursor: pointer; margin: 0; }
   .measure input { width: auto; margin: 0; flex: none; }
-  .measure:has(input:checked) { border-color: var(--primary-dark); background: rgba(18,165,148,.08); }
+  .measure:has(input:checked) { border-color: var(--brand-ink); background: rgba(45,212,191,.12); }
   table.wd-sheet { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .88rem; }
   table.wd-sheet th { text-align: left; width: 42%; padding: 6px 8px; border: 1px solid var(--line);
     background: var(--bg); font-weight: 600; color: var(--muted); }
@@ -582,7 +660,7 @@
   .wayfind .wf-place { font-size: 1.02rem; font-weight: 600; }
   .wayfind .wf-acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
   .wayfind .wf-acts button { min-height: 42px; }
-  .wayfind .wf-acts button.prim { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+  .wayfind .wf-acts button.prim { background: var(--primary-dark); color: var(--on-primary); border-color: var(--primary-dark); }
   .wayfind iframe.wf-map { width: 100%; height: 210px; border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; display: block; }
   .start-actions { display: flex; gap: 10px; flex-wrap: wrap; }
   .start-actions button { flex: 1; min-width: 150px; min-height: 46px; }
@@ -714,7 +792,7 @@
           <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#pa-g)" />
           <path transform="translate(8,8)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#fff" />
         </svg>
-        <span class="wordmark" style="font-size:1.15rem">Pflege<b style="color:var(--primary)">assistent</b></span>
+        <span class="wordmark" style="font-size:1.15rem">Pflege<b style="color:var(--brand-ink)">assistent</b></span>
       </div>
       <div class="side-nav">
         <button class="nav-item hidden" data-view="admin" onclick="navTo('admin')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg> Kundenverwaltung</button>
@@ -746,7 +824,7 @@
             <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#pa-g)" />
             <path transform="translate(8,8)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#fff" />
           </svg>
-          <span class="wordmark">Pflege<b style="color:var(--primary)">assistent</b></span>
+          <span class="wordmark">Pflege<b style="color:var(--brand-ink)">assistent</b></span>
         </div>
         <div class="search">
           <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
@@ -779,7 +857,7 @@
                unterwegs zählt nur, was noch offen ist. -->
           <div class="day-strip" id="c-progress"></div>
           <div class="panel" style="margin-bottom:14px">
-            <div class="panel-head"><h3 id="tour-title">Heutige Tour</h3><button class="link" style="color:var(--primary-dark);font-weight:600" onclick="navTo('einsaetze')">Alle</button></div>
+            <div class="panel-head"><h3 id="tour-title">Heutige Tour</h3><button class="link" style="font-weight:600" onclick="navTo('einsaetze')">Alle</button></div>
             <div id="c-tour"><div class="muted">Lädt …</div></div>
           </div>
           <div class="start-actions">
@@ -861,7 +939,7 @@
             <div class="err" id="doc-err"></div>
           </div>
           <div class="panel hidden" id="draft-card" style="margin-top:16px">
-            <h2>KI-Entwurf <span class="chip" style="background:#fef3c7;color:#b45309">Bitte prüfen</span> <span class="chip" id="draft-status">draft</span></h2>
+            <h2>KI-Entwurf <span class="chip warn">Bitte prüfen</span> <span class="chip" id="draft-status">draft</span></h2>
             <div class="report" id="draft-report"></div>
             <div id="draft-risks" style="margin-top:12px"></div>
             <div id="draft-tasks" style="margin-top:8px"></div>
@@ -1041,7 +1119,7 @@
             <div class="err" id="in-err"></div>
           </div>
           <div class="panel hidden" id="intake-result" style="margin-top:16px">
-            <div class="panel-head"><h3>Kurzprofil</h3><span class="chip" style="background:#fef3c7;color:#b45309">Bitte prüfen</span></div>
+            <div class="panel-head"><h3>Kurzprofil</h3><span class="chip warn">Bitte prüfen</span></div>
             <div class="report" id="in-profile" style="white-space:pre-wrap"></div>
             <div style="margin-top:14px"><b>Hinweise</b><ul class="hint-list" id="in-hints"></ul></div>
             <div style="margin-top:14px"><b>Offene Fragen für den Erstbesuch</b><ul class="hint-list" id="in-questions"></ul></div>
@@ -1314,7 +1392,7 @@
 <!-- ZUGANG ABGELAUFEN / NOCH NICHT FREIGESCHALTET -->
 <section id="paywall-view" class="hidden" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)">
   <div class="panel" style="max-width:520px;width:100%;text-align:center">
-    <div style="width:64px;height:64px;border-radius:16px;margin:6px auto 14px;display:flex;align-items:center;justify-content:center;background:#fef3c7;color:#b45309">
+    <div style="width:64px;height:64px;border-radius:16px;margin:6px auto 14px;display:flex;align-items:center;justify-content:center;background:var(--warn-bg);color:var(--warn)">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
     </div>
     <h2 id="pw-title" style="margin:0 0 8px">Zugang nicht aktiv</h2>
@@ -1364,7 +1442,7 @@
   function toggleApi() { document.getElementById('api-row').classList.toggle('hidden'); }
   function updateThemeBtn() {
     const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.querySelectorAll('.theme-btn').forEach(b => b.textContent = dark ? '☾ Dunkel' : '☀︎ Hell');
+    document.querySelectorAll('.theme-btn').forEach(b => b.innerHTML = (dark ? '☾' : '☀︎') + '<span class="tlbl"> ' + (dark ? 'Dunkel' : 'Hell') + '</span>');
   }
   function toggleTheme() {
     const root = document.documentElement;
@@ -1535,12 +1613,12 @@
       const d = await api('/api/v1/admin/usage');
       const t = d.totals || {};
       const kpi = (icon, color, val, label) =>
-        `<div class="kpi" style="--kpi-c:${color}"><div class="kicon" style="background:${color}1a;color:${color}">${icon}</div><div class="val">${val}</div><div class="lbl">${label}</div></div>`;
+        `<div class="kpi" style="--kpi-c:${color}"><div class="kicon">${icon}</div><div class="val">${val}</div><div class="lbl">${label}</div></div>`;
       document.getElementById('admin-kpis').innerHTML =
-        kpi(SVG.users, '#0e7c86', t.active_users ?? 0, 'Aktive Nutzer') +
-        kpi(SVG.calendar, '#2563eb', t.organizations ?? 0, 'Organisationen') +
-        kpi(SVG.doc, '#7c3aed', (t.ai_minutes_used ?? 0) + ' min', 'KI-Minuten (gesamt)') +
-        kpi(SVG.euro, '#b45309', fmtEur(t.ai_cost_eur), 'Interne KI-Kosten');
+        kpi(SVG.users, 'var(--c-teal)', t.active_users ?? 0, 'Aktive Nutzer') +
+        kpi(SVG.calendar, 'var(--c-blue)', t.organizations ?? 0, 'Organisationen') +
+        kpi(SVG.doc, 'var(--c-violet)', (t.ai_minutes_used ?? 0) + ' min', 'KI-Minuten (gesamt)') +
+        kpi(SVG.euro, 'var(--c-amber)', fmtEur(t.ai_cost_eur), 'Interne KI-Kosten');
       const orgs = d.organizations || [];
       document.getElementById('admin-usage').innerHTML = orgs.length ? orgs.map(o => {
         const seats = o.seats_included != null ? `${o.users}/${o.seats_included} Plätze` : `${o.users} Nutzer`;
@@ -1780,7 +1858,7 @@
 
   const MONTHS_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
   function mkpiCard(icon, color, tint, val, label, sub, subColor) {
-    return `<div class="mkpi"><div class="mk-ic" style="background:${tint};color:${color}">${icon}</div>` +
+    return `<div class="mkpi" style="--kpi-c:${color}"><div class="mk-ic">${icon}</div>` +
       `<div class="mk-v">${val}</div><div class="mk-l">${esc(label)}</div>` +
       (sub ? `<div class="mk-s" style="color:${subColor}">${esc(sub)}</div>` : '') + `</div>`;
   }
@@ -1797,7 +1875,7 @@
       ? open.map(r => 'Hinweis: ' + (r.client ? r.client + ' – ' : '') + r.title)
       : ['Keine besonderen Hinweise für heute. Achte auf Veränderungen und dokumentiere sie.'];
     box.innerHTML =
-      '<div class="panel-head" style="margin-bottom:10px"><h3 style="color:var(--primary-dark)">KI-Briefing</h3><span class="chip" style="background:#fef3c7;color:#b45309">Bitte prüfen</span></div>' +
+      '<div class="panel-head" style="margin-bottom:10px"><h3 style="color:var(--primary-dark)">KI-Briefing</h3><span class="chip warn">Bitte prüfen</span></div>' +
       '<ul class="hint-list">' + items.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>' +
       '<div class="muted" style="font-size:.78rem;margin-top:9px">Hinweise aus der bisherigen Dokumentation – keine Diagnose. Bitte im Einsatz prüfen.</div>';
   }
@@ -1823,7 +1901,7 @@
     // Offene Risiken der Person direkt am Einsatz – dort, wo sie gebraucht werden,
     // statt in einem eigenen Briefing-Block weiter oben. Immer als Hinweis, nie als Urteil.
     const hints = (openRisksByClient[v.client_id] || []).slice(0, 2)
-      .map(r => '<div class="vsub" style="color:#b45309">Hinweis: ' + esc(r.title) + '</div>').join('');
+      .map(r => '<div class="vsub" style="color:var(--warn)">Hinweis: ' + esc(r.title) + '</div>').join('');
     const note = v.note ? '<div class="tnote">Notiz: ' + esc(v.note) + '</div>' : '';
     // Kurze Beschriftungen: bei 390 px müssen die drei Knöpfe in EINE Zeile passen,
     // sonst wird jede Karte doppelt so hoch und die Liste unübersichtlich.
@@ -2039,38 +2117,38 @@
         api('/api/v1/clients'), api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/risks')]);
       const openTasks = tasks.filter(t => t.status === 'open');
       const kpis = [
-        ['Aktive ' + words().persons, clients.length, '#0e7c86'], ['Einsätze gesamt', visits.length, '#2563eb'],
-        ['Offene Aufgaben', openTasks.length, '#7c3aed'], ['Offene Risiken', risks.length, '#b91c1c']];
+        ['Aktive ' + words().persons, clients.length, 'var(--c-teal)'], ['Einsätze gesamt', visits.length, 'var(--c-blue)'],
+        ['Offene Aufgaben', openTasks.length, 'var(--c-violet)'], ['Offene Risiken', risks.length, 'var(--c-red)']];
       document.getElementById('stat-kpis').innerHTML = kpis.map(([l, v, c]) =>
         `<div class="kpi" style="--kpi-c:${c}"><div class="val">${v}</div><div class="lbl">${l}</div></div>`).join('');
 
       const lvl = countBy(risks, r => (r.level || 'unbekannt').toLowerCase());
       document.getElementById('chart-risks').innerHTML = donutHTML([
-        { label: 'Hoch', value: lvl.hoch || 0, color: '#b91c1c' },
-        { label: 'Mittel', value: lvl.mittel || 0, color: '#b45309' },
-        { label: 'Niedrig', value: lvl.niedrig || 0, color: '#15803d' }], 'Risiken');
+        { label: 'Hoch', value: lvl.hoch || 0, color: 'var(--c-red)' },
+        { label: 'Mittel', value: lvl.mittel || 0, color: 'var(--c-amber)' },
+        { label: 'Niedrig', value: lvl.niedrig || 0, color: 'var(--c-green)' }], 'Risiken');
 
       const vlabel = { geplant: 'Geplant', planned: 'Geplant', in_bearbeitung: 'In Bearbeitung', unterwegs: 'In Bearbeitung', abgeschlossen: 'Abgeschlossen', done: 'Abgeschlossen' };
-      const vcolor = { geplant: '#6b7280', planned: '#6b7280', in_bearbeitung: '#2563eb', unterwegs: '#2563eb', abgeschlossen: '#15803d', done: '#15803d' };
+      const vcolor = { geplant: 'var(--muted)', planned: 'var(--muted)', in_bearbeitung: 'var(--c-blue)', unterwegs: 'var(--c-blue)', abgeschlossen: 'var(--c-green)', done: 'var(--c-green)' };
       const vs = countBy(visits, v => v.status || 'unbekannt');
-      document.getElementById('chart-visits').innerHTML = barsHTML(Object.entries(vs).map(([k, v]) => ({ label: vlabel[k] || cap(k), value: v, color: vcolor[k] || '#0e7c86' })));
+      document.getElementById('chart-visits').innerHTML = barsHTML(Object.entries(vs).map(([k, v]) => ({ label: vlabel[k] || cap(k), value: v, color: vcolor[k] || 'var(--c-teal)' })));
 
       const cl = countBy(clients, c => c.care_level || 'Ohne Angabe');
-      document.getElementById('chart-clients').innerHTML = barsHTML(Object.entries(cl).sort().map(([k, v]) => ({ label: k, value: v, color: '#0e7c86' })));
+      document.getElementById('chart-clients').innerHTML = barsHTML(Object.entries(cl).sort().map(([k, v]) => ({ label: k, value: v, color: 'var(--c-teal)' })));
 
-      const pcolor = { hoch: '#b91c1c', mittel: '#b45309', niedrig: '#15803d', normal: '#0e7c86' };
+      const pcolor = { hoch: 'var(--c-red)', mittel: 'var(--c-amber)', niedrig: 'var(--c-green)', normal: 'var(--c-teal)' };
       const tp = countBy(openTasks, t => (t.priority || 'normal').toLowerCase());
-      document.getElementById('chart-tasks').innerHTML = barsHTML(Object.entries(tp).map(([k, v]) => ({ label: cap(k), value: v, color: pcolor[k] || '#7c3aed' })));
+      document.getElementById('chart-tasks').innerHTML = barsHTML(Object.entries(tp).map(([k, v]) => ({ label: cap(k), value: v, color: pcolor[k] || 'var(--c-violet)' })));
 
       try {
         const wk = await api('/api/v1/stats/weekly');
         const S = wk.series, T = wk.totals;
         const hm = m => { const h = Math.floor(m / 60), mm = m % 60; return h ? `${h}h ${mm}min` : `${mm}min`; };
         const stats = [
-          ['Dokumentationen', String(T.reports), trendLabel(S.reports), '#0e7c86', sparkPts(S.reports)],
-          ['Einsätze', String(T.visits), trendLabel(S.visits), '#2563eb', sparkPts(S.visits)],
-          ['Sprachdoku (Min.)', hm(T.minutes_saved), trendLabel(S.reports), '#15803d', sparkPts(S.reports)],
-          ['Erledigte Aufgaben', String(T.tasks_done), trendLabel(S.tasks_done), '#7c3aed', sparkPts(S.tasks_done)]];
+          ['Dokumentationen', String(T.reports), trendLabel(S.reports), 'var(--c-teal)', sparkPts(S.reports)],
+          ['Einsätze', String(T.visits), trendLabel(S.visits), 'var(--c-blue)', sparkPts(S.visits)],
+          ['Sprachdoku (Min.)', hm(T.minutes_saved), trendLabel(S.reports), 'var(--c-green)', sparkPts(S.reports)],
+          ['Erledigte Aufgaben', String(T.tasks_done), trendLabel(S.tasks_done), 'var(--c-violet)', sparkPts(S.tasks_done)]];
         document.getElementById('stat-row-2').innerHTML = stats.map(s =>
           `<div class="stat"><div class="sl">${s[0]}</div><div class="sv">${s[1]}</div><div class="sd">${s[2]}</div>${spark(s[3], s[4])}</div>`).join('');
       } catch (e) { document.getElementById('stat-row-2').innerHTML = `<div class="muted">${esc(e.message)}</div>`; }
@@ -2079,7 +2157,7 @@
 
   function checkItem(state, title, sub, badge) {
     const ic = state === 'ok' ? ['ci-ok', CHK] : state === 'warn' ? ['ci-warn', '!'] : ['ci-open', '○'];
-    const bcol = state === 'ok' ? 'background:#dcfce7;color:#15803d' : state === 'warn' ? 'background:#fef3c7;color:#b45309' : 'background:var(--chip);color:var(--muted)';
+    const bcol = state === 'ok' ? 'background:var(--ok-bg);color:var(--ok)' : state === 'warn' ? 'background:var(--warn-bg);color:var(--warn)' : 'background:var(--chip);color:var(--muted)';
     return `<div class="check-item"><span class="ci-ic ${ic[0]}">${ic[1]}</span><div class="grow"><div class="ci-t">${esc(title)}</div><div class="ci-s">${esc(sub)}</div></div><span class="ci-badge" style="${bcol}">${esc(badge)}</span></div>`;
   }
 
@@ -2093,9 +2171,9 @@
       const docRate = openDocs === 0 ? 100 : Math.max(20, 100 - openDocs * 15);
       const riskRate = risks.length ? 100 : 100;
       const metrics = [
-        ['Aufgaben-Erledigung', taskRate + '%', taskRate, taskRate >= 60 ? '#15803d' : '#b45309'],
-        ['Dokumentationsstatus', openDocs + ' offen', docRate, openDocs === 0 ? '#15803d' : '#b45309'],
-        ['Risiken erfasst & betreut', risks.length + '', riskRate, '#0e7c86']];
+        ['Aufgaben-Erledigung', taskRate + '%', taskRate, taskRate >= 60 ? 'var(--c-green)' : 'var(--c-amber)'],
+        ['Dokumentationsstatus', openDocs + ' offen', docRate, openDocs === 0 ? 'var(--c-green)' : 'var(--c-amber)'],
+        ['Risiken erfasst & betreut', risks.length + '', riskRate, 'var(--c-teal)']];
       document.getElementById('qm-metrics').innerHTML = metrics.map(([l, big, pct, c]) =>
         `<div class="panel qm-metric"><div class="big" style="color:${c}">${big}</div><div class="lbl">${l}</div><div class="progress"><span style="width:${pct}%;background:${c}"></span></div></div>`).join('');
 
@@ -2212,7 +2290,7 @@
     try {
       const rows = await api('/api/v1/exports/history');
       box.innerHTML = rows.length ? rows.map(r => `
-        <div class="msg"><div class="m-ic" style="background:#eef4f5;color:#0e7c86">${CSV_IC}</div>
+        <div class="msg"><div class="m-ic" style="background:var(--chip);color:var(--brand-ink)">${CSV_IC}</div>
           <div class="grow"><div class="m-t">${esc(deDay(r.from))} – ${esc(deDay(r.to))} · ${r.reports} ${r.reports === 1 ? 'Bericht' : 'Berichte'}${r.photos ? ' · ' + r.photos + (r.photos === 1 ? ' Foto' : ' Fotos') : ''}</div>
             <div class="m-b">${esc(r.by)} · ${r.size_kb} KB</div></div>
           <span class="m-time">${esc(r.when)}</span></div>`).join('')
@@ -2273,7 +2351,7 @@
       tasks.filter(t => t.status === 'open').slice(0, 6).forEach(t => items.push({ t: 'task', title: 'Aufgabe: ' + t.title, body: [t.client || 'Allgemein', cap(t.priority || 'normal')].join(' · '), time: 'offen' }));
       document.getElementById('msg-feed').innerHTML = items.length ? items.map(m => {
         const ok = m.t === 'task';
-        const style = ok ? 'background:#eef4f5;color:#0e7c86' : 'background:#fee2e2;color:#b91c1c';
+        const style = ok ? 'background:var(--chip);color:var(--brand-ink)' : 'background:var(--danger-bg);color:var(--danger)';
         return `<div class="msg"><div class="m-ic" style="${style}">${ok ? SVG.check : SVG.alert}</div><div class="grow"><div class="m-t">${esc(m.title)}</div><div class="m-b">${esc(m.body)}</div></div><span class="m-time">${esc(m.time)}</span></div>`;
       }).join('') : '<div class="muted">Keine aktuellen Hinweise.</div>';
       renderTeamMsgs();
@@ -3342,7 +3420,7 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       if (!rows.length) { box.innerHTML = '<div class="muted" style="font-size:.82rem">Noch kein Dienstplan importiert.</div>'; return; }
       box.innerHTML = '<div class="sublabel" style="margin-bottom:4px">Zuletzt importiert</div>' +
         rows.map(r => {
-          const problems = r.skipped ? ` · <span style="color:#b45309">${r.skipped} übersprungen</span>` : '';
+          const problems = r.skipped ? ` · <span style="color:var(--warn)">${r.skipped} übersprungen</span>` : '';
           const hint = r.first_error ? `<div class="muted" style="font-size:.76rem">${esc(r.first_error)}</div>` : '';
           return `<div style="padding:6px 0;border-top:1px solid var(--line)"><div style="font-size:.85rem">
             <b>${esc(r.file)}</b> · ${esc(r.when)} · ${esc(r.by)}</div>
@@ -3490,13 +3568,13 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
     euro: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 21a8 8 0 1 1 0-16"/><path d="M4 11h9M4 15h8"/></svg>'
   };
   const KPI_META = {
-    open_documentation: { label: 'Offene Dokumentationen', color: '#b45309', icon: SVG.doc, trend: 'noch nicht freigegeben' },
-    to_review: { label: 'Zu prüfen (Freigaben)', color: '#0e7c86', icon: SVG.check, trend: 'wartet auf Freigabe' },
-    open_risks: { label: 'Neue Hinweise', color: '#b91c1c', icon: SVG.alert, trend: 'Handlungsbedarf' },
-    urgent_tasks: { label: 'Dringende Aufgaben', color: '#7c3aed', icon: SVG.check, trend: 'hohe Priorität' },
-    visits_today: { label: 'Einsätze heute', color: '#2563eb', icon: SVG.calendar, trend: 'geplant' },
+    open_documentation: { label: 'Offene Dokumentationen', color: 'var(--c-amber)', icon: SVG.doc, trend: 'noch nicht freigegeben' },
+    to_review: { label: 'Zu prüfen (Freigaben)', color: 'var(--c-teal)', icon: SVG.check, trend: 'wartet auf Freigabe' },
+    open_risks: { label: 'Neue Hinweise', color: 'var(--c-red)', icon: SVG.alert, trend: 'Handlungsbedarf' },
+    urgent_tasks: { label: 'Dringende Aufgaben', color: 'var(--c-violet)', icon: SVG.check, trend: 'hohe Priorität' },
+    visits_today: { label: 'Einsätze heute', color: 'var(--c-blue)', icon: SVG.calendar, trend: 'geplant' },
     // Beschriftung folgt der Versorgungsform (ambulant „Klienten" / stationär „Bewohner").
-    active_clients: { label: 'Aktive Klienten', color: '#12a594', icon: SVG.users, trend: 'in Betreuung' }
+    active_clients: { label: 'Aktive Klienten', color: 'var(--c-mint)', icon: SVG.users, trend: 'in Betreuung' }
   };
   const CHK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
   const VISIT_STATUS = { abgeschlossen: ['done','Abgeschlossen'], unterwegs: ['prog','In Bearbeitung'], in_bearbeitung: ['prog','In Bearbeitung'], geplant: ['plan','Geplant'], planned: ['plan','Geplant'] };
@@ -3923,7 +4001,7 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       renderWorkflowChain(d.kpis || {});
       document.getElementById('kpis').innerHTML = Object.entries(d.kpis).filter(([k]) => k !== 'ai_costs_today_eur').map(([k, v]) => {
         const m = KPI_META[k] || { label: k, color: '#0e7c86', icon: '', trend: '' };
-        return `<div class="kpi" style="--kpi-c:${m.color}"><div class="kicon" style="background:${m.color}1a;color:${m.color}">${m.icon}</div><div class="val">${v}</div><div class="lbl">${m.label}</div><div class="trend" style="color:${m.color}">${m.trend || ''}</div></div>`;
+        return `<div class="kpi" style="--kpi-c:${m.color}"><div class="kicon">${m.icon}</div><div class="val">${v}</div><div class="lbl">${m.label}</div><div class="trend" style="color:${m.color}">${m.trend || ''}</div></div>`;
       }).join('');
 
       const visits = d.visits || [];
