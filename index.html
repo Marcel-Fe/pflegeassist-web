@@ -387,7 +387,12 @@
     pointer-events: none; overflow: hidden;
     -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 42%);
     mask-image: linear-gradient(90deg, transparent 0%, #000 42%); }
-  .dhero-art svg { width: 100%; height: 100%; display: block; }
+  /* Zwei Masken statt einer Farbfläche: der Container blendet nach links aus,
+     das Bild selbst nach unten. Verschachtelt wirken sie wie ein Schnitt beider
+     Verläufe - und der Untergrund darf die Bühne bleiben statt einer festen Farbe. */
+  .dhero-art img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center 40%;
+    -webkit-mask-image: linear-gradient(180deg, #000 52%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 52%, transparent 100%); }
   @media (max-width: 1150px) { .dhero > .dhero-art { right: 0; width: 62%; opacity: .55; } }
   @media (max-width: 700px) { .dhero > .dhero-art { display: none; } }
   .dhero-text { padding: 34px 34px; display: flex; flex-direction: column; justify-content: center; }
@@ -956,48 +961,10 @@
         <!-- DASHBOARD -->
         <section class="view" id="view-dash">
           <div class="dhero">
-            <!-- Sonnenaufgang, komplett selbst gezeichnet - kein Fremdmaterial, keine Bilddatei -->
+            <!-- Sonnenaufgang aus dem eigenen Entwurf (ChatGPT-Bild des Nutzers,
+                 aus dem Mockup freigestellt). Eigenes Material, kein Stockfoto. -->
             <div class="dhero-art" aria-hidden="true">
-              <svg viewBox="0 0 600 300" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="sr-sky" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="#241a4a"/><stop offset=".38" stop-color="#5b3170"/>
-                    <stop offset=".66" stop-color="#c06a72"/><stop offset=".84" stop-color="#eb9a63"/>
-                    <stop offset="1" stop-color="#f7c78d"/>
-                  </linearGradient>
-                  <radialGradient id="sr-glow" cx=".5" cy=".5" r=".5">
-                    <stop offset="0" stop-color="#ffd9a3" stop-opacity=".85"/>
-                    <stop offset="1" stop-color="#ffd9a3" stop-opacity="0"/>
-                  </radialGradient>
-                  <linearGradient id="sr-far" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="#7a4a7d"/><stop offset="1" stop-color="#5d3768"/>
-                  </linearGradient>
-                  <linearGradient id="sr-mid" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="#4a2b5c"/><stop offset="1" stop-color="#33204a"/>
-                  </linearGradient>
-                  <linearGradient id="sr-near" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="#241940"/><stop offset="1" stop-color="#170f2c"/>
-                  </linearGradient>
-                  <linearGradient id="sr-fade" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="#fff"/><stop offset=".34" stop-color="#fff"/>
-                    <stop offset="1" stop-color="#000"/>
-                  </linearGradient>
-                  <mask id="sr-mask"><rect width="600" height="300" fill="url(#sr-fade)"/></mask>
-                </defs>
-                <g mask="url(#sr-mask)">
-                <rect width="600" height="300" fill="url(#sr-sky)"/>
-                <circle cx="330" cy="196" r="120" fill="url(#sr-glow)"/>
-                <circle cx="330" cy="196" r="30" fill="#ffe0ad"/>
-                <g fill="#fff" opacity=".5">
-                  <circle cx="70" cy="42" r="1.3"/><circle cx="148" cy="26" r="1"/><circle cx="228" cy="58" r="1.2"/>
-                  <circle cx="392" cy="34" r="1"/><circle cx="486" cy="62" r="1.3"/><circle cx="548" cy="30" r="1"/>
-                  <circle cx="300" cy="18" r=".9"/><circle cx="112" cy="88" r=".9"/>
-                </g>
-                <path d="M0 206 L86 168 L150 192 L214 152 L286 190 L352 158 L430 196 L512 164 L600 200 L600 300 L0 300 Z" fill="url(#sr-far)"/>
-                <path d="M0 232 L74 202 L156 234 L232 200 L316 236 L398 206 L482 238 L600 214 L600 300 L0 300 Z" fill="url(#sr-mid)"/>
-                <path d="M0 268 L96 244 L188 270 L280 246 L372 272 L466 248 L560 274 L600 262 L600 300 L0 300 Z" fill="url(#sr-near)"/>
-                </g>
-              </svg>
+              <img src="img/hero-sunrise.jpg" alt="" loading="lazy" decoding="async" />
             </div>
             <div class="dhero-text">
               <h1 id="greet">Guten Tag! 👋</h1>
