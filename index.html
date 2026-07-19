@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>MERAQ – Mehr Leben. Weniger Stress.</title>
+<title>MERAQ Care – Mehr Leben. Weniger Stress.</title>
 <meta name="theme-color" content="#0a1119" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="MERAQ" />
+<meta name="apple-mobile-web-app-title" content="MERAQ Care" />
 <script>
   // Domain-bewusst: Auf GitHub Pages (Ursprung mit anderen Repos geteilt) keine
   // Service-Worker, um Überlagerungen zu vermeiden. Auf der echten App-Domain
@@ -107,6 +107,11 @@
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.25rem; }
   .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); }
   .wordmark { font-weight: 800; letter-spacing: .3em; text-indent: .3em; }
+  .brand-line { display: flex; align-items: center; gap: 8px; }
+  /* Gilt auch im Login-Kopf (.hero-top) und im mobilen Kopf, nicht nur in .brand */
+  .prod { font-size: .6rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px; background: var(--chip); color: var(--brand-ink);
+    border: 1px solid var(--line); white-space: nowrap; }
   .brand .claim { font-size: .56rem; font-weight: 700; letter-spacing: .17em; text-transform: uppercase;
     color: var(--brand-ink); text-align: center; }
   .sidebar .brand { flex-direction: column; gap: 5px; padding: 16px 8px 22px; align-items: center; }
@@ -752,7 +757,7 @@
   <aside class="login-hero">
     <div class="hero-top">
       <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true"><use href="#meraq-mark"/></svg>
-      <span class="wordmark">MERAQ</span>
+      <span class="wordmark">MERAQ</span><span class="prod">Care</span>
     </div>
 
     <div>
@@ -852,7 +857,7 @@
     <aside class="sidebar">
       <div class="brand">
         <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true"><use href="#meraq-mark"/></svg>
-        <span class="wordmark">MERAQ</span>
+        <span class="brand-line"><span class="wordmark">MERAQ</span><span class="prod">Care</span></span>
         <span class="claim">Mehr Leben. Weniger Stress.</span>
       </div>
       <div class="side-nav">
@@ -894,7 +899,7 @@
         <button class="iconbtn hamburger" onclick="openDrawer()" aria-label="Menü"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
         <div class="mobile-brand">
           <svg class="logo-mark" width="30" height="30" viewBox="0 0 40 40" aria-hidden="true"><use href="#meraq-mark"/></svg>
-          <span class="wordmark">MERAQ</span>
+          <span class="wordmark">MERAQ</span><span class="prod">Care</span>
         </div>
         <div class="search">
           <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
@@ -1367,7 +1372,7 @@
 
           <div class="panel" style="margin-top:16px">
             <div class="panel-head"><h3>App aufs Handy laden</h3></div>
-            <div class="sublabel">Mit dem Handy den Code abscannen – die Kamera-App genügt. Danach im Browser-Menü <b>„Zum Startbildschirm hinzufügen"</b> wählen, dann startet Meraq wie eine normale App.</div>
+            <div class="sublabel">Mit dem Handy den Code abscannen – die Kamera-App genügt. Danach im Browser-Menü <b>„Zum Startbildschirm hinzufügen"</b> wählen, dann startet Meraq Care wie eine normale App.</div>
             <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-top:12px">
               <div id="qr-code" style="background:#fff;padding:10px;border-radius:12px;border:1px solid var(--line)"></div>
               <div style="min-width:240px;flex:1">
@@ -1491,7 +1496,7 @@
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
     </div>
     <h2 id="pw-title" style="margin:0 0 8px">Zugang nicht aktiv</h2>
-    <p class="muted" id="pw-text" style="margin:0 0 16px">Dein Zugang zu Meraq ist derzeit nicht freigeschaltet.</p>
+    <p class="muted" id="pw-text" style="margin:0 0 16px">Dein Zugang zu Meraq Care ist derzeit nicht freigeschaltet.</p>
     <div class="panel" style="background:var(--bg);text-align:left;margin:0 0 16px">
       <div class="setting-row" style="border:0"><div class="tt">Status</div><div id="pw-status" class="chip">–</div></div>
       <div class="setting-row" style="border:0"><div class="tt">Gültig bis</div><div id="pw-until" class="muted">–</div></div>
@@ -1693,11 +1698,11 @@
     document.getElementById('pw-title').textContent = pending ? 'Zugang wird freigeschaltet' : 'Zugang abgelaufen';
     document.getElementById('pw-text').textContent = pending
       ? 'Deine Registrierung ist eingegangen. Sobald die Zahlung bestätigt ist, schalten wir deinen Zugang frei – meist innerhalb eines Werktags.'
-      : 'Dein bezahlter Zeitraum ist abgelaufen. Verlängere, um Meraq weiter zu nutzen.';
+      : 'Dein bezahlter Zeitraum ist abgelaufen. Verlängere, um Meraq Care weiter zu nutzen.';
     document.getElementById('pw-status').textContent = sub ? (sub.status || '–') : '–';
     document.getElementById('pw-until').textContent = sub && sub.access_until ? fmtDate(sub.access_until) : 'nicht freigeschaltet';
     document.getElementById('pw-mail').href = 'mailto:kontakt@pflegeassist.de?subject=' +
-      encodeURIComponent('Zugang Meraq: ' + ((user && user.email) || ''));
+      encodeURIComponent('Zugang Meraq Care: ' + ((user && user.email) || ''));
   }
 
   async function recheckAccess() {
@@ -2397,7 +2402,7 @@
     try {
       const [clients, visits, tasks, risks] = await Promise.all([
         api('/api/v1/clients'), api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/risks')]);
-      const org = (user && user.organization_name) || 'Meraq';
+      const org = (user && user.organization_name) || 'Meraq Care';
       const now = new Date().toLocaleString('de-DE');
       const table = (title, cols, rows) =>
         `<h2>${esc(title)} <span style="font-weight:400;color:#666">(${rows.length})</span></h2>` +
@@ -2405,7 +2410,7 @@
           ? `<table><thead><tr>${cols.map(c => `<th>${esc(c[0])}</th>`).join('')}</tr></thead><tbody>` +
             rows.map(r => `<tr>${cols.map(c => `<td>${esc(c[1](r) ?? '')}</td>`).join('')}</tr>`).join('') + '</tbody></table>'
           : '<p class="muted">Keine Daten.</p>');
-      const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Meraq – Bericht</title>
+      const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Meraq Care – Bericht</title>
         <style>body{font-family:system-ui,Arial,sans-serif;color:#111;margin:32px;font-size:13px}
         h1{font-size:20px;margin:0 0 4px} h2{font-size:15px;margin:22px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}
         .meta{color:#666;font-size:12px;margin-bottom:8px}
@@ -2757,7 +2762,7 @@
             '<b>thomas@heim.local</b> (Leitung) · <b>lena@heim.local</b> (Pflegekraft)</p>' +
             '<p>Im Heim heißen die Betreuten <b>Bewohner</b> und haben ein <b>Zimmer</b> statt einer Adresse – die App stellt sich automatisch darauf ein.</p>' },
     { cat: 'Erste Schritte', title: 'Ambulant oder stationär – was ist der Unterschied?', kw: 'ambulant stationaer heim einrichtung versorgungsform bewohner klient zimmer adresse gemischt traeger',
-      body: '<p>Meraq passt sich der <b>Versorgungsform</b> deiner Einrichtung an. Sie wird bei der Registrierung gewählt.</p>' +
+      body: '<p>Meraq Care passt sich der <b>Versorgungsform</b> deiner Einrichtung an. Sie wird bei der Registrierung gewählt.</p>' +
             '<ul><li><b>Ambulant</b> (Pflegedienst): Die Betreuten heißen <b>Klienten</b> und haben eine <b>Adresse</b>. Der Tagesplan heißt „Heutige Tour" und bietet einen <b>Routen-Knopf</b> zur Navigation.</li>' +
             '<li><b>Stationär</b> (Heim): Die Betreuten heißen <b>Bewohner</b> und haben ein <b>Zimmer</b> bzw. einen Wohnbereich. Der Tagesplan heißt „Heute im Wohnbereich" – ohne Routen-Knopf, weil niemand angefahren wird.</li>' +
             '<li><b>Beides</b> (Träger mit Pflegedienst <i>und</i> Heim): Eine Lizenz genügt. Im Formular wählst du <b>pro Person</b>, ob sie zu Hause oder im Haus versorgt wird.</li></ul>' +
@@ -2765,7 +2770,7 @@
     { cat: 'Erste Schritte', title: 'Überblick & Navigation', kw: 'menü seitenleiste dashboard start überblick navigation', img: 'dashboard.jpg',
       body: '<p>Links ist das Menü. Wichtigste Punkte:</p><ul><li><b>Dashboard / Mein Tag</b> – dein Überblick für heute.</li><li><b>Dokumentation</b> – Pflegebericht per Sprache oder Text.</li><li><b>Wunddoku</b> – Wunden mit Foto.</li><li><b>Klienten</b> – Betreute verwalten.</li><li><b>Aufgaben, Risiken, Einsätze, Statistiken, Export</b>.</li></ul><p>Unten rechts der Knopf <b>„Schnelle Aktion"</b> springt direkt zur Dokumentation.</p>' },
     { cat: 'Erste Schritte', title: 'App aufs Handy installieren', kw: 'installieren handy homescreen pwa app icon smartphone android iphone',
-      body: '<p><b>Android/Chrome:</b> Menü (drei Punkte) → <b>„App installieren"</b> bzw. „Zum Startbildschirm hinzufügen".</p><p><b>iPhone/Safari:</b> Teilen-Symbol (Viereck mit Pfeil) → <b>„Zum Home-Bildschirm"</b>.</p><p>Danach liegt Meraq wie eine echte App als Symbol auf dem Handy.</p>' },
+      body: '<p><b>Android/Chrome:</b> Menü (drei Punkte) → <b>„App installieren"</b> bzw. „Zum Startbildschirm hinzufügen".</p><p><b>iPhone/Safari:</b> Teilen-Symbol (Viereck mit Pfeil) → <b>„Zum Home-Bildschirm"</b>.</p><p>Danach liegt Meraq Care wie eine echte App als Symbol auf dem Handy.</p>' },
     { cat: 'Dokumentieren', title: 'Pflegebericht erstellen (Sprache oder Text)', kw: 'dokumentation bericht ki entwurf sprechen diktat tippen schreiben', img: 'doku.jpg',
       body: '<ol><li>Menü <b>Dokumentation</b> öffnen.</li><li><b>Klient/in</b> auswählen.</li><li>Entweder auf <b>🎤 Aufnehmen &amp; diktieren</b> tippen und sprechen – der Text erscheint live – oder einfach ins Feld tippen.</li><li>Auf <b>KI-Bericht erstellen</b> tippen. Die KI formt einen sauberen Pflegebericht-Entwurf.</li></ol>' },
     { cat: 'Dokumentieren', title: 'Live-Diktat: sprechen statt tippen', kw: 'diktat mikrofon sprechen aufnahme transkription spracherkennung stimme',
@@ -2789,7 +2794,7 @@
     { cat: 'Auswertung & Export', title: 'Daten exportieren & Bericht drucken', kw: 'export csv excel drucken pdf gesamtbericht ausdrucken',
       body: '<p>Menü <b>Export</b>: Klienten, Einsätze, Aufgaben, Risiken je als <b>CSV</b> (Excel-kompatibel) herunterladen. Oder <b>„Gesamtbericht: Drucken / PDF"</b> für eine druckbare Übersicht.</p>' },
     { cat: 'Auswertung & Export', title: 'Berichtspaket herunterladen (ZIP)', kw: 'berichtspaket zip paket zeitraum akte ablegen pflegeberichte herausholen archiv',
-      body: '<p>Menü <b>Export</b> → <b>Berichtspaket</b>. Damit holst du die fertigen Pflegeberichte aus Meraq heraus – zum Ablegen in der Akte oder im Bestandssystem.</p>' +
+      body: '<p>Menü <b>Export</b> → <b>Berichtspaket</b>. Damit holst du die fertigen Pflegeberichte aus Meraq Care heraus – zum Ablegen in der Akte oder im Bestandssystem.</p>' +
             '<ol><li><b>Von</b> und <b>Bis</b> wählen (Vorgabe: die letzten 30 Tage).</li>' +
             '<li>Optional eine <b>Klient/in</b> auswählen – sonst sind alle dabei.</li>' +
             '<li><b>Wundfotos einschließen</b>: Ja macht das Paket größer, Nein liefert nur die Daten.</li>' +
@@ -2988,7 +2993,7 @@
       try { c = (await api('/api/v1/clients/' + r.client_id + '/detail')).client || {}; }
       catch (e) { c = (clientsCache || []).find(x => x.id === r.client_id) || {}; }
       const e = esc, w = words();
-      const org = (user && user.organization_name) || 'Meraq';
+      const org = (user && user.organization_name) || 'Meraq Care';
       const dt = r.created_at ? new Date(r.created_at) : new Date();
       const docId = 'PB-' + dt.toISOString().slice(0, 10) + '-' + String(reportId).replace(/-/g, '').slice(0, 4).toUpperCase();
       const STATUS_DE = { confirmed: 'Freigegeben', submitted: 'Bestätigt – wartet auf Freigabe', draft: 'KI-Entwurf – noch nicht bestätigt' };
@@ -3066,7 +3071,7 @@ Es ersetzt keine unterschriebene Fassung.</div>
       const d = await api('/api/v1/clients/' + clientId + '/detail');
       const c = d.client;
       const name = `${c.first_name} ${c.last_name}`;
-      const org = (user && user.organization_name) || 'Meraq';
+      const org = (user && user.organization_name) || 'Meraq Care';
       const w = words();
       const e = esc;
       const STATUS_DE = { confirmed: 'Freigegeben', submitted: 'Wartet auf Freigabe', draft: 'KI-Entwurf' };
@@ -3166,7 +3171,7 @@ ${notes}
 <table><thead><tr><th>Datum</th><th>Eintrag</th><th>Dokumentiert von</th></tr></thead><tbody>${entries}</tbody></table>
 ${risks}${wounds}
 <div class="sign"><div>Datum, Unterschrift Pflegekraft</div><div>Datum, Unterschrift Pflegedienstleitung</div></div>
-<div class="foot">Auszug aus der eigenen Pflegedokumentation, erzeugt mit Meraq.
+<div class="foot">Auszug aus der eigenen Pflegedokumentation, erzeugt mit Meraq Care.
 Enthält ${d.reports.length === 1 ? '1 Eintrag' : d.reports.length + ' Einträge'}${statusNote}.
 Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung.</div>
 </body></html>`;
