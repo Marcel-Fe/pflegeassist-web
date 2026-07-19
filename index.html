@@ -1962,11 +1962,6 @@
       `<div class="mk-v">${val}</div><div class="mk-l">${esc(label)}</div>` +
       (sub ? `<div class="mk-s" style="color:${subColor}">${esc(sub)}</div>` : '') + `</div>`;
   }
-  function svcFor(name) {
-    let h = 0; const s = String(name || '');
-    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    return SERVICES[h % SERVICES.length];
-  }
   function renderBriefing(risks) {
     const box = document.getElementById('c-briefing');
     if (!box) return;
@@ -2014,7 +2009,7 @@
     return '<div class="tour-item tv' + (settled ? ' is-done' : '') + '">' +
       '<span class="tdot ' + st[0] + '"></span><span class="ttime">' + t + '</span>' +
       '<div class="grow" style="cursor:pointer" onclick="openClientDetail(\'' + v.client_id + '\')">' +
-      '<div class="vname">' + esc(v.client) + '</div><div class="vsub">' + esc(svcFor(v.client)) + '</div>' + hints + '</div>' +
+      '<div class="vname">' + esc(v.client) + '</div>' + subHTML(v) + hints + '</div>' +
       '<span class="status ' + st[0] + '">' + st[1] + '</span>' + note + acts + '</div>';
   }
 
@@ -2184,7 +2179,7 @@
     box.innerHTML =
       `<div class="panel-head"><h3 style="color:var(--primary-dark)">Nächster Einsatz</h3><span class="status prog">${esc(inLabel)}</span></div>` +
       `<div class="visit" style="border:none;cursor:pointer" onclick="navTo('einsaetze')">${avatarHTML(v.client, 52, photoPath, 'client')}` +
-      `<div class="grow"><div class="vname" style="font-size:1.05rem">${esc(v.client)}</div><div class="vsub">${esc(svcFor(v.client))}</div>${addr ? `<div class="vsub">${placeIcon} ${esc(addr)}</div>` : ''}</div>` +
+      `<div class="grow"><div class="vname" style="font-size:1.05rem">${esc(v.client)}</div>${subHTML(v)}${addr ? `<div class="vsub">${placeIcon} ${esc(addr)}</div>` : ''}</div>` +
       `<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>` +
       `<div style="border-top:1px solid var(--line);margin-top:8px;padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">` +
       `<span class="muted" style="font-size:.86rem">🕐 ${esc(timeRange)}</span>` +
@@ -3678,7 +3673,21 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
   };
   const CHK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
   const VISIT_STATUS = { abgeschlossen: ['done','Abgeschlossen'], unterwegs: ['prog','In Bearbeitung'], in_bearbeitung: ['prog','In Bearbeitung'], geplant: ['plan','Geplant'], planned: ['plan','Geplant'] };
-  const SERVICES = ['Grundpflege, Mobilisation','Medikamentengabe','Wundversorgung','Hauswirtschaftliche Unterstützung','Grundpflege','Betreuung','Behandlungspflege','Mobilisation'];
+  /** Zweite Zeile einer Einsatzzeile - AUSSCHLIESSLICH aus belegten Feldern.
+   *  Vorher stand hier eine Leistung aus einer festen Liste, reihum zugewiesen:
+   *  in der Demo huebsch, beim Pilotkunden eine falsche Aussage ueber erbrachte Pflege. */
+  function subHTML(v) {
+    const t = visitSubline(v);
+    return t ? '<div class="vsub">' + esc(t) + '</div>' : '';
+  }
+  function visitSubline(v) {
+    const parts = [];
+    // room trägt im Heim bereits „Wohnbereich 1 · Zimmer 101" - kein zweites „Zimmer" davor.
+    if (v.room) parts.push(v.room);
+    // Die Schicht steht in der Tour schon als Zwischenüberschrift, hier wäre sie Wiederholung.
+    if (v.care_level) parts.push(v.care_level);
+    return parts.join(' · ');
+  }
 
   // ---- QR-Code-Encoder (ISO/IEC 18004), Byte-Modus, EC-Level M ----
   // Bewusst selbst gerechnet statt per QR-Dienst: die Adresse der Einrichtung
@@ -4173,7 +4182,9 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       renderVisitTable(visits);
       document.getElementById('visits').innerHTML = visits.length ? visits.map((v, i) => {
         const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
-        return `<div class="visit" style="cursor:pointer" onclick="openClientDetail('${v.client_id}')"><span class="time">${esc(v.time)}</span>${avatarHTML(v.client, 38, clientPhotoPath(v.client_id), 'client')}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${SERVICES[i % SERVICES.length]}</div></div><span class="status ${st[0]}">${st[1]}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>`;
+        const sub = visitSubline(v);
+        const jump = v.client_id ? ` style="cursor:pointer" onclick="openClientDetail('${v.client_id}')"` : '';
+        return `<div class="visit"${jump}><span class="time">${esc(v.time)}</span>${avatarHTML(v.client, 38, clientPhotoPath(v.client_id), 'client')}<div class="grow"><div class="vname">${esc(v.client)}</div>${sub ? `<div class="vsub">${esc(sub)}</div>` : ''}</div><span class="status ${st[0]}">${st[1]}</span>${v.client_id ? '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>' : ''}</div>`;
       }).join('') : '<div class="muted">Keine Einsätze heute geplant.</div>';
       hydratePhotos(document.getElementById('visits'));
 
