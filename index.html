@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Pflegeassistent</title>
-<meta name="theme-color" content="#0e7c86" />
+<title>MERAQ – Mehr Leben. Weniger Stress.</title>
+<meta name="theme-color" content="#0a1119" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Pflegeassistent" />
+<meta name="apple-mobile-web-app-title" content="MERAQ" />
 <script>
   // Domain-bewusst: Auf GitHub Pages (Ursprung mit anderen Repos geteilt) keine
   // Service-Worker, um Überlagerungen zu vermeiden. Auf der echten App-Domain
@@ -31,7 +31,7 @@
     }
   })();
 </script>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PHJlY3Qgd2lkdGg9JzMyJyBoZWlnaHQ9JzMyJyByeD0nOCcgZmlsbD0nIzBlN2M4NicvPjxwYXRoIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDQsNCknIGQ9J00xMiAyMS4zNWwtMS40NS0xLjMyQzUuNCAxNS4zNiAyIDEyLjI4IDIgOC41IDIgNS40MiA0LjQyIDMgNy41IDNjMS43NCAwIDMuNDEuODEgNC41IDIuMDlDMTMuMDkgMy44MSAxNC43NiAzIDE2LjUgMyAxOS41OCAzIDIyIDUuNDIgMjIgOC41YzAgMy43OC0zLjQgNi44Ni04LjU1IDExLjU0TDEyIDIxLjM1eicgZmlsbD0nI2ZmZicvPjwvc3ZnPg==" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDQwIDQwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMyZGQ0YmYiLz48c3RvcCBvZmZzZXQ9Ii41MiIgc3RvcC1jb2xvcj0iIzNiODJmNiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzhiNWNmNiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcng9IjkiIGZpbGw9IiMwZjE0MjAiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjcuNiIgcj0iNC4zIiBmaWxsPSJ1cmwoI2cpIi8+PHBhdGggZD0iTTggMjQuNUM4IDE2LjggMTUuMiAxNS42IDIwIDI0LjVDMjQuOCAzMy40IDMyIDMyLjIgMzIgMjQuNUMzMiAxNi44IDI0LjggMTUuNiAyMCAyNC41QzE1LjIgMzMuNCA4IDMyLjIgOCAyNC41WiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjQuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+" />
 <style>
   /* ===== Design-Tokens =====
      Zwei Regeln, an die sich alles Weitere hält:
@@ -103,27 +103,36 @@
   .hidden { display: none !important; }
   .err { color: var(--danger); font-size: .9rem; margin-top: 8px; min-height: 1em; }
 
-  /* Brand (header) */
+  /* Marke Meraq — gesperrte Versalien wie im Zeichen, Claim nur in der Seitenleiste */
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.25rem; }
   .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); }
+  .wordmark { font-weight: 800; letter-spacing: .3em; text-indent: .3em; }
+  .brand .claim { font-size: .56rem; font-weight: 700; letter-spacing: .17em; text-transform: uppercase;
+    color: var(--brand-ink); text-align: center; }
+  .sidebar .brand { flex-direction: column; gap: 5px; padding: 16px 8px 22px; align-items: center; }
+  .sidebar .brand .logo-mark { width: 58px; height: 58px; }
+  .sidebar .brand .wordmark { font-size: 1.32rem; }
 
   /* Login – split layout */
   #login-view { min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; }
-  .logo-mark { display: block; flex: none; filter: drop-shadow(0 4px 10px rgba(8,60,66,.25)); }
+  .logo-mark { display: block; flex: none; filter: drop-shadow(0 4px 14px rgba(139,92,246,.35)); }
   .brand .logo-mark { width: 30px; height: 30px; }
 
+  /* Markenbild statt Foto: derselbe Verlauf wie die Buehne im Dashboard,
+     selbst gezeichnet - kein Fremdmaterial, keine Bilddatei. */
   .login-hero { position: relative; overflow: hidden; color: #fff; padding: 52px 56px;
     display: flex; flex-direction: column; justify-content: space-between;
     background:
-      linear-gradient(115deg, rgba(6,58,64,.93) 0%, rgba(10,91,99,.82) 46%, rgba(9,60,66,.55) 100%),
-      url('nurse.jpg') center 30% / cover no-repeat; }
-  .login-hero::after { content: ""; position: absolute; top: 30px; right: 44px; width: 200px; height: 130px;
-    opacity: .6; background-image: radial-gradient(rgba(255,255,255,.4) 1.4px, transparent 1.5px);
+      radial-gradient(900px 520px at 84% -10%, rgba(139,92,246,.55), transparent 62%),
+      radial-gradient(760px 520px at 6% 108%, rgba(45,212,191,.38), transparent 60%),
+      linear-gradient(150deg, #101a2b 0%, #0d1420 52%, #171334 100%); }
+  .login-hero::after { content: ""; position: absolute; top: 30px; right: 44px; width: 260px; height: 180px;
+    opacity: .5; background-image: radial-gradient(rgba(255,255,255,.4) 1.4px, transparent 1.5px);
     background-size: 16px 16px;
     -webkit-mask-image: linear-gradient(120deg, #000, transparent 75%); mask-image: linear-gradient(120deg, #000, transparent 75%); }
   .hero-top { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
   .login-hero .logo-mark { width: 46px; height: 46px; }
-  .wordmark { font-weight: 800; font-size: 1.45rem; letter-spacing: -.01em; }
+  .login-hero .wordmark { font-size: 1.3rem; }
   .wordmark b { color: var(--accent); }
   .hero-headline { font-size: 2.5rem; line-height: 1.1; font-weight: 800; margin: 0 0 16px; letter-spacing: -.02em; }
   .hero-headline .accent { color: var(--accent); }
@@ -218,8 +227,13 @@
     display: grid; place-items: center; color: var(--muted); position: relative; padding: 0; }
   .iconbtn:hover { background: var(--chip); }
   .iconbtn .tlbl { display: none; }
+  .theme-btn { display: inline-flex; align-items: center; gap: 6px; }
   .iconbtn .dot { position: absolute; top: -5px; right: -5px; background: #b91c1c; color: #fff; border-radius: 999px;
     font-size: .64rem; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 4px; font-weight: 700; }
+  .org-chip { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px;
+    background: var(--chip); border: 1px solid var(--line); color: var(--brand-ink);
+    font-weight: 700; font-size: .84rem; white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 1150px) { .org-chip { display: none; } }
   .user-chip { display: flex; align-items: center; gap: 10px; }
   .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none;
     background: var(--brand-grad); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: .85rem; }
@@ -325,6 +339,8 @@
   .ckpi.blue { background: linear-gradient(140deg, #3b82f6, #1e40af); }
   .ckpi.violet { background: linear-gradient(140deg, #8b5cf6, #6d28d9); }
   .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cols-daybar { display: grid; grid-template-columns: 1.7fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 1000px) { .cols-daybar { grid-template-columns: 1fr; } }
   @media (max-width: 900px) { .cols2 { grid-template-columns: 1fr; } }
 
   /* Selbsthilfe: Fehler mit Klartext + Loesungsweg (statt technischer Meldung) */
@@ -399,6 +415,51 @@
 
   /* Chevron in Listenzeilen */
   .chev { color: var(--muted); flex: none; margin-left: 4px; }
+
+  /* Fuss der Seitenleiste: Support-Kasten + Nutzer (wie im Entwurf) */
+  .side-foot { margin-top: auto; display: grid; gap: 10px; padding-top: 14px; }
+  .help-box { background: var(--stage); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 14px; }
+  .help-box .hb-t { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: .9rem; color: var(--brand-ink); }
+  .help-box .hb-s { color: var(--muted); font-size: .76rem; margin: 6px 0 10px; line-height: 1.45; }
+  .side-user { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px;
+    background: var(--chip); border: 1px solid var(--line); border-radius: var(--radius-m); color: var(--ink); }
+  .side-user .su-n { font-weight: 700; font-size: .86rem; }
+  .side-user .su-r { color: var(--muted); font-size: .72rem; }
+
+  /* Tagesverlauf: gezeichnete Zeitachse aus den echten Einsatzzeiten.
+     BEWUSST keine Mitarbeiter-Ortung - dauerhafte Standortverfolgung Beschaeftigter
+     ist nach § 87 Abs. 1 Nr. 6 BetrVG mitbestimmungspflichtig. */
+  .daybar { position: relative; margin: 18px 0 6px; height: 74px; }
+  .daybar .db-line { position: absolute; left: 0; right: 0; top: 30px; height: 4px; border-radius: 99px;
+    background: var(--line); }
+  .daybar .db-done { position: absolute; left: 0; top: 30px; height: 4px; border-radius: 99px; background: var(--ok); }
+  .daybar .db-pt { position: absolute; top: 22px; width: 20px; height: 20px; border-radius: 50%; transform: translateX(-50%);
+    border: 3px solid var(--card); display: grid; place-items: center; cursor: default; }
+  .daybar .db-pt.done { background: var(--ok); } .daybar .db-pt.prog { background: var(--info); }
+  .daybar .db-pt.plan { background: var(--muted); } .daybar .db-pt.miss { background: var(--warn); }
+  .daybar .db-lbl { position: absolute; top: 48px; transform: translateX(-50%); font-size: .68rem;
+    color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .daybar .db-cap { position: absolute; top: 0; font-size: .72rem; color: var(--muted); }
+  .tour-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .78rem; color: var(--muted); margin-top: 12px; }
+  .tour-legend span { display: flex; align-items: center; gap: 6px; }
+  .tour-legend i { width: 9px; height: 9px; border-radius: 50%; display: block; }
+
+  /* Naechster Einsatz */
+  .nextvisit { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-m);
+    background: var(--stage); border: 1px solid var(--line); }
+  .nextvisit .nv-t { font-weight: 700; font-size: 1.02rem; }
+  .nextvisit .nv-s { color: var(--muted); font-size: .82rem; margin-top: 2px; }
+  .nextvisit .nv-time { margin-left: auto; text-align: right; }
+  .nextvisit .nv-time b { display: block; font-size: 1.15rem; color: var(--brand-ink); font-variant-numeric: tabular-nums; }
+
+  /* Einsatz-Tabelle */
+  table.vtable { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  table.vtable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line);
+    color: var(--muted); font-weight: 600; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+  table.vtable td { padding: 10px; border-bottom: 1px solid var(--line); }
+  table.vtable tr:last-child td { border-bottom: none; }
+  table.vtable td.t { font-weight: 700; color: var(--brand-ink); font-variant-numeric: tabular-nums; width: 74px; }
+  .table-wrap { overflow-x: auto; }
 
   /* Promo-Karte (Foto) */
   .promo { position: relative; overflow: hidden; border-radius: 16px; min-height: 150px; color: #fff;
@@ -671,24 +732,27 @@
 </head>
 <body>
 
-<!-- geteilte Logo-Definition (Verlauf) -->
+<!-- Markenzeichen Meraq: Schleife + Punkt, selbst gezeichnet.
+     Der Verlauf wird von allen Logo-Vorkommen geteilt. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <linearGradient id="pa-g" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#2dd4bf" />
-    <stop offset="1" stop-color="#0a5b63" />
+    <stop offset=".52" stop-color="#3b82f6" />
+    <stop offset="1" stop-color="#8b5cf6" />
   </linearGradient>
+  <symbol id="meraq-mark" viewBox="0 0 40 40">
+    <circle cx="20" cy="7.6" r="4.3" fill="url(#pa-g)" />
+    <path d="M8 24.5C8 16.8 15.2 15.6 20 24.5C24.8 33.4 32 32.2 32 24.5C32 16.8 24.8 15.6 20 24.5C15.2 33.4 8 32.2 8 24.5Z"
+          fill="none" stroke="url(#pa-g)" stroke-width="4.6" stroke-linecap="round" />
+  </symbol>
 </defs></svg>
 
 <!-- LOGIN -->
 <section id="login-view">
   <aside class="login-hero">
     <div class="hero-top">
-      <svg class="logo-mark" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#pa-g)" />
-        <rect x="1" y="1" width="38" height="38" rx="11" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.2" />
-        <path transform="translate(8,8)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#fff" />
-      </svg>
-      <span class="wordmark">Pflege<b>assistent</b></span>
+      <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true"><use href="#meraq-mark"/></svg>
+      <span class="wordmark">MERAQ</span>
     </div>
 
     <div>
@@ -714,11 +778,10 @@
       <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#123a8f"/><text x="12" y="16" text-anchor="middle" font-size="9" font-weight="700" fill="#ffcc00" font-family="system-ui">EU</text></svg>
       <div><div>Gehostet in der EU</div><div class="fs">DSGVO-konform</div></div>
     </div>
-    <!-- Hero-Foto: Pexels (Jsme MILA), Pexels-Lizenz – kostenlos, kommerziell, ohne Namensnennung -->
   </aside>
 
   <div class="login-panel">
-    <div class="theme-toggle"><button class="theme-btn" onclick="toggleTheme()">☀︎ Hell</button></div>
+    <div class="theme-toggle"><button class="theme-btn" onclick="toggleTheme()"></button></div>
 
     <div class="auth-card">
       <span class="pill">Willkommen zurück</span>
@@ -788,11 +851,9 @@
   <div class="app">
     <aside class="sidebar">
       <div class="brand">
-        <svg class="logo-mark" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#pa-g)" />
-          <path transform="translate(8,8)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#fff" />
-        </svg>
-        <span class="wordmark" style="font-size:1.15rem">Pflege<b style="color:var(--brand-ink)">assistent</b></span>
+        <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true"><use href="#meraq-mark"/></svg>
+        <span class="wordmark">MERAQ</span>
+        <span class="claim">Mehr Leben. Weniger Stress.</span>
       </div>
       <div class="side-nav">
         <button class="nav-item hidden" data-view="admin" onclick="navTo('admin')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg> Kundenverwaltung</button>
@@ -814,17 +875,26 @@
         <button class="nav-item" data-view="einstellungen" onclick="navTo('einstellungen')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 6 9.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 4.6h.09A1.65 1.65 0 0 0 12 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 19 4.6l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 21 11.09V11a2 2 0 0 1 0 4z"/></svg> Einstellungen</button>
         <button class="nav-item" data-view="hilfe" onclick="navTo('hilfe')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 2.5"/><path d="M12 17h.01"/></svg> Hilfe &amp; Support</button>
       </div>
+      <div class="side-foot">
+        <div class="help-box">
+          <div class="hb-t"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 2.5"/><path d="M12 17h.01"/></svg> Wir helfen weiter</div>
+          <div class="hb-s">Wir sind für dich da.<br/>Mo – Fr: 8:00 – 17:00 Uhr</div>
+          <button class="btn-soft" style="margin:0" onclick="navTo('hilfe')">Zum Support</button>
+        </div>
+        <button class="side-user" onclick="navTo('einstellungen')">
+          <div class="av-photo" id="s-avatar" style="width:34px;height:34px;font-size:.74rem">–</div>
+          <div><div class="su-n" id="s-name">–</div><div class="su-r" id="s-role">–</div></div>
+          <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+      </div>
     </aside>
 
     <div class="mainarea">
       <div class="topbar">
         <button class="iconbtn hamburger" onclick="openDrawer()" aria-label="Menü"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
         <div class="mobile-brand">
-          <svg class="logo-mark" width="30" height="30" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#pa-g)" />
-            <path transform="translate(8,8)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#fff" />
-          </svg>
-          <span class="wordmark">Pflege<b style="color:var(--brand-ink)">assistent</b></span>
+          <svg class="logo-mark" width="30" height="30" viewBox="0 0 40 40" aria-hidden="true"><use href="#meraq-mark"/></svg>
+          <span class="wordmark">MERAQ</span>
         </div>
         <div class="search">
           <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
@@ -832,7 +902,8 @@
           <span class="kbd" style="position:absolute;right:12px;top:50%;transform:translateY(-50%)">⌘ K</span>
         </div>
         <div class="topbar-right">
-          <button class="iconbtn theme-btn" onclick="toggleTheme()" title="Design">☀︎</button>
+          <span class="org-chip" id="h-org" title="Einrichtung"></span>
+          <button class="iconbtn theme-btn" onclick="toggleTheme()" title="Design"></button>
           <button class="iconbtn" title="Benachrichtigungen"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="dot">3</span></button>
           <div class="user-chip">
             <div class="av-photo" id="h-avatar" style="width:40px;height:40px;font-size:.85rem">–</div>
@@ -886,6 +957,24 @@
           </div>
           <div class="panel-head" style="margin:0 0 12px"><h3>PDL-Offen-Radar</h3><span class="muted" style="font-size:.82rem">Was heute Aufmerksamkeit braucht</span></div>
           <div class="kpi-grid" id="kpis"></div>
+          <!-- Tagesverlauf statt Mitarbeiter-Ortung: zeigt, wie der Tag laeuft,
+               ohne einzelne Beschaeftigte zu verorten. -->
+          <div class="cols-daybar">
+            <div class="panel">
+              <div class="panel-head"><h3>Tagesverlauf</h3><span class="muted" style="font-size:.82rem">Alle Einsätze heute</span></div>
+              <div class="daybar" id="d-daybar"></div>
+              <div class="tour-legend">
+                <span><i style="background:var(--ok)"></i> Abgeschlossen</span>
+                <span><i style="background:var(--info)"></i> In Bearbeitung</span>
+                <span><i style="background:var(--muted)"></i> Geplant</span>
+                <span><i style="background:var(--warn)"></i> Nicht angetroffen</span>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><h3>Nächster Einsatz</h3></div>
+              <div id="d-next"><div class="muted">–</div></div>
+            </div>
+          </div>
           <div class="cols3">
             <div class="panel">
               <div class="panel-head"><h3>Einsätze heute</h3><button class="link" onclick="navTo('einsaetze')">Alle anzeigen</button></div>
@@ -906,6 +995,12 @@
           <div class="panel" style="margin-top:16px">
             <div class="panel-head"><h3>Offene Dokumentationen</h3><span class="muted" style="font-size:.82rem">Noch nicht freigegeben – zum Ansehen &amp; Freigeben</span></div>
             <div id="open-docs" class="list"><div class="muted">Lädt …</div></div>
+          </div>
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-head"><h3>Übersicht aller Einsätze</h3><span class="muted" style="font-size:.82rem">Heute</span></div>
+            <div class="table-wrap"><table class="vtable"><thead><tr>
+              <th>Uhrzeit</th><th id="vt-person">Klient/in</th><th>Status</th>
+            </tr></thead><tbody id="d-vtable"></tbody></table></div>
           </div>
           <div class="panel" style="margin-top:16px">
             <div class="panel-head"><h3>Statistik <span class="muted" style="font-weight:400">– Diese Woche</span></h3></div>
@@ -1272,7 +1367,7 @@
 
           <div class="panel" style="margin-top:16px">
             <div class="panel-head"><h3>App aufs Handy laden</h3></div>
-            <div class="sublabel">Mit dem Handy den Code abscannen – die Kamera-App genügt. Danach im Browser-Menü <b>„Zum Startbildschirm hinzufügen"</b> wählen, dann startet Pflegeassistent wie eine normale App.</div>
+            <div class="sublabel">Mit dem Handy den Code abscannen – die Kamera-App genügt. Danach im Browser-Menü <b>„Zum Startbildschirm hinzufügen"</b> wählen, dann startet Meraq wie eine normale App.</div>
             <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-top:12px">
               <div id="qr-code" style="background:#fff;padding:10px;border-radius:12px;border:1px solid var(--line)"></div>
               <div style="min-width:240px;flex:1">
@@ -1396,7 +1491,7 @@
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
     </div>
     <h2 id="pw-title" style="margin:0 0 8px">Zugang nicht aktiv</h2>
-    <p class="muted" id="pw-text" style="margin:0 0 16px">Dein Zugang zu Pflegeassistent ist derzeit nicht freigeschaltet.</p>
+    <p class="muted" id="pw-text" style="margin:0 0 16px">Dein Zugang zu Meraq ist derzeit nicht freigeschaltet.</p>
     <div class="panel" style="background:var(--bg);text-align:left;margin:0 0 16px">
       <div class="setting-row" style="border:0"><div class="tt">Status</div><div id="pw-status" class="chip">–</div></div>
       <div class="setting-row" style="border:0"><div class="tt">Gültig bis</div><div id="pw-until" class="muted">–</div></div>
@@ -1420,7 +1515,7 @@
   let lastReportId = null;
 
   const savedTheme = localStorage.getItem('pa_theme');
-  if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+  document.documentElement.setAttribute('data-theme', savedTheme || 'dark');
 
   document.getElementById('api-base').value = API;
 
@@ -1442,7 +1537,8 @@
   function toggleApi() { document.getElementById('api-row').classList.toggle('hidden'); }
   function updateThemeBtn() {
     const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.querySelectorAll('.theme-btn').forEach(b => b.innerHTML = (dark ? '☾' : '☀︎') + '<span class="tlbl"> ' + (dark ? 'Dunkel' : 'Hell') + '</span>');
+    const ic = dark ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>';
+    document.querySelectorAll('.theme-btn').forEach(b => b.innerHTML = ic + '<span class="tlbl"> ' + (dark ? 'Dunkel' : 'Hell') + '</span>');
   }
   function toggleTheme() {
     const root = document.documentElement;
@@ -1550,6 +1646,9 @@
     document.getElementById('h-name').textContent = user.full_name || user.email;
     document.getElementById('h-role').textContent = ROLE_LABEL[user.role] || user.role;
     document.getElementById('h-avatar').innerHTML = avatarInner(user.full_name || user.email);
+    setSideUser(user.full_name || user.email, ROLE_LABEL[user.role] || user.role);
+    const orgEl = document.getElementById('h-org');
+    if (orgEl) orgEl.textContent = user.organization_name || '';
     setGreeting();
     const mgr = isManager();
     // Rollen-Trennung der Navigation:
@@ -1576,6 +1675,7 @@
     document.getElementById('h-name').textContent = user.full_name || user.email;
     document.getElementById('h-role').textContent = 'Super-Admin';
     document.getElementById('h-avatar').innerHTML = avatarInner(user.full_name || user.email);
+    setSideUser(user.full_name || user.email, 'Super-Admin');
     // Nur Kundenverwaltung + Einstellungen/Hilfe sichtbar; Pflege-Screens ausblenden.
     document.querySelectorAll('.nav-item').forEach(n => {
       const v = n.getAttribute('data-view');
@@ -1593,11 +1693,11 @@
     document.getElementById('pw-title').textContent = pending ? 'Zugang wird freigeschaltet' : 'Zugang abgelaufen';
     document.getElementById('pw-text').textContent = pending
       ? 'Deine Registrierung ist eingegangen. Sobald die Zahlung bestätigt ist, schalten wir deinen Zugang frei – meist innerhalb eines Werktags.'
-      : 'Dein bezahlter Zeitraum ist abgelaufen. Verlängere, um Pflegeassistent weiter zu nutzen.';
+      : 'Dein bezahlter Zeitraum ist abgelaufen. Verlängere, um Meraq weiter zu nutzen.';
     document.getElementById('pw-status').textContent = sub ? (sub.status || '–') : '–';
     document.getElementById('pw-until').textContent = sub && sub.access_until ? fmtDate(sub.access_until) : 'nicht freigeschaltet';
     document.getElementById('pw-mail').href = 'mailto:kontakt@pflegeassist.de?subject=' +
-      encodeURIComponent('Zugang Pflegeassistent: ' + ((user && user.email) || ''));
+      encodeURIComponent('Zugang Meraq: ' + ((user && user.email) || ''));
   }
 
   async function recheckAccess() {
@@ -2302,7 +2402,7 @@
     try {
       const [clients, visits, tasks, risks] = await Promise.all([
         api('/api/v1/clients'), api('/api/v1/visits'), api('/api/v1/tasks'), api('/api/v1/risks')]);
-      const org = (user && user.organization_name) || 'Pflegeassistent';
+      const org = (user && user.organization_name) || 'Meraq';
       const now = new Date().toLocaleString('de-DE');
       const table = (title, cols, rows) =>
         `<h2>${esc(title)} <span style="font-weight:400;color:#666">(${rows.length})</span></h2>` +
@@ -2310,7 +2410,7 @@
           ? `<table><thead><tr>${cols.map(c => `<th>${esc(c[0])}</th>`).join('')}</tr></thead><tbody>` +
             rows.map(r => `<tr>${cols.map(c => `<td>${esc(c[1](r) ?? '')}</td>`).join('')}</tr>`).join('') + '</tbody></table>'
           : '<p class="muted">Keine Daten.</p>');
-      const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Pflegeassistent – Bericht</title>
+      const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Meraq – Bericht</title>
         <style>body{font-family:system-ui,Arial,sans-serif;color:#111;margin:32px;font-size:13px}
         h1{font-size:20px;margin:0 0 4px} h2{font-size:15px;margin:22px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}
         .meta{color:#666;font-size:12px;margin-bottom:8px}
@@ -2662,7 +2762,7 @@
             '<b>thomas@heim.local</b> (Leitung) · <b>lena@heim.local</b> (Pflegekraft)</p>' +
             '<p>Im Heim heißen die Betreuten <b>Bewohner</b> und haben ein <b>Zimmer</b> statt einer Adresse – die App stellt sich automatisch darauf ein.</p>' },
     { cat: 'Erste Schritte', title: 'Ambulant oder stationär – was ist der Unterschied?', kw: 'ambulant stationaer heim einrichtung versorgungsform bewohner klient zimmer adresse gemischt traeger',
-      body: '<p>Der Pflegeassistent passt sich der <b>Versorgungsform</b> deiner Einrichtung an. Sie wird bei der Registrierung gewählt.</p>' +
+      body: '<p>Meraq passt sich der <b>Versorgungsform</b> deiner Einrichtung an. Sie wird bei der Registrierung gewählt.</p>' +
             '<ul><li><b>Ambulant</b> (Pflegedienst): Die Betreuten heißen <b>Klienten</b> und haben eine <b>Adresse</b>. Der Tagesplan heißt „Heutige Tour" und bietet einen <b>Routen-Knopf</b> zur Navigation.</li>' +
             '<li><b>Stationär</b> (Heim): Die Betreuten heißen <b>Bewohner</b> und haben ein <b>Zimmer</b> bzw. einen Wohnbereich. Der Tagesplan heißt „Heute im Wohnbereich" – ohne Routen-Knopf, weil niemand angefahren wird.</li>' +
             '<li><b>Beides</b> (Träger mit Pflegedienst <i>und</i> Heim): Eine Lizenz genügt. Im Formular wählst du <b>pro Person</b>, ob sie zu Hause oder im Haus versorgt wird.</li></ul>' +
@@ -2670,7 +2770,7 @@
     { cat: 'Erste Schritte', title: 'Überblick & Navigation', kw: 'menü seitenleiste dashboard start überblick navigation', img: 'dashboard.jpg',
       body: '<p>Links ist das Menü. Wichtigste Punkte:</p><ul><li><b>Dashboard / Mein Tag</b> – dein Überblick für heute.</li><li><b>Dokumentation</b> – Pflegebericht per Sprache oder Text.</li><li><b>Wunddoku</b> – Wunden mit Foto.</li><li><b>Klienten</b> – Betreute verwalten.</li><li><b>Aufgaben, Risiken, Einsätze, Statistiken, Export</b>.</li></ul><p>Unten rechts der Knopf <b>„Schnelle Aktion"</b> springt direkt zur Dokumentation.</p>' },
     { cat: 'Erste Schritte', title: 'App aufs Handy installieren', kw: 'installieren handy homescreen pwa app icon smartphone android iphone',
-      body: '<p><b>Android/Chrome:</b> Menü (drei Punkte) → <b>„App installieren"</b> bzw. „Zum Startbildschirm hinzufügen".</p><p><b>iPhone/Safari:</b> Teilen-Symbol (Viereck mit Pfeil) → <b>„Zum Home-Bildschirm"</b>.</p><p>Danach liegt Pflegeassistent wie eine echte App als Symbol auf dem Handy.</p>' },
+      body: '<p><b>Android/Chrome:</b> Menü (drei Punkte) → <b>„App installieren"</b> bzw. „Zum Startbildschirm hinzufügen".</p><p><b>iPhone/Safari:</b> Teilen-Symbol (Viereck mit Pfeil) → <b>„Zum Home-Bildschirm"</b>.</p><p>Danach liegt Meraq wie eine echte App als Symbol auf dem Handy.</p>' },
     { cat: 'Dokumentieren', title: 'Pflegebericht erstellen (Sprache oder Text)', kw: 'dokumentation bericht ki entwurf sprechen diktat tippen schreiben', img: 'doku.jpg',
       body: '<ol><li>Menü <b>Dokumentation</b> öffnen.</li><li><b>Klient/in</b> auswählen.</li><li>Entweder auf <b>🎤 Aufnehmen &amp; diktieren</b> tippen und sprechen – der Text erscheint live – oder einfach ins Feld tippen.</li><li>Auf <b>KI-Bericht erstellen</b> tippen. Die KI formt einen sauberen Pflegebericht-Entwurf.</li></ol>' },
     { cat: 'Dokumentieren', title: 'Live-Diktat: sprechen statt tippen', kw: 'diktat mikrofon sprechen aufnahme transkription spracherkennung stimme',
@@ -2694,7 +2794,7 @@
     { cat: 'Auswertung & Export', title: 'Daten exportieren & Bericht drucken', kw: 'export csv excel drucken pdf gesamtbericht ausdrucken',
       body: '<p>Menü <b>Export</b>: Klienten, Einsätze, Aufgaben, Risiken je als <b>CSV</b> (Excel-kompatibel) herunterladen. Oder <b>„Gesamtbericht: Drucken / PDF"</b> für eine druckbare Übersicht.</p>' },
     { cat: 'Auswertung & Export', title: 'Berichtspaket herunterladen (ZIP)', kw: 'berichtspaket zip paket zeitraum akte ablegen pflegeberichte herausholen archiv',
-      body: '<p>Menü <b>Export</b> → <b>Berichtspaket</b>. Damit holst du die fertigen Pflegeberichte aus dem Pflegeassistenten heraus – zum Ablegen in der Akte oder im Bestandssystem.</p>' +
+      body: '<p>Menü <b>Export</b> → <b>Berichtspaket</b>. Damit holst du die fertigen Pflegeberichte aus Meraq heraus – zum Ablegen in der Akte oder im Bestandssystem.</p>' +
             '<ol><li><b>Von</b> und <b>Bis</b> wählen (Vorgabe: die letzten 30 Tage).</li>' +
             '<li>Optional eine <b>Klient/in</b> auswählen – sonst sind alle dabei.</li>' +
             '<li><b>Wundfotos einschließen</b>: Ja macht das Paket größer, Nein liefert nur die Daten.</li>' +
@@ -2893,7 +2993,7 @@
       try { c = (await api('/api/v1/clients/' + r.client_id + '/detail')).client || {}; }
       catch (e) { c = (clientsCache || []).find(x => x.id === r.client_id) || {}; }
       const e = esc, w = words();
-      const org = (user && user.organization_name) || 'Pflegeassistent';
+      const org = (user && user.organization_name) || 'Meraq';
       const dt = r.created_at ? new Date(r.created_at) : new Date();
       const docId = 'PB-' + dt.toISOString().slice(0, 10) + '-' + String(reportId).replace(/-/g, '').slice(0, 4).toUpperCase();
       const STATUS_DE = { confirmed: 'Freigegeben', submitted: 'Bestätigt – wartet auf Freigabe', draft: 'KI-Entwurf – noch nicht bestätigt' };
@@ -2971,7 +3071,7 @@ Es ersetzt keine unterschriebene Fassung.</div>
       const d = await api('/api/v1/clients/' + clientId + '/detail');
       const c = d.client;
       const name = `${c.first_name} ${c.last_name}`;
-      const org = (user && user.organization_name) || 'Pflegeassistent';
+      const org = (user && user.organization_name) || 'Meraq';
       const w = words();
       const e = esc;
       const STATUS_DE = { confirmed: 'Freigegeben', submitted: 'Wartet auf Freigabe', draft: 'KI-Entwurf' };
@@ -3071,7 +3171,7 @@ ${notes}
 <table><thead><tr><th>Datum</th><th>Eintrag</th><th>Dokumentiert von</th></tr></thead><tbody>${entries}</tbody></table>
 ${risks}${wounds}
 <div class="sign"><div>Datum, Unterschrift Pflegekraft</div><div>Datum, Unterschrift Pflegedienstleitung</div></div>
-<div class="foot">Auszug aus der eigenen Pflegedokumentation, erzeugt mit Pflegeassistent.
+<div class="foot">Auszug aus der eigenen Pflegedokumentation, erzeugt mit Meraq.
 Enthält ${d.reports.length === 1 ? '1 Eintrag' : d.reports.length + ' Einträge'}${statusNote}.
 Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung.</div>
 </body></html>`;
@@ -3995,6 +4095,69 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
     }).join('');
   }
 
+  function setSideUser(name, role) {
+    const n = document.getElementById('s-name'), r = document.getElementById('s-role'),
+          a = document.getElementById('s-avatar');
+    if (n) n.textContent = name;
+    if (r) r.textContent = role;
+    if (a) a.innerHTML = avatarInner(name);
+  }
+
+  /** Tagesverlauf als gezeichnete Zeitachse: jeder Punkt ein Einsatz, Farbe = Status.
+   *  Bewusst ohne Personenbezug — die API liefert dafür auch keine Ortsdaten. */
+  function renderDayBar(visits) {
+    const box = document.getElementById('d-daybar');
+    if (!box) return;
+    const mins = t => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+    const pts = visits.map(v => ({ m: mins(v.time), v })).filter(p => p.m !== null);
+    if (!pts.length) { box.innerHTML = '<div class="muted">Für heute sind keine Einsätze geplant.</div>'; return; }
+    const lo = Math.min(...pts.map(p => p.m)) - 30, hi = Math.max(...pts.map(p => p.m)) + 30;
+    const span = Math.max(hi - lo, 60);
+    const pos = m => 2 + ((m - lo) / span) * 96;
+    const done = pts.filter(p => (VISIT_STATUS[p.v.status] || [])[0] === 'done');
+    const lastDone = done.length ? Math.max(...done.map(p => p.m)) : null;
+    const hhmm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+    box.innerHTML =
+      `<span class="db-cap" style="left:0">${hhmm(Math.max(lo, 0))}</span>` +
+      `<span class="db-cap" style="right:0">${hhmm(Math.min(hi, 1439))}</span>` +
+      '<span class="db-line"></span>' +
+      (lastDone !== null ? `<span class="db-done" style="width:${pos(lastDone).toFixed(1)}%"></span>` : '') +
+      pts.map((p, i) => {
+        const st = (VISIT_STATUS[p.v.status] || ['plan', 'Geplant']);
+        const x = pos(p.m).toFixed(1);
+        return `<span class="db-pt ${st[0]}" style="left:${x}%" title="${esc(p.v.time)} · ${esc(p.v.client)} · ${st[1]}"></span>` +
+          (i % 2 === 0 ? `<span class="db-lbl" style="left:${x}%">${esc(p.v.time)}</span>` : '');
+      }).join('');
+  }
+
+  function renderNextVisit(visits) {
+    const box = document.getElementById('d-next');
+    if (!box) return;
+    const open = visits.filter(v => (VISIT_STATUS[v.status] || [])[0] !== 'done');
+    if (!open.length) {
+      box.innerHTML = '<div class="muted">Alle Einsätze für heute sind erledigt. 🎉</div>';
+      return;
+    }
+    const v = open[0], st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
+    box.innerHTML = `<div class="nextvisit">${avatarHTML(v.client, 44, null, 'client')}` +
+      `<div><div class="nv-t">${esc(v.client)}</div><div class="nv-s">${st[1]}</div></div>` +
+      `<div class="nv-time"><b>${esc(v.time)}</b><span class="muted" style="font-size:.74rem">Uhr</span></div></div>` +
+      `<button class="btn-soft" onclick="navTo('einsaetze')">Einsatz öffnen ›</button>`;
+    hydratePhotos(box);
+  }
+
+  function renderVisitTable(visits) {
+    const body = document.getElementById('d-vtable');
+    if (!body) return;
+    const head = document.getElementById('vt-person');
+    if (head) head.textContent = words().personIn;
+    body.innerHTML = visits.length ? visits.map(v => {
+      const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
+      return `<tr><td class="t">${esc(v.time)}</td><td>${esc(v.client)}</td>` +
+        `<td><span class="status ${st[0]}" style="margin:0">${st[1]}</span></td></tr>`;
+    }).join('') : '<tr><td colspan="3" class="muted">Keine Einsätze heute geplant.</td></tr>';
+  }
+
   async function loadDashboard() {
     try {
       const d = await api('/api/v1/dashboard/pdl');
@@ -4005,6 +4168,9 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       }).join('');
 
       const visits = d.visits || [];
+      renderDayBar(visits);
+      renderNextVisit(visits);
+      renderVisitTable(visits);
       document.getElementById('visits').innerHTML = visits.length ? visits.map((v, i) => {
         const st = VISIT_STATUS[v.status] || ['plan', 'Geplant'];
         return `<div class="visit" style="cursor:pointer" onclick="openClientDetail('${v.client_id}')"><span class="time">${esc(v.time)}</span>${avatarHTML(v.client, 38, clientPhotoPath(v.client_id), 'client')}<div class="grow"><div class="vname">${esc(v.client)}</div><div class="vsub">${SERVICES[i % SERVICES.length]}</div></div><span class="status ${st[0]}">${st[1]}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>`;
