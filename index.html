@@ -1176,7 +1176,7 @@
               <div><label>Pflegegrad</label><input id="kl-care" placeholder="z. B. Pflegegrad 3"></div>
               <div><label>Notfallkontakt</label><input id="kl-emergency"></div>
             </div>
-            <label>Notizen</label><textarea id="kl-notes" rows="2"></textarea>
+            <label>Dauerhinweis (steht immer oben, z. B. „Hund im Haus")</label><textarea id="kl-notes" rows="2"></textarea>
             <label>Profilfoto (optional)</label>
             <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
               <img id="kl-photo-preview" class="hidden" style="width:64px;height:64px;object-fit:cover;border-radius:50%;border:1px solid var(--line)">
@@ -1214,6 +1214,17 @@
               <div><label>Rolle</label><select id="st-role"><option value="caregiver">Pflegekraft</option><option value="pdl">Pflegedienstleitung</option><option value="org_admin">Administration</option></select></div>
               <div><label id="st-pw-label">Passwort</label><input id="st-pw" type="password" autocomplete="new-password" placeholder="mind. 6 Zeichen"></div>
             </div>
+            <label>Profilfoto (optional)</label>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <img id="st-photo-preview" class="hidden" style="width:64px;height:64px;object-fit:cover;border-radius:50%;border:1px solid var(--line)">
+              <span id="st-photo-drawn" class="hidden"></span>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <button type="button" class="ghost" id="st-photo-pick" onclick="document.getElementById('st-photo').click()">Foto auswählen</button>
+                <button type="button" class="ghost hidden" id="st-photo-del" onclick="deleteStaffPhoto()">Foto entfernen</button>
+              </div>
+              <input type="file" id="st-photo" accept="image/*" class="hidden" onchange="previewStaffPhoto()">
+            </div>
+            <div class="muted" style="font-size:.8rem;margin-top:6px" id="st-photo-hint">Ohne Foto wird eine gezeichnete Darstellung verwendet.</div>
             <div class="err" id="st-err"></div>
             <div style="height:10px"></div>
             <button onclick="saveStaff()">Speichern</button>
@@ -3281,7 +3292,7 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       const row = (label, value) => value
         ? `<div class="setting-row" style="border:0;padding:6px 0"><div class="tt" style="min-width:150px">${esc(label)}</div><div class="muted">${esc(value)}</div></div>` : '';
       const stamm = row('Pflegegrad', c.care_level) + row(w.place, placeOf(c)) +
-        row('Notfallkontakt', c.emergency_contact) + row('Notizen', c.notes) +
+        row('Notfallkontakt', c.emergency_contact) + row('Dauerhinweis', c.notes) +
         row('Versorgung', c.care_setting === 'stationaer' ? 'Stationär – wohnt im Haus' : 'Ambulant – wird zu Hause versorgt') +
         row('Status', c.is_active ? 'Aktiv' : 'Deaktiviert');
 
@@ -3311,6 +3322,21 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
         `<span class="status ${t.status === 'open' ? 'plan' : 'done'}">${t.status === 'open' ? 'Offen' : 'Erledigt'}</span></div>`).join('')
         : none('Keine Aufgaben.');
 
+      // Notizen: neueste zuerst, jede einzeln loeschbar. Eigene immer, fremde nur als Leitung.
+      const canDropAny = user && (user.role === 'pdl' || user.role === 'org_admin');
+      const notesList = (d.notes || []).length ? d.notes.map(n => {
+        const mine = user && n.author === user.full_name;
+        const del = (mine || canDropAny)
+          ? `<button class="ghost" title="Notiz löschen" onclick="deleteClientNote('${c.id}','${n.id}')">✕</button>` : '';
+        return `<div class="visit"><div class="grow"><div class="vname" style="font-weight:500">${esc(n.text)}</div>` +
+          `<div class="vsub">${esc(fmtDate(n.created_at))} · ${esc(n.author)}</div></div>${del}</div>`;
+      }).join('') : none('Noch keine Notizen.');
+      const notesBox = notesList +
+        `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">` +
+        `<input id="note-new" class="grow" placeholder="Notiz hinzufügen …" style="min-width:200px" ` +
+        `onkeydown="if(event.key==='Enter')addClientNote('${c.id}')">` +
+        `<button onclick="addClientNote('${c.id}')">Speichern</button></div>`;
+
       const wounds = d.wounds.length ? d.wounds.map(x =>
         `<div class="visit"><div class="grow"><div class="vname">${esc(x.body_location)}${x.wound_type ? ' · ' + esc(x.wound_type) : ''}</div>` +
         `<div class="vsub">${esc(fmtDate(x.created_at))}${x.stage ? ' · ' + esc(x.stage) : ''}${x.description ? ' · ' + esc(x.description) : ''}</div></div>` +
@@ -3335,6 +3361,7 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
         wayfindingHTML(c) +
         `<div class="panel" style="margin-top:6px">${stamm || none('Keine Stammdaten hinterlegt.')}</div>` +
         sect('Dokumentation', d.reports.length, reports) +
+        sect('Notizen', (d.notes || []).length, notesBox) +
         sect('Risiken & Hinweise', d.risks.length, risks) +
         sect('Aufgaben', d.tasks.length, tasks) +
         sect('Wunddokumentation', d.wounds.length, wounds) +
@@ -3392,6 +3419,23 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       if (name) { drawn.classList.remove('hidden'); drawn.innerHTML = avatarHTML(name, 64, null, 'client'); }
       else { drawn.classList.add('hidden'); drawn.innerHTML = ''; }
     }
+  }
+
+  async function addClientNote(clientId) {
+    const el = document.getElementById('note-new');
+    const text = (el && el.value || '').trim();
+    if (!text) return;
+    try {
+      await api('/api/v1/clients/' + clientId + '/notes', { method: 'POST', body: { text } });
+      openClientDetail(clientId);   // Akte neu laden, damit Datum und Autor stimmen
+    } catch (e) { flashToast('Notiz konnte nicht gespeichert werden: ' + e.message); }
+  }
+  async function deleteClientNote(clientId, noteId) {
+    if (!confirm('Diese Notiz wirklich löschen?')) return;
+    try {
+      await api('/api/v1/clients/' + clientId + '/notes/' + noteId, { method: 'DELETE' });
+      openClientDetail(clientId);
+    } catch (e) { flashToast('Notiz konnte nicht gelöscht werden: ' + e.message); }
   }
 
   async function deleteClientPhoto() {
@@ -3465,6 +3509,57 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
 
   // ---- Personal (Mitarbeiter) ----
   let staffCache = [];
+  function staffPhotoPath(u) {
+    return u && u.has_photo ? '/api/v1/staff/' + u.id + '/photo' : null;
+  }
+  function previewStaffPhoto() {
+    const f = document.getElementById('st-photo').files[0];
+    const pv = document.getElementById('st-photo-preview');
+    if (!f) return;
+    document.getElementById('st-photo-drawn').classList.add('hidden');
+    pv.classList.remove('hidden');
+    pv.src = URL.createObjectURL(f);
+    document.getElementById('st-photo-hint').textContent = 'Wird beim Speichern hinterlegt.';
+  }
+  /** Zeigt entweder das hinterlegte Foto oder die gezeichnete Darstellung.
+   *  Gleiches Verhalten wie beim Klientenfoto - inklusive Loeschweg. */
+  function renderStaffPhotoState(u) {
+    const pv = document.getElementById('st-photo-preview');
+    const drawn = document.getElementById('st-photo-drawn');
+    const del = document.getElementById('st-photo-del');
+    const pick = document.getElementById('st-photo-pick');
+    const hint = document.getElementById('st-photo-hint');
+    if (u && u.has_photo) {
+      pv.classList.remove('hidden'); pv.src = '';
+      drawn.classList.add('hidden'); drawn.innerHTML = '';
+      del.classList.remove('hidden');
+      pick.textContent = 'Foto ändern';
+      hint.textContent = 'Eigenes Foto hinterlegt. „Foto entfernen" schaltet zurück auf die gezeichnete Darstellung.';
+      apiBlobUrl('/api/v1/staff/' + u.id + '/photo').then(x => { if (x) pv.src = x; else pv.classList.add('hidden'); });
+    } else {
+      pv.classList.add('hidden'); pv.src = '';
+      del.classList.add('hidden');
+      pick.textContent = 'Foto auswählen';
+      hint.textContent = 'Ohne Foto wird eine gezeichnete Darstellung verwendet.';
+      const name = u ? u.full_name : '';
+      if (name) { drawn.classList.remove('hidden'); drawn.innerHTML = avatarHTML(name, 64, null, 'staff'); }
+      else { drawn.classList.add('hidden'); drawn.innerHTML = ''; }
+    }
+  }
+  async function deleteStaffPhoto() {
+    const id = document.getElementById('st-id').value;
+    if (!id) return;
+    const u = staffCache.find(x => x.id === id);
+    if (!confirm('Foto von ' + (u ? u.full_name : 'dieser Person') + ' wirklich entfernen?')) return;
+    try {
+      await api('/api/v1/staff/' + id + '/photo', { method: 'DELETE' });
+      if (u) u.has_photo = false;
+      document.getElementById('st-photo').value = '';
+      renderStaffPhotoState(u);
+      loadStaff();
+    } catch (e) { flash('st-err', 'Foto konnte nicht entfernt werden: ' + e.message); }
+  }
+
   async function loadStaff() {
     try {
       const inactive = document.getElementById('st-inactive');
@@ -3481,8 +3576,10 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
           (self ? '' : (u.is_active
             ? `<button class="ghost" onclick="toggleStaffActive('${u.id}',false)">Deaktivieren</button>`
             : `<button class="ghost" onclick="toggleStaffActive('${u.id}',true)">Aktivieren</button>`));
-        return `<div class="visit" style="${dim}">${avatarHTML(u.full_name, 38)}<div class="grow"><div class="vname">${esc(u.full_name)} ${flag}</div><div class="vsub">${esc(role)} · ${esc(u.email)}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap">${actions}</div></div>`;
+        return `<div class="visit" style="${dim}">${avatarHTML(u.full_name, 38, staffPhotoPath(u), 'staff')}<div class="grow"><div class="vname">${esc(u.full_name)} ${flag}</div><div class="vsub">${esc(role)} · ${esc(u.email)}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap">${actions}</div></div>`;
       }).join('');
+      // Hochgeladene Fotos brauchen den Bearer-Token, laufen also über hydratePhotos.
+      hydratePhotos(document.getElementById('list-personal'));
     } catch (e) { listError('list-personal', e.message); }
   }
 
@@ -3497,6 +3594,8 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
     document.getElementById('st-pw').value = '';
     document.getElementById('st-pw-label').textContent = u ? 'Neues Passwort (optional)' : 'Passwort';
     document.getElementById('st-pw').placeholder = u ? 'leer lassen = unverändert' : 'mind. 6 Zeichen';
+    document.getElementById('st-photo').value = '';
+    renderStaffPhotoState(u);
     flash('st-err', '');
     document.getElementById('staff-form-panel').classList.remove('hidden');
   }
@@ -3510,6 +3609,7 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
     const pw = document.getElementById('st-pw').value;
     if (!name) { flash('st-err', 'Bitte einen Namen angeben.'); return; }
     try {
+      let staffId = id;
       if (id) {
         const body = { full_name: name, role };
         if (pw) body.password = pw;
@@ -3517,7 +3617,16 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
       } else {
         if (!email) { flash('st-err', 'Bitte eine E-Mail angeben.'); return; }
         if (pw.length < 6) { flash('st-err', 'Passwort muss mindestens 6 Zeichen haben.'); return; }
-        await api('/api/v1/staff', { method: 'POST', body: { full_name: name, email, role, password: pw } });
+        const created = await api('/api/v1/staff', { method: 'POST', body: { full_name: name, email, role, password: pw } });
+        staffId = created && created.id;
+      }
+      // Foto erst nach dem Anlegen - vorher gibt es keine ID, an die es gehört.
+      const file = document.getElementById('st-photo').files[0];
+      if (file && staffId) {
+        const small = await resizeImage(file, 512, 0.85);
+        const fd = new FormData();
+        fd.append('photo', small, 'staff.jpg');
+        await apiUpload('/api/v1/staff/' + staffId + '/photo', fd);
       }
       closeStaffForm();
       loadStaff();
