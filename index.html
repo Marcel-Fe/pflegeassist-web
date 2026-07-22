@@ -4392,10 +4392,21 @@ Dieses Blatt ist eine Kopie zur Ablage und ersetzt keine unterschriebene Fassung
         list(r.observations, 'Beobachtungen') + list(r.measures, 'Maßnahmen') + risks +
         `<div style="height:14px"></div>` +
         (canConfirm ? `<button onclick="confirmReport('${r.report_id}')">Freigeben (PDL)</button> ` : '') +
+        (canConfirm ? `<button class="ghost" style="color:#b42318" onclick="deleteReport('${r.report_id}')">Entwurf löschen</button> ` : '') +
         `<button class="ghost" onclick="closeReport()">Schließen</button>`;
     } catch (e) { body.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
   }
   function closeReport() { document.getElementById('report-modal').classList.add('hidden'); }
+  async function deleteReport(id) {
+    // Nur Entwürfe (draft/submitted); freigegebene Berichte lehnt der Server ab (409).
+    if (!confirm('Diesen Entwurf wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return;
+    try {
+      await api('/api/v1/documentation/' + id, { method: 'DELETE' });
+      closeReport();
+      flashToast('Entwurf gelöscht ✓');
+      loadDashboard();
+    } catch (e) { flashToast('Fehler: ' + e.message); }
+  }
   async function confirmReport(id) {
     try {
       await api('/api/v1/documentation/confirm', { method: 'POST', body: { report_id: id } });
