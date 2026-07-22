@@ -1801,11 +1801,27 @@
   function closeDrawer() { document.querySelector('.sidebar').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
   function homeTab() { navTo(isManager() ? 'dash' : 'start'); }
   const BOTTOM_TAB = { start: 'home', dash: 'home', einsaetze: 'einsaetze', klienten: 'klienten', doc: 'doc' };
+  // Live-Nachladen: neue Handy-Dokumentation erscheint im PDL-Radar, ohne dass die Leitung
+  // die Seite neu lädt. Nur für die Leitung, nur auf dem Dashboard, nur bei aktivem Tab.
+  let livePoller = null;
+  function stopLivePoll() { if (livePoller) { clearInterval(livePoller); livePoller = null; } }
+  function startLivePoll() {
+    stopLivePoll();
+    if (!user || !isManager()) return;
+    livePoller = setInterval(function () {
+      if (!user || !isManager()) { stopLivePoll(); return; }
+      if (document.hidden) return;               // Tab im Hintergrund: kein unnötiger Traffic
+      if (currentView === 'dash') loadOpenDocs();
+    }, 25000);
+  }
+
   function navTo(view) {
     // Rollen-Schutz: Pflegekräfte dürfen nur ihr schlankes Set öffnen (PDL/Chef alles).
     if (user && user.role !== 'super_admin' && !isManager() && !CAREGIVER_VIEWS.includes(view)) view = 'start';
     currentView = view;
     closeDrawer();
+    stopLivePoll();
+    if (view === 'dash') startLivePoll();
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const nav = document.querySelector('.nav-item[data-view="' + view + '"]');
